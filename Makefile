@@ -7,3 +7,6 @@ collector:
 clean:
 	rm collector/*.o
 
+distclean:
+	rm bin/collector
+
