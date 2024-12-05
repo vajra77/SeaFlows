@@ -26,32 +26,55 @@ int sflow_decode_datagram(char *datagram, int len) {
 
             /* records loop */
             for (int k = 0; k < flow_sample->num_records; k++) {
-                unsigned int record_format;
-                memcpy(&record_format, datagram, sizeof(unsigned int));
+                flow_record_t *flow_record = (flow_record_t*)malloc(sizeof(flow_record_t));
+                memcpy(flow_record->header, datagram, sizeof(struct flow_record_header));
+                datagram += sizeof(struct flow_record_header);
 
-                if(record_format & SFLOW_RAW_PACKET_HEADER_FORMAT) {
+                if(flow_record->data_format & SFLOW_RAW_PACKET_HEADER_FORMAT) {
                   /* raw packet header follows */
                   raw_packet_t *raw_packet = (raw_packet_t*)malloc(sizeof(raw_packet_t));
                   memcpy(raw_packet->header, datagram, sizeof(struct raw_packet_header));
                   datagram += sizeof(struct raw_packet_header);
 
+                  /*
+                  *     parse ethernet/ip/tcp/udp
+                  *                                */
 
+                  flow_record->packet = raw_packet;
+
+                  flow_record_t *ptr = flow_sample->records;
+                  while (ptr != NULL) {
+                      ptr = ptr->next;
+                  }
+                  ptr = flow_record;
                 }
             }
             /* end of records loop */
 
-            if (sflow_datagram->samples == NULL) {
-                  sflow_datagram->samples = flow_sample;
+            sflow_sample_t *ptr = sflow_datagram->samples
+            while (ptr != NULL) {
+                ptr = ptr->next;
             }
-            else {
-                sflow_sample_t *ptr = sflow_datagram->samples
-                while (ptr != NULL) {
-                    ptr = ptr->next;
-                }
-                ptr = flow_sample;
-            }
+            ptr = flow_sample;
         }
 
     }
     /* end of samples loop */
+    return 0;
+}
+
+int free_sflow_datagram(sflow_datagram_t *sflow_datagram) {
+    flow_sample_t *pts = sflow_datagram->samples;
+    while (pts != NULL) {
+      flow_record_t *ptr = pts->records;
+      while (ptr != NULL) {
+        flow_record_t *fptr = ptr;
+        ptr = ptr->next;
+        free(ftpr);
+      }
+      flow_sample_t *fpts = pts;
+      pts = pts->next;
+      free(fpts);
+    }
+    return 0;
 }

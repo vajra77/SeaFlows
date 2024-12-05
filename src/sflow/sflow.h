@@ -33,9 +33,9 @@ struct flow_record_header {
 };
 
 typedef struct flow_record {
-  struct flow_sample_header header;
+  struct flow_record_header record_header;
+  struct raw_packet *packet;
   struct flow_record *next;
-  void *data;
 } flow_record_t;
 
 
