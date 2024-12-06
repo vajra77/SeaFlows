@@ -4,6 +4,8 @@
 
 #ifndef SFLOW_H
 #define SFLOW_H
+#include "net.h"
+
 #define MAX_SFLOW_DATA 16384
 
 #define SFLOW_FLOW_SAMPLE_FORMAT 0x00000001
@@ -41,7 +43,9 @@ struct raw_packet_header {
 
 typedef struct raw_packet {
   struct raw_packet_header header;
-  void *data;
+  datalink_header_t		*datalink;
+  ipv4_header_t			*ipv4;
+  ipv6_header_t			*ipv6;
 } raw_packet_t;
 
 

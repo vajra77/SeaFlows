@@ -14,7 +14,8 @@ sflow.o:
 	$(CC) $(CFLAGS) -c -o src/sflow/sflow.o -I src/ src/sflow/sflow.c
 
 clean:
-	rm collector/*.o
+	rm src/collector/*.o
+	rm src/sflow/*.o
 
 distclean:
 	rm bin/collector

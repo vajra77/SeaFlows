@@ -4,8 +4,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <netinet/in.h>
 
 #include "sflow.h"
+#include "net.h"
 
 sflow_datagram_t *sflow_decode_datagram(sflow_raw_data_t *sflow_raw_data) {
 
@@ -33,23 +35,52 @@ sflow_datagram_t *sflow_decode_datagram(sflow_raw_data_t *sflow_raw_data) {
                 memcpy(&flow_record->header, datagram, sizeof(struct flow_record_header));
                 datagram += sizeof(struct flow_record_header);
 
-                if(flow_record->header.data_format & SFLOW_RAW_PACKET_HEADER_FORMAT) {
-                  /* raw packet header follows */
-                  raw_packet_t *raw_packet = (raw_packet_t*)malloc(sizeof(raw_packet_t));
-                  memcpy(&raw_packet->header, datagram, sizeof(struct raw_packet_header));
-                  datagram += sizeof(struct raw_packet_header);
+                if(ntohs(flow_record->header.data_format) == SFLOW_RAW_PACKET_HEADER_FORMAT) {
+                	/* raw packet header follows */
+                  	raw_packet_t *raw_packet = (raw_packet_t*)malloc(sizeof(raw_packet_t));
+                 	memcpy(&raw_packet->header, datagram, sizeof(struct raw_packet_header));
+                  	datagram += sizeof(struct raw_packet_header);
 
-                  /*
-                  *     parse ethernet/ip/tcp/udp
-                  *                                */
+                    /* datalink section */
+                  	datalink_header_t *datalink_header = (datalink_header_t*)malloc(sizeof(datalink_header_t));
+                  	memcpy(&datalink_header->ethernet, datagram, sizeof(struct ethernet_header));
+                  	datagram += sizeof(struct ethernet_header);
 
-                  flow_record->packet = raw_packet;
+                  	if (ntohs(datalink_header->ethernet.ethertype) == ETHERTYPE_8021Q) {
+                        memcpy(&datalink_header->vlan, datagram, sizeof(struct vlan_header));
+                        datagram += sizeof(struct vlan_header);
+                  	}
 
-                  flow_record_t *ptr = flow_sample->records;
-                  while (ptr != NULL) {
-                      ptr = ptr->next;
-                  }
-                  ptr = flow_record;
+                    raw_packet->datalink = datalink_header;
+
+                    /* network section */
+                    if (ntohs(datalink_header->ethernet.ethertype) == ETHERTYPE_IPV4) {
+						ipv4_header_t *ipv4_header = (ipv4_header_t*)malloc(sizeof(ipv4_header_t));
+                        memcpy(ipv4_header, datagram, sizeof(ipv4_header_t));
+                        datagram += sizeof(ipv4_header_t);
+						raw_packet->ipv4 = ipv4_header;
+						raw_packet->ipv6 = NULL;
+                    }
+                    else if (ntohs(datalink_header->ethernet.ethertype) == ETHERTYPE_IPV6) {
+                    	ipv6_header_t *ipv6_header = (ipv6_header_t*)malloc(sizeof(ipv6_header_t));
+                        memcpy(ipv6_header, datagram, sizeof(ipv6_header_t));
+                        datagram += sizeof(ipv6_header_t);
+						raw_packet->ipv4 = NULL;
+						raw_packet->ipv6 = ipv6_header;
+                    }
+                    else {
+                      	/* do something about non-IP packet */
+                        raw_packet->ipv6 = NULL;
+                      	raw_packet->ipv4 = NULL;
+                    }
+
+                  	flow_record->packet = raw_packet;
+
+                  	flow_record_t *ptr = flow_sample->records;
+                  	while (ptr != NULL) {
+                    	ptr = ptr->next;
+                  	}
+                  	ptr = flow_record;
                 }
             }
             /* end of records loop */
