@@ -142,14 +142,14 @@ storable_flow_t	*sflow_encode_flow_record(flow_record_t *record) {
      	struct in_addr source_address;
         struct in_addr destination_address;
 
-        memcpy(&source_address.s_addr, pkt->ipv4->source_address, sizeof(unsigned int));
-        memcpy(&destination_address.s_addr, pkt->ipv4->destination_address, sizeof(unsigned int));
+        memcpy(&source_address.s_addr, &pkt->ipv4->source_address, sizeof(unsigned int));
+        memcpy(&destination_address.s_addr, &pkt->ipv4->destination_address, sizeof(unsigned int));
 
         addr_str = inet_ntoa(source_address);
-        memcpy(flow->src_ip, addr_str, sizeof(addr_str));
+        memcpy(flow->src_ip, addr_str, 18);
 
         addr_str = inet_ntoa(destination_address);
-        memcpy(flow->dst_ip, addr_str, sizeof(addr_str));
+        memcpy(flow->dst_ip, addr_str, 18);
 
         flow->size = pkt->ipv4->length + 14 + 20;
     }

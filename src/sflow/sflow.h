@@ -18,8 +18,8 @@ typedef struct storable_flow {
   char src_mac[18];
   char dst_mac[18];
   unsigned int proto;
-  char src_ip[4];
-  char dst_ip[4];
+  char src_ip[18];
+  char dst_ip[18];
   unsigned int size;
 } storable_flow_t;
 

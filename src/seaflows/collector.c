@@ -1,6 +1,7 @@
 //
 // Created by Francesco Ferreri (Namex) on 29/11/24.
 //
+
 #include <sys/socket.h>
 #include <pthread.h>
 #include <stdlib.h>
@@ -8,8 +9,8 @@
 #include <strings.h>
 
 #include "sflow/sflow.h"
-#include "collector/error.h"
-#include "collector/server.h"
+#include "seaflows/error.h"
+#include "seaflows/collector.h"
 
 
 void* handle_request(void *arg) {
@@ -35,26 +36,25 @@ void* handle_request(void *arg) {
   return NULL;
 }
 
-void* server_thread(void *arg)
+void* collector_thread(void *arg)
 {
-    server_address_t *server_address = (server_address_t *)arg;
+    collector_address_t *collector_address = (collector_address_t *)arg;
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
 
     if (sock < 0)
 		return NULL;
 
-    struct sockaddr_in server;
-	bzero(&server, sizeof(server));
+    struct sockaddr_in address;
+	bzero(&address, sizeof(address));
 
-    server.sin_family = AF_INET;
-    inet_pton(AF_INET, server_address->address, &server.sin_addr);
-	server.sin_port = htons(server_address->port);
+    address.sin_family = AF_INET;
+    inet_pton(AF_INET, collector_address->address, &address.sin_addr);
+	address.sin_port = htons(collector_address->port);
 
-	if (bind(sock, (struct sockaddr *)&server, sizeof(server)) < 0 )
+	if (bind(sock, (struct sockaddr *)&address, sizeof(address)) < 0 )
           return NULL;
 
-	while(1)
-    {
+	while(1) {
         sflow_raw_data_t *raw_data = (sflow_raw_data_t*)malloc(sizeof(sflow_raw_data_t));
 
         raw_data->size = recvfrom(sock, raw_data->data, MAX_SFLOW_DATA, 0, NULL, NULL) ;
@@ -63,5 +63,3 @@ void* server_thread(void *arg)
 		pthread_create(&new_thread, NULL, handle_request, (void *)raw_data);
 	}
 }
-
-

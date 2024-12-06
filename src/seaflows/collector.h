@@ -5,6 +5,11 @@
 #ifndef COLLECTOR_H
 #define COLLECTOR_H
 
-#define MAX_THREADS 16
+typedef struct collector_address {
+  int port;
+  char *address;
+} collector_address_t;
+
+void* collector_thread(void *);
 
 #endif //COLLECTOR_H
