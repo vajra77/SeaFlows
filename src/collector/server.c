@@ -16,7 +16,19 @@ void* handle_request(void *arg) {
   sflow_raw_data_t *raw_data = (sflow_raw_data_t*)arg;
   sflow_datagram_t *sflow_datagram = sflow_decode_datagram(raw_data);
 
-  /* do something with data */
+  for (flow_sample_t* sample = sflow_datagram->samples; sample != NULL; sample = sample->next) {
+    for (flow_record_t* record = sample->records; record != NULL; record = record->next) {
+  		storable_flow_t	*storable_flow = sflow_encode_flow_record(record);
+
+    }
+  }
+  /* do something with data:
+
+	1 - create serializable structure
+	2 - add structure to queue
+	3 - free resources
+
+  */
 
   sflow_free_datagram(sflow_datagram);
   free(raw_data);

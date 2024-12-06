@@ -4,7 +4,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
+#include <time.h>
 
 #include "sflow.h"
 #include "net.h"
@@ -47,8 +50,11 @@ sflow_datagram_t *sflow_decode_datagram(sflow_raw_data_t *sflow_raw_data) {
                   	datagram += sizeof(struct ethernet_header);
 
                   	if (ntohs(datalink_header->ethernet.ethertype) == ETHERTYPE_8021Q) {
+                        datagram -= sizeof(unsigned short);
                         memcpy(&datalink_header->vlan, datagram, sizeof(struct vlan_header));
                         datagram += sizeof(struct vlan_header);
+                        memcpy(&datalink_header->ethernet.ethertype, datagram, sizeof(unsigned short));
+                        datagram += sizeof(unsigned short);
                   	}
 
                     raw_packet->datalink = datalink_header;
@@ -111,4 +117,46 @@ int sflow_free_datagram(sflow_datagram_t *sflow_datagram) {
       free(fpts);
     }
     return 0;
+}
+
+storable_flow_t	*sflow_encode_flow_record(flow_record_t *record) {
+
+  	storable_flow_t	*flow = (storable_flow_t*)malloc(sizeof(storable_flow_t));
+	raw_packet_t 	*pkt = record->packet;
+
+	flow->timestamp = time(NULL);
+
+	char *dst_mac = pkt->datalink->ethernet.destination_mac;
+    char *src_mac = pkt->datalink->ethernet.source_mac;
+
+    snprintf(flow->dst_mac, 18, "%02x:%02x:%02x:%02x:%02x:%02x",
+         dst_mac[0], dst_mac[1], dst_mac[2], dst_mac[3], dst_mac[4], dst_mac[5]);
+
+    snprintf(flow->src_mac, 18, "%02x:%02x:%02x:%02x:%02x:%02x",
+         src_mac[0], src_mac[1], src_mac[2], src_mac[3], src_mac[4], src_mac[5]);
+
+    flow->proto = ntohs(pkt->datalink->ethernet.ethertype);
+
+    if (flow->proto == ETHERTYPE_IPV4) {
+      	char *addr_str;
+     	struct in_addr source_address;
+        struct in_addr destination_address;
+
+        memcpy(&source_address.s_addr, pkt->ipv4->source_address, sizeof(unsigned int));
+        memcpy(&destination_address.s_addr, pkt->ipv4->destination_address, sizeof(unsigned int));
+
+        addr_str = inet_ntoa(source_address);
+        memcpy(flow->src_ip, addr_str, sizeof(addr_str));
+
+        addr_str = inet_ntoa(destination_address);
+        memcpy(flow->dst_ip, addr_str, sizeof(addr_str));
+
+        flow->size = pkt->ipv4->length + 14 + 20;
+    }
+    else {
+
+    }
+
+
+    return flow;
 }

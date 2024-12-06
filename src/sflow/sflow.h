@@ -14,14 +14,12 @@
 /* Storable Flow */
 
 typedef struct storable_flow {
-  unsigned int timestamp;
-  char src_mac[6];
-  char dst_mac[6];
+  int timestamp;
+  char src_mac[18];
+  char dst_mac[18];
+  unsigned int proto;
   char src_ip[4];
   char dst_ip[4];
-  unsigned int src_port;
-  unsigned int dst_port;
-  unsigned int protocol;
   unsigned int size;
 } storable_flow_t;
 
@@ -102,7 +100,8 @@ typedef struct sflow_datagram {
   flow_sample_t *samples;
 } sflow_datagram_t;
 
-sflow_datagram_t* sflow_decode_datagram(sflow_raw_data_t*);
+sflow_datagram_t* 	sflow_decode_datagram(sflow_raw_data_t*);
+storable_flow_t*	sflow_encode_flow_record(flow_record_t*);
 int sflow_free_datagram(sflow_datagram_t*);
 
 #endif //SFLOW_H
