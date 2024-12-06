@@ -8,7 +8,7 @@
 #include <strings.h>
 
 #include "collector/error.h"
-#include "parser/parser.h"
+#include "sflow/export.h"
 #include "collector/server.h"
 
 

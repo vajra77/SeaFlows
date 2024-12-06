@@ -33,7 +33,7 @@ struct flow_record_header {
 };
 
 typedef struct flow_record {
-  struct flow_record_header record_header;
+  struct flow_record_header header;
   struct raw_packet *packet;
   struct flow_record *next;
 } flow_record_t;
@@ -74,7 +74,7 @@ struct sflow_datagram_header {
 };
 
 typedef struct sflow_datagram {
-  struct sflow_datagram_hdr header;
+  struct sflow_datagram_header header;
   flow_sample_t *samples;
 } sflow_datagram_t;
 
