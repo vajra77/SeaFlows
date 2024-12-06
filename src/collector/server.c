@@ -7,14 +7,18 @@
 #include <arpa/inet.h>
 #include <strings.h>
 
+#include "sflow/sflow.h"
 #include "collector/error.h"
-#include "sflow/export.h"
 #include "collector/server.h"
 
 
-void* handle_request(void *arg)
-{
+void* handle_request(void *arg) {
   sflow_raw_data_t *raw_data = (sflow_raw_data_t*)arg;
+  sflow_datagram_t *sflow_datagram = sflow_decode_datagram(raw_data);
+
+  /* do something with data */
+
+  sflow_free_datagram(sflow_datagram);
   free(raw_data);
   return NULL;
 }

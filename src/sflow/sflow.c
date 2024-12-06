@@ -7,7 +7,9 @@
 
 #include "sflow.h"
 
-int sflow_decode_datagram(char *datagram, int len) {
+sflow_datagram_t *sflow_decode_datagram(sflow_raw_data_t *sflow_raw_data) {
+
+  	char *datagram = sflow_raw_data->data;
 
     sflow_datagram_t *sflow_datagram = (sflow_datagram_t*)malloc(sizeof(sflow_datagram_t));
     memcpy(&sflow_datagram->header, datagram, sizeof(struct sflow_datagram_header));
@@ -61,10 +63,10 @@ int sflow_decode_datagram(char *datagram, int len) {
 
     }
     /* end of samples loop */
-    return 0;
+    return sflow_datagram;
 }
 
-int free_sflow_datagram(sflow_datagram_t *sflow_datagram) {
+int sflow_free_datagram(sflow_datagram_t *sflow_datagram) {
     flow_sample_t *pts = sflow_datagram->samples;
     while (pts != NULL) {
       flow_record_t *ptr = pts->records;

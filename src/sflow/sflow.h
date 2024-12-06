@@ -9,6 +9,26 @@
 #define SFLOW_FLOW_SAMPLE_FORMAT 0x00000001
 #define SFLOW_RAW_PACKET_HEADER_FORMAT 0x00000001
 
+/* Storable Flow */
+
+typedef struct storable_flow {
+  unsigned int timestamp;
+  char src_mac[6];
+  char dst_mac[6];
+  char src_ip[4];
+  char dst_ip[4];
+  unsigned int src_port;
+  unsigned int dst_port;
+  unsigned int protocol;
+  unsigned int size;
+} storable_flow_t;
+
+/* Sflow RAW Data */
+
+typedef struct sflow_raw_data {
+    char data[MAX_SFLOW_DATA];
+    int size;
+} sflow_raw_data_t;
 
 /* RAW packet */
 
@@ -77,5 +97,8 @@ typedef struct sflow_datagram {
   struct sflow_datagram_header header;
   flow_sample_t *samples;
 } sflow_datagram_t;
+
+sflow_datagram_t* sflow_decode_datagram(sflow_raw_data_t*);
+int sflow_free_datagram(sflow_datagram_t*);
 
 #endif //SFLOW_H
