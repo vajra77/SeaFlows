@@ -9,7 +9,6 @@
 #include "sflow/sflow.h"
 
 typedef struct destination_node {
-
   unsigned int hash;
   void *data;
   struct destination_node *next;
