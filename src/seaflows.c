@@ -108,24 +108,35 @@ int main(int argc, char **argv) {
 
 
 	pthread_t    collector_threads[MAX_THREADS];
+    pthread_t    broker_threads[MAX_THREADS];
     queue_t      message_queues[MAX_THREADS];
+    matrix_t     *flow_matrix[MAX_THREADS];
+    collector_data_t collector_data[MAX_THREADS];
+    broker_data_t broker_data[MAX_THREADS];
 
     for(int i = 0; i < num_threads; i++){
       queue_init(&message_queues[i]);
+      matrix_init(&flow_matrix[i]);
     }
 
 	/* create threads */
 	for(int i = 0; i < num_threads; i++) {
-		collector_data_t collector_data;
-		collector_data.port = SEAFLOWS_LISTENER_PORT + i;
-		collector_data.address = listen_address;
-        collector_data.queue = &message_queues[i];
-		pthread_create(&collector_threads[i], NULL, collector_thread, (void*)&collector_data);
+		collector_data[i].port = SEAFLOWS_LISTENER_PORT + i;
+		collector_data[i].address = listen_address;
+        collector_data[i].queue = &message_queues[i];
+
+        broker_data[i].queue = &message_queues[i];
+        broker_data[i].matrix = &flow_matrix[i];
+
+		pthread_create(&collector_threads[i], NULL, collector_thread, (void*)&collector_data[i]);
+        pthread_create(&broker_threads[i], NULL, broker_thread, (void*)&broker_data[i]);
 	}
+
 
 	/* join threads */
 	for(int i = 0; i < num_threads; i++) {
 		pthread_join(collector_threads[i], NULL);
+        pthread_join(broker_threads[i], NULL);
 	}
 
 	exit(0);

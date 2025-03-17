@@ -9,25 +9,28 @@
 #include "sflow/sflow.h"
 
 typedef struct destination_node {
-  unsigned int hash;
-  void *data;
+  unsigned int key;
+  unsigned int bytes_v4;
+  unsigned int bytes_v6;
   struct destination_node *next;
 } dstnode_t;
 
 typedef struct source_node {
-  unsigned int hash;
+  unsigned int key;
+  unsigned int bytes_v4;
+  unsigned int bytes_v6;
   struct destination_node  *destinations;
   struct source_node *next;
 } srcnode_t;
 
 typedef struct matrix {
-  pthread_mutex_t *lock;
-  struct source_node *sources;
-  int size;
+	pthread_mutex_t lock;
+  	struct source_node *sources;
+	int size;
 } matrix_t;
 
-matrix_t *matrix_create(int size);
+void matrix_init(matrix_t *matrix);
 void matrix_destroy(matrix_t *matrix);
 void matrix_clear(matrix_t *matrix);
-int matrix_insert(matrix_t *matrix, storable_flow_t *flow);
+void matrix_add_flow(matrix_t *matrix, storable_flow_t *flow);
 #endif //MATRIX_H
