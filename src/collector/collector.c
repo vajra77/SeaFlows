@@ -9,8 +9,8 @@
 #include <strings.h>
 
 #include "sflow/sflow.h"
-#include "seaflows/error.h"
-#include "seaflows/collector.h"
+#include "collector/error.h"
+#include "collector/collector.h"
 
 
 void* handle_request(void *arg) {

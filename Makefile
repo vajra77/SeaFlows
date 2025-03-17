@@ -1,11 +1,13 @@
 CC = gcc
 CFLAGS = -g -Wall
 
-seaflows: sflow.o collector.o queue.o
-	$(CC) $(CFLAGS) -o bin/seaflows src/seaflows/collector.o src/sflow/sflow.o src/seaflows/main.c
+all: collector
+
+collector: sflow.o queue.o collector.o
+	$(CC) $(CFLAGS) -o bin/seaflows-collector src/collector/main.c src/collector/collector.o src/sflow/sflow.o src/queue/queue.o
 
 collector.o:
-	$(CC) $(CFLAGS) -c -o src/seaflows/collector.o -I src/ src/seaflows/collector.c
+	$(CC) $(CFLAGS) -c -o src/collector/collector.o -I src/ src/collector/collector.c
 
 sflow.o:
 	$(CC) $(CFLAGS) -c -o src/sflow/sflow.o -I src/ src/sflow/sflow.c
@@ -14,10 +16,9 @@ queue.o:
 	$(CC) $(CFLAGS) -c -o src/queue/queue.o -I src/ src/queue/queue.c
 
 clean:
-	rm src/seaflows/*.o
+	rm src/collector/*.o
 	rm src/sflow/*.o
 	rm src/queue/*.o
 
-distclean:
-	rm bin/seaflows
-
+distclean: clean
+	rm bin/seaflows-collector
