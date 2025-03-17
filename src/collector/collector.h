@@ -5,10 +5,13 @@
 #ifndef COLLECTOR_H
 #define COLLECTOR_H
 
-typedef struct collector_address {
+#include "queue/queue.h"
+
+typedef struct collector_data {
   int port;
   char *address;
-} collector_address_t;
+  queue_t *queue;
+} collector_data_t;
 
 void* collector_thread(void *);
 

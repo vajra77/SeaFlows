@@ -11,7 +11,8 @@
 #include <sys/stat.h>
 #include <syslog.h>
 #include <pthread.h>
-#include "collector.h"
+#include "seaflows.h"
+#include "collector/collector.h"
 
 #define MAX_THREADS 24
 
@@ -25,23 +26,6 @@ void usage(){
 	printf("\t-t, --threads <n_threads>\t\tNumber of listener threads\n");
 }
 
-void launch_collector(char *listen_address, int num_threads){
-
-	pthread_t    listener_threads[MAX_THREADS];
-
-  	/* create threads */
-  	for(int i = 0; i < num_threads; i++) {
-		collector_address_t collector_addr;
-		collector_addr.port = 9090 + i;
-		collector_addr.address = listen_address;
-		pthread_create(&listener_threads[i], NULL, collector_thread, (void*)&collector_addr);
-  	}
-
-  	/* join threads */
-  	for(int i = 0; i < num_threads; i++) {
-		pthread_join(listener_threads[i], NULL);
-  	}
-}
 
 int main(int argc, char **argv) {
 
@@ -122,7 +106,27 @@ int main(int argc, char **argv) {
 		close (x);
 	}
 
-	launch_collector(listen_address, num_threads);
+
+	pthread_t    collector_threads[MAX_THREADS];
+    queue_t      message_queues[MAX_THREADS];
+
+    for(int i = 0; i < num_threads; i++){
+      queue_init(&message_queues[i]);
+    }
+
+	/* create threads */
+	for(int i = 0; i < num_threads; i++) {
+		collector_data_t collector_data;
+		collector_data.port = SEAFLOWS_LISTENER_PORT + i;
+		collector_data.address = listen_address;
+        collector_data.queue = &message_queues[i];
+		pthread_create(&collector_threads[i], NULL, collector_thread, (void*)&collector_data);
+	}
+
+	/* join threads */
+	for(int i = 0; i < num_threads; i++) {
+		pthread_join(collector_threads[i], NULL);
+	}
 
 	exit(0);
 }

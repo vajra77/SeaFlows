@@ -1,10 +1,10 @@
 CC = gcc
 CFLAGS = -g -Wall
 
-all: collector
+all: seaflows
 
-collector: sflow.o queue.o collector.o
-	$(CC) $(CFLAGS) -o bin/seaflows-collector src/collector/main.c src/collector/collector.o src/sflow/sflow.o src/queue/queue.o
+seaflows: sflow.o queue.o collector.o
+	$(CC) $(CFLAGS) -o bin/seaflows -I src/ src/collector/collector.o src/sflow/sflow.o src/queue/queue.o src/seaflows.c
 
 collector.o:
 	$(CC) $(CFLAGS) -c -o src/collector/collector.o -I src/ src/collector/collector.c
