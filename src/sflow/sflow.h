@@ -21,6 +21,7 @@ typedef struct storable_flow {
   char src_ip[18];
   char dst_ip[18];
   unsigned int size;
+  unsigned int sampling_rate;
 } storable_flow_t;
 
 /* Sflow RAW Data */
