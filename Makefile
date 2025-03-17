@@ -21,4 +21,4 @@ clean:
 	rm src/queue/*.o
 
 distclean: clean
-	rm bin/seaflows-collector
+	rm bin/seaflows
