@@ -40,7 +40,7 @@ void* collector_thread(void *arg)
 
 		for (flow_sample_t* sample = sflow_datagram->samples; sample != NULL; sample = sample->next) {
 			for (flow_record_t* record = sample->records; record != NULL; record = record->next) {
-				storable_flow_t	*storable_flow = sflow_encode_flow_record(record);
+				storable_flow_t	*storable_flow = sflow_encode_flow_record(record, sample->header.sampling_rate);
 				queue_push(collector_data->queue, storable_flow);
 			}
 		}

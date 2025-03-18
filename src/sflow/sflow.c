@@ -119,15 +119,15 @@ int sflow_free_datagram(sflow_datagram_t *sflow_datagram) {
     return 0;
 }
 
-storable_flow_t	*sflow_encode_flow_record(flow_record_t *record) {
+storable_flow_t	*sflow_encode_flow_record(flow_record_t *record, unsigned int sampling_rate) {
 
   	storable_flow_t	*flow = (storable_flow_t*)malloc(sizeof(storable_flow_t));
-	raw_packet_t 	*pkt = record->packet;
+	const raw_packet_t 	*pkt = record->packet;
 
 	flow->timestamp = time(NULL);
 
-	char *dst_mac = pkt->datalink->ethernet.destination_mac;
-    char *src_mac = pkt->datalink->ethernet.source_mac;
+	const char *dst_mac = pkt->datalink->ethernet.destination_mac;
+    const char *src_mac = pkt->datalink->ethernet.source_mac;
 
     snprintf(flow->dst_mac, 18, "%02x:%02x:%02x:%02x:%02x:%02x",
          dst_mac[0], dst_mac[1], dst_mac[2], dst_mac[3], dst_mac[4], dst_mac[5]);
@@ -138,25 +138,36 @@ storable_flow_t	*sflow_encode_flow_record(flow_record_t *record) {
     flow->proto = ntohs(pkt->datalink->ethernet.ethertype);
 
     if (flow->proto == ETHERTYPE_IPV4) {
-      	char *addr_str;
      	struct in_addr source_address;
         struct in_addr destination_address;
 
         memcpy(&source_address.s_addr, &pkt->ipv4->source_address, sizeof(unsigned int));
         memcpy(&destination_address.s_addr, &pkt->ipv4->destination_address, sizeof(unsigned int));
 
-        addr_str = inet_ntoa(source_address);
-        memcpy(flow->src_ip, addr_str, 18);
-
-        addr_str = inet_ntoa(destination_address);
-        memcpy(flow->dst_ip, addr_str, 18);
+    	inet_ntop(AF_INET, &(source_address), flow->src_ip, INET_ADDRSTRLEN);
+    	inet_ntop(AF_INET, &(destination_address), flow->dst_ip, INET_ADDRSTRLEN);
 
         flow->size = pkt->ipv4->length + 14 + 20;
+    	flow->sampling_rate = sampling_rate;
+    	flow->computed_size = flow->size * flow->sampling_rate;
     }
-    else {
+    else if (flow->proto == ETHERTYPE_IPV6) { /* IPv6 */
+    	struct in6_addr source_address;
+    	struct in6_addr destination_address;
 
+    	memcpy(&source_address.s6_addr, &pkt->ipv6->source_address, 16);
+    	memcpy(&destination_address.s6_addr, &pkt->ipv6->destination_address, 16);
+
+    	inet_ntop(AF_INET6, &source_address, flow->src_ip, INET6_ADDRSTRLEN);
+    	inet_ntop(AF_INET6, &destination_address, flow->dst_ip, INET6_ADDRSTRLEN);
+
+    	flow->size = pkt->ipv6->length + 40;
+    	flow->sampling_rate = sampling_rate;
+    	flow->computed_size = flow->size * flow->sampling_rate;
     }
-
+	else {
+		/* WHAT TO DO? */
+	}
 
     return flow;
 }

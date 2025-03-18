@@ -9,10 +9,12 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <syslog.h>
 #include <pthread.h>
 #include "seaflows.h"
 #include "collector/collector.h"
+#include "broker/broker.h"
+#include "matrix/matrix.h"
+
 
 #define MAX_THREADS 24
 
@@ -27,10 +29,10 @@ void usage(){
 }
 
 
-int main(int argc, char **argv) {
+int main(const int argc, char **argv) {
 
 	 char listen_address[1024];
-	 int num_threads;
+	 int num_threads = 0;
 	 int c;
 
 	 if(argc < 2){
@@ -60,10 +62,7 @@ int main(int argc, char **argv) {
        exit(1);
      }
 
-	pid_t pid;
-
-	/* Fork off the parent process */
-	pid = fork();
+	pid_t pid = fork();
 
 	/* An error occurred */
 	if (pid < 0)
@@ -107,12 +106,14 @@ int main(int argc, char **argv) {
 	}
 
 
-	pthread_t    collector_threads[MAX_THREADS];
-    pthread_t    broker_threads[MAX_THREADS];
-    queue_t      message_queues[MAX_THREADS];
-    matrix_t     *flow_matrix[MAX_THREADS];
-    collector_data_t collector_data[MAX_THREADS];
-    broker_data_t broker_data[MAX_THREADS];
+	pthread_t			collector_threads[MAX_THREADS];
+    pthread_t			broker_threads[MAX_THREADS];
+
+    queue_t				message_queues[MAX_THREADS];
+    matrix_t			flow_matrix[MAX_THREADS];
+
+	collector_data_t	collector_data[MAX_THREADS];
+    broker_data_t		broker_data[MAX_THREADS];
 
     for(int i = 0; i < num_threads; i++){
       queue_init(&message_queues[i]);

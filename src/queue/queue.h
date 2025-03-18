@@ -8,15 +8,15 @@
 #include <pthread.h>
 
 typedef struct queue_node {
-  struct queue_node *next;
-  void *data;
+    struct queue_node *next;
+    void *data;
 } qnode_t;
 
 typedef struct queue {
-  struct queue_node *head;
-  struct queue_node *tail;
-  int size;
-  pthread_mutex_t lock;
+    struct queue_node *head;
+    struct queue_node *tail;
+    int size;
+    pthread_mutex_t lock;
 } queue_t;
 
 void queue_init(queue_t *queue);

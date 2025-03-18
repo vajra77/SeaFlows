@@ -22,6 +22,7 @@ typedef struct storable_flow {
   char dst_ip[18];
   unsigned int size;
   unsigned int sampling_rate;
+  unsigned int computed_size;
 } storable_flow_t;
 
 /* Sflow RAW Data */
@@ -102,7 +103,7 @@ typedef struct sflow_datagram {
 } sflow_datagram_t;
 
 sflow_datagram_t* 	sflow_decode_datagram(sflow_raw_data_t*);
-storable_flow_t*	sflow_encode_flow_record(flow_record_t*);
+storable_flow_t*	sflow_encode_flow_record(flow_record_t*, unsigned int);
 int sflow_free_datagram(sflow_datagram_t*);
 
 #endif //SFLOW_H
