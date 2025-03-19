@@ -23,9 +23,9 @@ void usage(){
 	printf("Usage:\n");
 	printf("\tcollector [options]\n");
 	printf("Options:\n");
-	printf("\t-h, --help\t\tShow this help and exit\n");
-	printf("\t-a, --address <ip_address>\t\tListen address\n");
-	printf("\t-t, --threads <n_threads>\t\tNumber of listener threads\n");
+	printf("\t-h\t\t\t\tShow this help and exit\n");
+	printf("\t-a <ip_address>\t\tListen address\n");
+	printf("\t-t <n_threads>\t\tNumber of listener threads\n");
 }
 
 void* matrix_dumper_thread(void *arg) {
