@@ -120,10 +120,10 @@ int main(const int argc, char **argv) {
     pthread_t			broker_threads[MAX_THREADS];
 
     queue_t				*message_queues[MAX_THREADS];
-	memset(message_queues, 0, sizeof(message_queues) * MAX_THREADS);
+	memset(message_queues, 0, sizeof(message_queues));
 
     matrix_t			*flow_matrix[MAX_THREADS];
-	memset(flow_matrix, 0, sizeof(flow_matrix) * MAX_THREADS);
+	memset(flow_matrix, 0, sizeof(flow_matrix));
 
 	collector_data_t	collector_data[MAX_THREADS];
     broker_data_t		broker_data[MAX_THREADS];
