@@ -47,7 +47,7 @@ int main(const int argc, char **argv) {
 
 	 if(argc < 2){
 		 usage();
-		 exit(1);
+		 exit(EXIT_FAILURE);
 	 }
 
 	 while((c = getopt(argc, argv, "a:t:h")) != -1) {
@@ -60,7 +60,7 @@ int main(const int argc, char **argv) {
 				break;
 			case 'h':
 				usage();
-				exit(0);
+				exit(EXIT_SUCCESS);
 		 	default:
 		 		break;
 		 }
@@ -68,7 +68,7 @@ int main(const int argc, char **argv) {
 
      if(num_threads >= MAX_THREADS){
        printf("Number of threads is too large\n");
-       exit(1);
+       exit(EXIT_FAILURE);
      }
 
 	pid_t pid = fork();
