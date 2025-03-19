@@ -21,6 +21,9 @@ queue.o:
 matrix.o:
 	$(CC) $(CFLAGS) -c -o src/matrix/matrix.o -I src/ src/matrix/matrix.c
 
+rrdtool.o:
+	$(CC) $(CFLAGS) -c -o src/rrdtool/rrdtool.o -I src/ src/rrdtool/rrdtool.c
+
 clean:
 	rm src/collector/*.o
 	rm src/sflow/*.o

@@ -32,6 +32,6 @@ typedef struct matrix {
 void matrix_init(matrix_t *matrix);
 void matrix_destroy(matrix_t *matrix);
 void matrix_clear(matrix_t *matrix);
-void matrix_add_flow(matrix_t *matrix, storable_flow_t *flow);
-unsigned int matrix_hash(const char*);
+void matrix_dump(matrix_t *matrix);
+void matrix_add_flow(matrix_t *matrix, const storable_flow_t *flow);
 #endif //MATRIX_H
