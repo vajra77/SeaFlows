@@ -21,7 +21,7 @@ void create_rrd(char *filename) {
 		"RRA:MAX:0.5:24:775",
 		"RRA:MAX:0.5:444:797",
 	};
-	rrdc_create(filename, 300, time(NULL), argc, argv);
+	rrd_create(filename, 300, time(NULL), 0, argc, argv);
 }
 
 void update_rrd(char *filename, unsigned int bytes_v4, unsigned int bytes_v6) {
