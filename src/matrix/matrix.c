@@ -130,7 +130,8 @@ void matrix_dump(matrix_t *matrix) {
 	for(srcnode_t *src_ptr = matrix->sources; src_ptr != NULL; src_ptr = src_ptr->next) {
 		for (dstnode_t *dst_ptr = src_ptr->destinations; dst_ptr != NULL; dst_ptr = dst_ptr->next) {
 			/* filename format is flow_[SRC_MAC]_to_[DST_MAC].rrd */
-			char filename[255] = sprintf("/data/rrd/flows/flow_%s_to_%s.rrd", src_ptr->mac, dst_ptr->mac);
+			char filename[255];
+			sprintf(filename, "/data/rrd/flows/flow_%s_to_%s.rrd", src_ptr->mac, dst_ptr->mac);
 			if (!access(filename, F_OK)) {
 				create_rrd(filename);
 			}

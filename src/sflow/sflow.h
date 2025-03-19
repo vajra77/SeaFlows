@@ -29,7 +29,7 @@ typedef struct storable_flow {
 
 typedef struct sflow_raw_data {
     char data[MAX_SFLOW_DATA];
-    int size;
+    ssize_t size;
 } sflow_raw_data_t;
 
 /* RAW packet */
