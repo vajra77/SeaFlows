@@ -52,18 +52,17 @@ int main(const int argc, char **argv) {
 
 	 while((c = getopt(argc, argv, "a:t:h")) != -1) {
 		 switch(c) {
-			 case 'a':
-				 strcpy(listen_address, optarg);
-				 break;
-			 case 't':
-				 num_threads = atoi(optarg);
-				 break;
-			 case 'h':
-				 usage();
-				 exit(0);
-			 default:
-				 usage();
-				 exit(1);
+			case 'a':
+				strcpy(listen_address, optarg);
+				break;
+		 	case 't':
+				num_threads = atoi(optarg);
+				break;
+			case 'h':
+				usage();
+				exit(0);
+		 	default:
+		 		break;
 		 }
 	 }
 
