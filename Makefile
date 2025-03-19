@@ -23,7 +23,7 @@ matrix:
 	$(CC) $(CFLAGS) -c -o src/matrix/matrix.o -I src/ src/matrix/matrix.c
 
 rrdtool:
-	$(CC) $(CFLAGS) $(LIBS) -c -o src/rrdtool/rrdtool.o -I src/ src/rrdtool/rrdtool.c
+	$(CC) $(CFLAGS) -c -o src/rrdtool/rrdtool.o -I src/ src/rrdtool/rrdtool.c
 
 clean:
 	rm src/collector/*.o
