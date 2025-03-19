@@ -29,6 +29,9 @@ clean:
 	rm src/collector/*.o
 	rm src/sflow/*.o
 	rm src/queue/*.o
+	rm src/broker/*.o
+	rm src/matrix/*.o
+	rm src/rrdtool/*.o
 
 distclean: clean
 	rm bin/seaflows
