@@ -3,25 +3,25 @@ CFLAGS = -g -Wall
 
 all: seaflows
 
-seaflows: sflow.o queue.o matrix.o collector.o broker.o
+seaflows: sflow queue matrix collector broker
 	$(CC) $(CFLAGS) -o bin/seaflows -I src/ src/collector/collector.o src/broker/broker.o src/sflow/sflow.o src/queue/queue.o src/matrix/matrix.o src/seaflows.c
 
-collector.o:
+collector:
 	$(CC) $(CFLAGS) -c -o src/collector/collector.o -I src/ src/collector/collector.c
 
-broker.o:
+broker:
 	$(CC) $(CFLAGS) -c -o src/broker/broker.o -I src/ src/broker/broker.c
 
-sflow.o:
+sflow:
 	$(CC) $(CFLAGS) -c -o src/sflow/sflow.o -I src/ src/sflow/sflow.c
 
-queue.o:
+queue:
 	$(CC) $(CFLAGS) -c -o src/queue/queue.o -I src/ src/queue/queue.c
 
-matrix.o:
+matrix:
 	$(CC) $(CFLAGS) -c -o src/matrix/matrix.o -I src/ src/matrix/matrix.c
 
-rrdtool.o:
+rrdtool:
 	$(CC) $(CFLAGS) -c -o src/rrdtool/rrdtool.o -I src/ src/rrdtool/rrdtool.c
 
 clean:
