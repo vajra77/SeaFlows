@@ -150,7 +150,6 @@ int main(const int argc, char **argv) {
 	pthread_t dumper_thread;
 	pthread_create(&dumper_thread, NULL, matrix_dumper_thread, (void*)flow_matrix);
 
-
 	/* join threads */
 	for(int i = 0; i < num_threads; i++) {
 		pthread_join(collector_threads[i], NULL);

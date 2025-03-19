@@ -32,7 +32,7 @@ void* collector_thread(void *arg)
           return NULL;
 
 	while(1) {
-        sflow_raw_data_t *raw_data = (sflow_raw_data_t*)malloc(sizeof(sflow_raw_data_t));
+        sflow_raw_data_t *raw_data = malloc(sizeof(sflow_raw_data_t));
 
         raw_data->size = recvfrom(sock, raw_data->data, MAX_SFLOW_DATA, 0, NULL, NULL);
 

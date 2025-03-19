@@ -12,11 +12,11 @@
 #include "sflow.h"
 #include "net.h"
 
-sflow_datagram_t *sflow_decode_datagram(sflow_raw_data_t *sflow_raw_data) {
+sflow_datagram_t *sflow_decode_datagram(const sflow_raw_data_t *sflow_raw_data) {
 
-  	char *datagram = sflow_raw_data->data;
+  	const char *datagram = sflow_raw_data->data;
 
-    sflow_datagram_t *sflow_datagram = (sflow_datagram_t*)malloc(sizeof(sflow_datagram_t));
+    sflow_datagram_t *sflow_datagram = malloc(sizeof(sflow_datagram_t));
     memcpy(&sflow_datagram->header, datagram, sizeof(struct sflow_datagram_header));
     datagram += sizeof(struct sflow_datagram_header);
 
@@ -25,7 +25,7 @@ sflow_datagram_t *sflow_decode_datagram(sflow_raw_data_t *sflow_raw_data) {
         unsigned int sample_format;
         memcpy(&sample_format, datagram, sizeof(unsigned int));
 
-        if(sample_format & SFLOW_FLOW_SAMPLE_FORMAT) {
+        if(ntohl(sample_format) & SFLOW_FLOW_SAMPLE_FORMAT) {
             /* a flow sample follows */
             flow_sample_t *flow_sample = malloc(sizeof(flow_sample_t));
             memcpy(&flow_sample->header, datagram, sizeof(struct flow_sample_header));
@@ -33,19 +33,19 @@ sflow_datagram_t *sflow_decode_datagram(sflow_raw_data_t *sflow_raw_data) {
             datagram += sizeof(struct flow_sample_header);
 
             /* records loop */
-            for (int k = 0; k < flow_sample->header.num_records; k++) {
-                flow_record_t *flow_record = (flow_record_t*)malloc(sizeof(flow_record_t));
+            for (int k = 0; k < ntohl(flow_sample->header.num_records); k++) {
+                flow_record_t *flow_record = malloc(sizeof(flow_record_t));
                 memcpy(&flow_record->header, datagram, sizeof(struct flow_record_header));
                 datagram += sizeof(struct flow_record_header);
 
                 if(ntohs(flow_record->header.data_format) == SFLOW_RAW_PACKET_HEADER_FORMAT) {
                 	/* raw packet header follows */
-                  	raw_packet_t *raw_packet = (raw_packet_t*)malloc(sizeof(raw_packet_t));
+                  	raw_packet_t *raw_packet = malloc(sizeof(raw_packet_t));
                  	memcpy(&raw_packet->header, datagram, sizeof(struct raw_packet_header));
                   	datagram += sizeof(struct raw_packet_header);
 
                     /* datalink section */
-                  	datalink_header_t *datalink_header = (datalink_header_t*)malloc(sizeof(datalink_header_t));
+                  	datalink_header_t *datalink_header = malloc(sizeof(datalink_header_t));
                   	memcpy(&datalink_header->ethernet, datagram, sizeof(struct ethernet_header));
                   	datagram += sizeof(struct ethernet_header);
 
@@ -61,14 +61,14 @@ sflow_datagram_t *sflow_decode_datagram(sflow_raw_data_t *sflow_raw_data) {
 
                     /* network section */
                     if (ntohs(datalink_header->ethernet.ethertype) == ETHERTYPE_IPV4) {
-						ipv4_header_t *ipv4_header = (ipv4_header_t*)malloc(sizeof(ipv4_header_t));
+						ipv4_header_t *ipv4_header = malloc(sizeof(ipv4_header_t));
                         memcpy(ipv4_header, datagram, sizeof(ipv4_header_t));
                         datagram += sizeof(ipv4_header_t);
 						raw_packet->ipv4 = ipv4_header;
 						raw_packet->ipv6 = NULL;
                     }
                     else if (ntohs(datalink_header->ethernet.ethertype) == ETHERTYPE_IPV6) {
-                    	ipv6_header_t *ipv6_header = (ipv6_header_t*)malloc(sizeof(ipv6_header_t));
+                    	ipv6_header_t *ipv6_header = malloc(sizeof(ipv6_header_t));
                         memcpy(ipv6_header, datagram, sizeof(ipv6_header_t));
                         datagram += sizeof(ipv6_header_t);
 						raw_packet->ipv4 = NULL;
@@ -81,47 +81,74 @@ sflow_datagram_t *sflow_decode_datagram(sflow_raw_data_t *sflow_raw_data) {
                     }
 
                   	flow_record->packet = raw_packet;
+                	flow_record->next = NULL;
 
-                  	flow_record_t *ptr = flow_sample->records;
-                  	while (ptr != NULL) {
-                    	ptr = ptr->next;
-                  	}
-                  	ptr = flow_record;
+                	if (flow_sample->records == NULL) {
+                		flow_sample->records = flow_record;
+                	}
+                	else {
+                  		flow_record_t *ptr = flow_sample->records;
+                		flow_record_t *lst = flow_sample->records;
+
+                  		while (ptr != NULL) {
+                  			lst = ptr;
+                    		ptr = ptr->next;
+                  		}
+                  		lst->next = flow_record;
+                	}
                 }
-            }
-            /* end of records loop */
+            } /* end of records loop */
 
-            flow_sample_t *ptr = sflow_datagram->samples;
-            while (ptr != NULL) {
-                ptr = ptr->next;
-            }
-            ptr = flow_sample;
+        	if (sflow_datagram->samples == NULL) {
+        		sflow_datagram->samples = flow_sample;
+        	}
+        	else {
+				flow_sample_t *ptr = sflow_datagram->samples;
+        		flow_sample_t *lst = sflow_datagram->samples;
+
+				while (ptr != NULL) {
+            		lst = ptr;
+					ptr = ptr->next;
+				}
+        		lst->next = flow_sample;
+        	}
         }
+    }  /* end of samples loop */
 
-    }
-    /* end of samples loop */
-    return sflow_datagram;
+	return sflow_datagram;
 }
 
-int sflow_free_datagram(sflow_datagram_t *sflow_datagram) {
+void sflow_free_datagram(sflow_datagram_t *sflow_datagram) {
     flow_sample_t *pts = sflow_datagram->samples;
     while (pts != NULL) {
       flow_record_t *ptr = pts->records;
       while (ptr != NULL) {
         flow_record_t *fptr = ptr;
         ptr = ptr->next;
+      	if (fptr->packet) {
+      		if (fptr->packet->datalink) {
+      			free(fptr->packet->datalink);
+      		}
+      		if (fptr->packet->ipv4) {
+      			free(fptr->packet->ipv4);
+      		}
+      		if (fptr->packet->ipv6) {
+      			free(fptr->packet->ipv6);
+      		}
+      		free(fptr->packet);
+      	}
         free(fptr);
       }
       flow_sample_t *fpts = pts;
       pts = pts->next;
       free(fpts);
     }
-    return 0;
+	free(sflow_datagram);
 }
 
-storable_flow_t	*sflow_encode_flow_record(flow_record_t *record, unsigned int sampling_rate) {
+storable_flow_t	*sflow_encode_flow_record(const flow_record_t *record, unsigned int sampling_rate) {
 
-  	storable_flow_t	*flow = (storable_flow_t*)malloc(sizeof(storable_flow_t));
+  	storable_flow_t	*flow = malloc(sizeof(storable_flow_t));
 	const raw_packet_t 	*pkt = record->packet;
 
 	flow->timestamp = time(NULL);
@@ -165,9 +192,6 @@ storable_flow_t	*sflow_encode_flow_record(flow_record_t *record, unsigned int sa
     	flow->sampling_rate = sampling_rate;
     	flow->computed_size = flow->size * flow->sampling_rate;
     }
-	else {
-		/* WHAT TO DO? */
-	}
 
     return flow;
 }
