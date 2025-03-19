@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -g -Wall
+CFLAGS = -O0 -g -Wall
 LIBS = -lrrd -lpthread
 
 all: seaflows
