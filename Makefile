@@ -2,10 +2,11 @@ CC = gcc
 CFLAGS = -Wall -g  
 LIBS = -lrrd
 
-all: seaflows
+all: sflow queue matrix collector broker rrdtool seaflows
+	$(CC) -o bin/seaflows src/sflow/sflow.o src/queue/queue.o src/matrix/matrix.o src/rrdtool/rrdtool.o src/collector/collector.o src/broker/broker.o src/seaflows.o $(LIBS)
 
-seaflows: sflow queue matrix collector broker rrdtool
-	$(CC) $(CFLAGS) -o bin/seaflows -I src/ src/collector/collector.o src/broker/broker.o src/rrdtool/rrdtool.o src/sflow/sflow.o src/queue/queue.o src/matrix/matrix.o src/seaflows.c $(LIBS)
+seaflows:
+	$(CC) $(CFLAGS) -c -o src/seaflows.o -I src/ src/seaflows.c
 
 collector:
 	$(CC) $(CFLAGS) -c -o src/collector/collector.o -I src/ src/collector/collector.c
@@ -32,6 +33,7 @@ clean:
 	rm src/broker/*.o
 	rm src/matrix/*.o
 	rm src/rrdtool/*.o
+	rm src/seaflows/*.o
 
 distclean: clean
 	rm bin/seaflows
