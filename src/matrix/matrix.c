@@ -5,7 +5,13 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include "matrix.h"
+#include "rrdtool/rrdtool.h"
 #include "sflow/net.h"
+
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+
 
 
 unsigned int mac_hash(const char mac[6]) {
@@ -60,6 +66,7 @@ void matrix_add_flow(matrix_t *matrix, const storable_flow_t *flow) {
 
 	if (src_ptr == NULL) {
 		src_ptr = malloc(sizeof(srcnode_t));
+		strcpy(src_ptr->mac, flow->src_mac);
 		src_ptr->key = mac_hash(flow->src_mac);
 		switch (flow->proto) {
 			case ETHERTYPE_IPV4:
@@ -99,6 +106,7 @@ void matrix_add_flow(matrix_t *matrix, const storable_flow_t *flow) {
 
 	if(dst_ptr == NULL) {
 		dst_ptr = malloc(sizeof(dstnode_t));
+		strcpy(dst_ptr->mac, flow->dst_mac);
 		dst_ptr->key = mac_hash(flow->dst_mac);
 		switch (flow->proto) {
 			case ETHERTYPE_IPV4:
@@ -119,9 +127,22 @@ void matrix_add_flow(matrix_t *matrix, const storable_flow_t *flow) {
 
 void matrix_dump(matrix_t *matrix) {
 	pthread_mutex_lock(&(matrix->lock));
-	srcnode_t *src_ptr;
-	for(src_ptr = matrix->sources; src_ptr != NULL; src_ptr = src_ptr->next) {
+	for(srcnode_t *src_ptr = matrix->sources; src_ptr != NULL; src_ptr = src_ptr->next) {
+		for (dstnode_t *dst_ptr = src_ptr->destinations; dst_ptr != NULL; dst_ptr = dst_ptr->next) {
+			/* filename format is flow_[SRC_MAC]_to_[DST_MAC].rrd */
+			char filename[255] = sprintf("/data/rrd/flows/flow_%s_to_%s.rrd", src_ptr->mac, dst_ptr->mac);
+			if (!access(filename, F_OK)) {
+				create_rrd(filename);
+			}
+			update_rrd(filename, dst_ptr->bytes_v4, dst_ptr->bytes_v6);
 
+			/* clear dst data */
+			dst_ptr->bytes_v4 = 0;
+			dst_ptr->bytes_v6 = 0;
+		}
+		/* clear src data */
+		src_ptr->bytes_v4 = 0;
+		src_ptr->bytes_v6 = 0;
 	}
 	pthread_mutex_unlock(&(matrix->lock));
 }

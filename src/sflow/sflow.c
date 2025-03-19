@@ -27,7 +27,7 @@ sflow_datagram_t *sflow_decode_datagram(sflow_raw_data_t *sflow_raw_data) {
 
         if(sample_format & SFLOW_FLOW_SAMPLE_FORMAT) {
             /* a flow sample follows */
-            flow_sample_t *flow_sample = (flow_sample_t*)malloc(sizeof(flow_sample_t));
+            flow_sample_t *flow_sample = malloc(sizeof(flow_sample_t));
             memcpy(&flow_sample->header, datagram, sizeof(struct flow_sample_header));
             flow_sample->next = NULL;
             datagram += sizeof(struct flow_sample_header);
@@ -129,10 +129,10 @@ storable_flow_t	*sflow_encode_flow_record(flow_record_t *record, unsigned int sa
 	const char *dst_mac = pkt->datalink->ethernet.destination_mac;
     const char *src_mac = pkt->datalink->ethernet.source_mac;
 
-    snprintf(flow->dst_mac, 18, "%02x:%02x:%02x:%02x:%02x:%02x",
+    snprintf(flow->dst_mac, 13, "%02x%02x%02x%02x%02x%02x",
          dst_mac[0], dst_mac[1], dst_mac[2], dst_mac[3], dst_mac[4], dst_mac[5]);
 
-    snprintf(flow->src_mac, 18, "%02x:%02x:%02x:%02x:%02x:%02x",
+    snprintf(flow->src_mac, 13, "%02x%02x%02x%02x%02x%02x",
          src_mac[0], src_mac[1], src_mac[2], src_mac[3], src_mac[4], src_mac[5]);
 
     flow->proto = ntohs(pkt->datalink->ethernet.ethertype);

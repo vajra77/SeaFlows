@@ -28,6 +28,16 @@ void usage(){
 	printf("\t-t, --threads <n_threads>\t\tNumber of listener threads\n");
 }
 
+void* matrix_dumper_thread(void *arg) {
+	matrix_t **flow_matrix = arg;
+	sleep(300);
+	for(int i = 0; i < MAX_THREADS; i++) {
+		if(flow_matrix[i] != NULL) {
+			matrix_dump(flow_matrix[i]);
+		}
+	}
+	return NULL;
+}
 
 int main(const int argc, char **argv) {
 
@@ -109,36 +119,46 @@ int main(const int argc, char **argv) {
 	pthread_t			collector_threads[MAX_THREADS];
     pthread_t			broker_threads[MAX_THREADS];
 
-    queue_t				message_queues[MAX_THREADS];
-    matrix_t			flow_matrix[MAX_THREADS];
+    queue_t				*message_queues[MAX_THREADS];
+	memset(message_queues, 0, sizeof(message_queues) * MAX_THREADS);
+
+    matrix_t			*flow_matrix[MAX_THREADS];
+	memset(flow_matrix, 0, sizeof(flow_matrix) * MAX_THREADS);
 
 	collector_data_t	collector_data[MAX_THREADS];
     broker_data_t		broker_data[MAX_THREADS];
 
     for(int i = 0; i < num_threads; i++){
-      queue_init(&message_queues[i]);
-      matrix_init(&flow_matrix[i]);
+    	message_queues[i] = malloc(sizeof(queue_t));
+		queue_init(message_queues[i]);
+		flow_matrix[i] = malloc(sizeof(matrix_t));
+		matrix_init(flow_matrix[i]);
     }
 
 	/* create threads */
 	for(int i = 0; i < num_threads; i++) {
 		collector_data[i].port = SEAFLOWS_LISTENER_PORT + i;
 		collector_data[i].address = listen_address;
-        collector_data[i].queue = &message_queues[i];
+        collector_data[i].queue = message_queues[i];
 
-        broker_data[i].queue = &message_queues[i];
-        broker_data[i].matrix = &flow_matrix[i];
+        broker_data[i].queue = message_queues[i];
+        broker_data[i].matrix = flow_matrix[i];
 
 		pthread_create(&collector_threads[i], NULL, collector_thread, (void*)&collector_data[i]);
         pthread_create(&broker_threads[i], NULL, broker_thread, (void*)&broker_data[i]);
 	}
+	pthread_t dumper_thread;
+	pthread_create(&dumper_thread, NULL, matrix_dumper_thread, (void*)flow_matrix);
 
 
 	/* join threads */
 	for(int i = 0; i < num_threads; i++) {
 		pthread_join(collector_threads[i], NULL);
         pthread_join(broker_threads[i], NULL);
+		free(message_queues[i]);
+		free(flow_matrix[i]);
 	}
+	pthread_join(dumper_thread, NULL);
 
 	exit(0);
 }

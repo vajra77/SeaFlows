@@ -9,6 +9,7 @@
 #include <pthread.h>
 
 typedef struct destination_node {
+	char mac[13];
 	unsigned int key;
 	unsigned int bytes_v4;
 	unsigned int bytes_v6;
@@ -16,6 +17,7 @@ typedef struct destination_node {
 } dstnode_t;
 
 typedef struct source_node {
+	char mac[13];
     unsigned int key;
     unsigned int bytes_v4;
     unsigned int bytes_v6;

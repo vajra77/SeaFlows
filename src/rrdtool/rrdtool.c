@@ -25,3 +25,7 @@ void create_rrd(char *filename) {
 	};
 	rrd_create(argc, argv);
 }
+
+void update_rrd(char *filename, unsigned int bytes_v4, unsigned int bytes_v6) {
+
+}

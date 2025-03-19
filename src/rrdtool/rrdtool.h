@@ -6,6 +6,7 @@
 #define RRDTOOL_H
 #include <rrd.h>
 
-void create_rrd(char *filename);
-void update_rrd(char *filename);
+
+void create_rrd(char *);
+void update_rrd(char *, unsigned int, unsigned int);
 #endif //RRDTOOL_H
