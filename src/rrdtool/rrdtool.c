@@ -8,8 +8,11 @@
 #include "rrdtool.h"
 
 void create_rrd(char *filename) {
-	const size_t argc = 10;
+	const size_t argc = 13;
 	char *argv[] = {
+		filename,
+		"--step", "300",
+		"--start", "now",
 		"DS:ipv4_bytes:ABSOLUTE:600:U:U",
 		"DS:ipv6_bytes:ABSOLUTE:600:U:U",
 		"RRA:AVERAGE:0.5:1:600",
@@ -21,7 +24,7 @@ void create_rrd(char *filename) {
 		"RRA:MAX:0.5:24:775",
 		"RRA:MAX:0.5:444:797",
 	};
-	rrd_create(filename, 300, time(NULL), 0, argc, argv);
+	rrd_create(argc, argv);
 }
 
 void update_rrd(char *filename, unsigned int bytes_v4, unsigned int bytes_v6) {
