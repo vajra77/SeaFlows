@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -g -Wall
-LIBS=-L/usr/lib/x86_64-linux-gnu/ -lrrd -lpthread
+LIBS = -lrrd -lpthread
 
 all: seaflows
 
