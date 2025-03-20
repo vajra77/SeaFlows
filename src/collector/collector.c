@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <arpa/inet.h>
 #include <strings.h>
+#include <syslog.h>
 
 #include "sflow/sflow.h"
 #include "collector/error.h"
@@ -31,6 +32,7 @@ void* collector_thread(void *arg) {
     inet_pton(AF_INET, collector_data->address, &address.sin_addr);
 	address.sin_port = htons(collector_data->port);
 
+	syslog(LOG_INFO, "Starting collector on %s:%d", collector_data->address, collector_data->port );
 	if (bind(sock, (struct sockaddr *)&address, sizeof(address)) < 0 )
           return NULL;
 
