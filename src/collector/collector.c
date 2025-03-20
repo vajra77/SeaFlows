@@ -10,8 +10,9 @@
 #include <syslog.h>
 
 #include "sflow/sflow.h"
-#include "collector/error.h"
 #include "collector/collector.h"
+
+#include <unistd.h>
 
 
 void* collector_thread(void *arg) {
@@ -37,6 +38,7 @@ void* collector_thread(void *arg) {
           return NULL;
 
 	for (;;) {
+		sleep(3000);
         sflow_raw_data_t *raw_data = malloc(sizeof(sflow_raw_data_t));
 
         raw_data->size = recvfrom(sock, raw_data->data, MAX_SFLOW_DATA, 0, NULL, NULL);
