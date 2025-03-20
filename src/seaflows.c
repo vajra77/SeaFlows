@@ -129,6 +129,7 @@ int main(const int argc, char **argv) {
 
 	signal(SIGINT, signal_handler);
 	signal(SIGHUP, signal_handler);
+	signal(SIGQUIT, signal_handler);
 
 	/* second fork */
 	pid = fork();
