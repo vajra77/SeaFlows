@@ -14,12 +14,12 @@
 struct ethernet_header {
     char destination_mac[6];
     char source_mac[6];
-    unsigned short ethertype;
+    uint16_t ethertype;
 };
 
 struct vlan_header {
-	unsigned short id;
-    unsigned short length;
+	uint16_t id;
+    uint16_t length;
 };
 
 typedef struct datalink_header {
@@ -28,22 +28,19 @@ typedef struct datalink_header {
 } datalink_header_t;
 
 typedef struct ipv4_header {
-	unsigned short preamble;
-    unsigned short length;
-    unsigned short identification;
-    unsigned short flags_fragments;
-    unsigned short ttl_protocol;
-    unsigned short checksum;
-    unsigned int source_address;
-    unsigned int destination_address;
+	uint16_t preamble;
+    uint16_t length;
+    uint8_t ttl;
+	uint8_t protocol;
+	char source_address[256];
+	char destination_address[256];
 } ipv4_header_t;
 
 typedef struct ipv6_header {
-	unsigned int preamble;
-    unsigned short length;
-    unsigned short header_hop;
-    char	source_address[16];
-    char	destination_address[16];
+	uint32_t preamble;
+    uint16_t length;
+    char	source_address[256];
+    char	destination_address[256];
 } ipv6_header_t;
 
 #endif //NET_H

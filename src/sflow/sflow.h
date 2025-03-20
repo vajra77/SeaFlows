@@ -8,8 +8,9 @@
 
 #define MAX_SFLOW_DATA 16384
 
-#define SFLOW_FLOW_SAMPLE_FORMAT 0x00000001
-#define SFLOW_RAW_PACKET_HEADER_FORMAT 0x00000001
+#define SFLOW_FLOW_SAMPLE_FORMAT                  0x00000001
+#define SFLOW_RAW_PACKET_HEADER_FORMAT            0x00000001
+#define SFLOW_RAW_PACKET_HEADER_PROTO_ETHERNET    0x00000001
 
 /* Storable Flow */
 
@@ -17,12 +18,12 @@ typedef struct storable_flow {
   time_t timestamp;
   char src_mac[18];
   char dst_mac[18];
-  unsigned int proto;
+  uint32_t proto;
   char src_ip[18];
   char dst_ip[18];
-  unsigned int size;
-  unsigned int sampling_rate;
-  unsigned int computed_size;
+  uint32_t size;
+  uint32_t sampling_rate;
+  uint32_t computed_size;
 } storable_flow_t;
 
 /* Sflow RAW Data */
@@ -35,10 +36,10 @@ typedef struct sflow_raw_data {
 /* RAW packet */
 
 struct raw_packet_header {
-  unsigned int header_protocol;
-  unsigned int frame_length;
-  unsigned int stripped;
-  unsigned int header_length;
+  uint32_t protocol;
+  uint32_t frame_length;
+  uint32_t stripped;
+  uint32_t size;
 };
 
 typedef struct raw_packet {
@@ -52,8 +53,8 @@ typedef struct raw_packet {
 /* Flow Record */
 
 struct flow_record_header {
-  unsigned int data_format;
-  unsigned int length;
+  uint32_t data_format;
+  uint32_t length;
 };
 
 typedef struct flow_record {
@@ -66,16 +67,16 @@ typedef struct flow_record {
 /* Flow Sample */
 
 struct flow_sample_header {
-  unsigned int data_format;
-  unsigned int length;
-  unsigned int sequence_number;
-  unsigned int source_id;
-  unsigned int sampling_rate;
-  unsigned int sample_pool;
-  unsigned int drops;
-  unsigned int input_interface;
-  unsigned int output_interface;
-  unsigned int num_records;
+  uint32_t data_format;
+  uint32_t length;
+  uint32_t sequence_number;
+  uint32_t source_id;
+  uint32_t sampling_rate;
+  uint32_t sample_pool;
+  uint32_t drops;
+  uint32_t input_interface;
+  uint32_t output_interface;
+  uint32_t num_records;
 };
 
 typedef struct flow_sample {
@@ -88,13 +89,13 @@ typedef struct flow_sample {
 /* sFlow Datagram */
 
 struct sflow_datagram_header {
-  unsigned int version;
-  unsigned int ip_version;
-  unsigned int ipv4_address;
-  unsigned int sub_agent_id;
-  unsigned int sequence_number;
-  unsigned int switch_uptime;
-  unsigned int num_samples;
+  uint32_t  version;
+  uint32_t  ip_version;
+  char      agent_address[255];
+  uint32_t  sub_agent_id;
+  uint32_t  sequence_number;
+  uint32_t  switch_uptime;
+  uint32_t  num_samples;
 };
 
 typedef struct sflow_datagram {
@@ -103,7 +104,7 @@ typedef struct sflow_datagram {
 } sflow_datagram_t;
 
 sflow_datagram_t* 	sflow_decode_datagram(const sflow_raw_data_t*);
-storable_flow_t*	sflow_encode_flow_record(const flow_record_t*, unsigned int);
-void sflow_free_datagram(sflow_datagram_t*);
+storable_flow_t*	  sflow_encode_flow_record(const flow_record_t*, uint32_t);
+void                sflow_free_datagram(sflow_datagram_t*);
 
 #endif //SFLOW_H

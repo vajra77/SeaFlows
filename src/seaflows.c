@@ -40,7 +40,7 @@ void usage(){
 }
 
 void signal_handler(int sig) {
-	syslog(LOG_INFO, "Received signal %d ... terminating.\n", sig);
+	syslog(LOG_INFO, "Received signal %d", sig);
 	for(int i = 0; i < MAX_THREADS; i++) {
 		pthread_cancel(collector_threads[i]);
 		pthread_cancel(broker_threads[i]);
@@ -67,11 +67,9 @@ void* matrix_dumper_thread(void *arg) {
 	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
 
 	matrix_t **flow_matrix = arg;
-	syslog(LOG_INFO, "Starting dumper thread");
 
 	for (;;) {
 		sleep(300);
-		syslog(LOG_INFO, "Dumping flow matrix data");
 		for(int i = 0; i < MAX_THREADS; i++) {
 			if(flow_matrix[i] != NULL) {
 				matrix_dump(flow_matrix[i]);
@@ -150,7 +148,6 @@ int main(const int argc, char **argv) {
 	memset(flow_matrix, 0, sizeof(flow_matrix));
 
 	/* create threads */
-	syslog(LOG_INFO, "Starting up");
 	for(int i = 0; i < num_threads; i++) {
 		message_queues[i] = malloc(sizeof(queue_t));
 		queue_init(message_queues[i]);

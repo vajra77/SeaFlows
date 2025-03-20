@@ -42,17 +42,18 @@ void* collector_thread(void *arg) {
 
         raw_data->size = recvfrom(sock, raw_data->data, MAX_SFLOW_DATA, 0, NULL, NULL);
 		syslog(LOG_DEBUG, "Received UDP datagram");
-		sflow_datagram_t *sflow_datagram = sflow_decode_datagram(raw_data);
+		sflow_datagram_t *datagram = sflow_decode_datagram(raw_data);
 
-		for (flow_sample_t* sample = sflow_datagram->samples; sample != NULL; sample = sample->next) {
-			for (flow_record_t* record = sample->records; record != NULL; record = record->next) {
-				storable_flow_t	*storable_flow = sflow_encode_flow_record(record, sample->header.sampling_rate);
-				queue_push(collector_data->queue, storable_flow);
+		for (const flow_sample_t* sample = datagram->samples; sample != NULL; sample = sample->next) {
+			for (const flow_record_t* record = sample->records; record != NULL; record = record->next) {
+				storable_flow_t	*flow = sflow_encode_flow_record(record, sample->header.sampling_rate);
+				queue_push(collector_data->queue, flow);
 			}
 		}
 
-        sflow_free_datagram(sflow_datagram);
+        sflow_free_datagram(datagram);
 		free(raw_data);
+
 		pthread_testcancel();
 	}
 }
