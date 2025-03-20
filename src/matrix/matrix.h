@@ -29,6 +29,7 @@ typedef struct matrix {
 	pthread_mutex_t lock;
   	struct source_node *sources;
 	int size;
+	int dirty;
 } matrix_t;
 
 void matrix_init(matrix_t *matrix);

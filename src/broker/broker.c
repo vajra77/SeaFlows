@@ -10,13 +10,17 @@
 
 void* broker_thread(void *arg){
 
-  broker_data_t *broker_data = (broker_data_t*)arg;
+  pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+  pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
 
-  while(1){
+  broker_data_t *broker_data = arg;
+
+  for (;;) {
     storable_flow_t	*storable_flow = queue_pop(broker_data->queue);
     if(storable_flow != NULL){
       matrix_add_flow(broker_data->matrix, storable_flow);
       free(storable_flow);
     }
+    pthread_testcancel();
   }
 }

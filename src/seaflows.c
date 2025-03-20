@@ -10,6 +10,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <pthread.h>
+#include <syslog.h>
 #include "seaflows.h"
 #include "collector/collector.h"
 #include "broker/broker.h"
@@ -17,6 +18,16 @@
 
 
 #define MAX_THREADS 24
+
+/* thread share/control variables */
+pthread_t			collector_threads[MAX_THREADS];
+pthread_t			broker_threads[MAX_THREADS];
+pthread_t			dumper_thread;
+
+queue_t				*message_queues[MAX_THREADS];
+matrix_t			*flow_matrix[MAX_THREADS];
+collector_data_t	collector_data[MAX_THREADS];
+broker_data_t		broker_data[MAX_THREADS];
 
 
 void usage(){
@@ -28,14 +39,46 @@ void usage(){
 	printf("\t-t <n_threads>\t\tNumber of listener threads\n");
 }
 
-void* matrix_dumper_thread(void *arg) {
-	matrix_t **flow_matrix = arg;
-	sleep(300);
+void signal_handler(int sig) {
+	syslog(LOG_INFO, "Received signal %d ... terminating.\n", sig);
 	for(int i = 0; i < MAX_THREADS; i++) {
-		if(flow_matrix[i] != NULL) {
-			matrix_dump(flow_matrix[i]);
-		}
+		pthread_cancel(collector_threads[i]);
+		pthread_cancel(broker_threads[i]);
+		pthread_cancel(dumper_thread);
 	}
+
+	for(int i = 0; i < MAX_THREADS; i++) {
+		pthread_join(collector_threads[i], NULL);
+		pthread_join(broker_threads[i], NULL);
+		pthread_join(dumper_thread, NULL);
+	}
+
+	for(int i = 0; i < MAX_THREADS; i++) {
+		queue_destroy(message_queues[i]);
+		matrix_destroy(flow_matrix[i]);
+	}
+	closelog();
+	exit(EXIT_SUCCESS);
+}
+
+void* matrix_dumper_thread(void *arg) {
+
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
+
+	matrix_t **flow_matrix = arg;
+
+	for (;;) {
+		sleep(300);
+		syslog(LOG_INFO, "Dumping flow matrix data");
+		for(int i = 0; i < MAX_THREADS; i++) {
+			if(flow_matrix[i] != NULL) {
+				matrix_dump(flow_matrix[i]);
+			}
+		}
+		pthread_testcancel();
+	}
+
 	return NULL;
 }
 
@@ -67,65 +110,42 @@ int main(const int argc, char **argv) {
 	 }
 
      if(num_threads >= MAX_THREADS){
-       printf("Number of threads is too large\n");
-       exit(EXIT_FAILURE);
+		printf("Number of threads is too large\n");
+		exit(EXIT_FAILURE);
      }
 
+	/* first fork */
 	pid_t pid = fork();
 
-	/* An error occurred */
 	if (pid < 0)
 		exit(EXIT_FAILURE);
 
-	/* Success: Let the parent terminate */
 	if (pid > 0)
 		exit(EXIT_SUCCESS);
 
-	/* On success: The child process becomes session leader */
 	if (setsid() < 0)
 		exit(EXIT_FAILURE);
 
-	/* Catch, ignore and handle signals */
-	/*TODO: Implement a working signal handler */
-	signal(SIGCHLD, SIG_IGN);
-	signal(SIGHUP, SIG_IGN);
+	signal(SIGINT, signal_handler);
+	signal(SIGHUP, signal_handler);
 
-	/* Fork off for the second time*/
+	/* second fork */
 	pid = fork();
 
-	/* An error occurred */
 	if (pid < 0)
 		exit(EXIT_FAILURE);
 
-	/* Success: Let the parent terminate */
 	if (pid > 0)
 		exit(EXIT_SUCCESS);
 
-	/* Set new file permissions */
 	umask(0);
 
-	/* Change the working directory to the root directory */
-	/* or another appropriated directory */
-	chdir("/");
+	chdir("/data/rrd/");
 
-	/* Close all open file descriptors */
-	int x;
-	for (x = sysconf(_SC_OPEN_MAX); x>=0; x--){
-		close (x);
-	}
+	openlog("seaflows", LOG_PID, LOG_DAEMON);
 
-
-	pthread_t			collector_threads[MAX_THREADS];
-    pthread_t			broker_threads[MAX_THREADS];
-
-    queue_t				*message_queues[MAX_THREADS];
 	memset(message_queues, 0, sizeof(message_queues));
-
-    matrix_t			*flow_matrix[MAX_THREADS];
 	memset(flow_matrix, 0, sizeof(flow_matrix));
-
-	collector_data_t	collector_data[MAX_THREADS];
-    broker_data_t		broker_data[MAX_THREADS];
 
     for(int i = 0; i < num_threads; i++){
     	message_queues[i] = malloc(sizeof(queue_t));
@@ -135,6 +155,7 @@ int main(const int argc, char **argv) {
     }
 
 	/* create threads */
+	syslog(LOG_INFO, "Starting collector and broker threads");
 	for(int i = 0; i < num_threads; i++) {
 		collector_data[i].port = SEAFLOWS_LISTENER_PORT + i;
 		collector_data[i].address = listen_address;
@@ -146,17 +167,13 @@ int main(const int argc, char **argv) {
 		pthread_create(&collector_threads[i], NULL, collector_thread, (void*)&collector_data[i]);
         pthread_create(&broker_threads[i], NULL, broker_thread, (void*)&broker_data[i]);
 	}
-	pthread_t dumper_thread;
+	syslog(LOG_INFO, "Starting dumper thread");
 	pthread_create(&dumper_thread, NULL, matrix_dumper_thread, (void*)flow_matrix);
 
-	/* join threads */
-	for(int i = 0; i < num_threads; i++) {
-		pthread_join(collector_threads[i], NULL);
-        pthread_join(broker_threads[i], NULL);
-		free(message_queues[i]);
-		free(flow_matrix[i]);
+	/* sleep and wait for signals */
+	for (;;) {
+		sleep(300);
 	}
-	pthread_join(dumper_thread, NULL);
 
-	exit(0);
+	exit(EXIT_SUCCESS);
 }

@@ -121,7 +121,7 @@ void matrix_add_flow(matrix_t *matrix, const storable_flow_t *flow) {
 		lst_dst->next = dst_ptr;
 		src_ptr->next = NULL;
     }
-
+	matrix->dirty = 1;
     pthread_mutex_unlock((&(matrix->lock)));
 }
 
@@ -145,5 +145,6 @@ void matrix_dump(matrix_t *matrix) {
 		src_ptr->bytes_v4 = 0;
 		src_ptr->bytes_v6 = 0;
 	}
+	matrix->dirty = 0;
 	pthread_mutex_unlock(&(matrix->lock));
 }

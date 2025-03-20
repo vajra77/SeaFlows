@@ -13,9 +13,12 @@
 #include "collector/collector.h"
 
 
-void* collector_thread(void *arg)
-{
-    collector_data_t *collector_data = (collector_data_t *)arg;
+void* collector_thread(void *arg) {
+
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
+
+    collector_data_t *collector_data = arg;
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
 
     if (sock < 0)
@@ -31,7 +34,7 @@ void* collector_thread(void *arg)
 	if (bind(sock, (struct sockaddr *)&address, sizeof(address)) < 0 )
           return NULL;
 
-	while(1) {
+	for (;;) {
         sflow_raw_data_t *raw_data = malloc(sizeof(sflow_raw_data_t));
 
         raw_data->size = recvfrom(sock, raw_data->data, MAX_SFLOW_DATA, 0, NULL, NULL);
@@ -47,5 +50,6 @@ void* collector_thread(void *arg)
 
         sflow_free_datagram(sflow_datagram);
 		free(raw_data);
+		pthread_testcancel();
 	}
 }
