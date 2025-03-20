@@ -41,7 +41,7 @@ void* collector_thread(void *arg) {
         sflow_raw_data_t *raw_data = malloc(sizeof(sflow_raw_data_t));
 
         raw_data->size = recvfrom(sock, raw_data->data, MAX_SFLOW_DATA, 0, NULL, NULL);
-
+		syslog(LOG_DEBUG, "Received UDP datagram");
 		sflow_datagram_t *sflow_datagram = sflow_decode_datagram(raw_data);
 
 		for (flow_sample_t* sample = sflow_datagram->samples; sample != NULL; sample = sample->next) {
