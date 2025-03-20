@@ -43,14 +43,14 @@ void signal_handler(int sig) {
 	syslog(LOG_INFO, "Received signal %d ... terminating.\n", sig);
 	for(int i = 0; i < MAX_THREADS; i++) {
 		pthread_cancel(collector_threads[i]);
-		pthread_cancel(broker_threads[i]);
-		pthread_cancel(dumper_thread);
+		// pthread_cancel(broker_threads[i]);
+		// pthread_cancel(dumper_thread);
 	}
 
 	for(int i = 0; i < MAX_THREADS; i++) {
 		pthread_join(collector_threads[i], NULL);
-		pthread_join(broker_threads[i], NULL);
-		pthread_join(dumper_thread, NULL);
+		// pthread_join(broker_threads[i], NULL);
+		// pthread_join(dumper_thread, NULL);
 	}
 
 	for(int i = 0; i < MAX_THREADS; i++) {
@@ -149,7 +149,7 @@ int main(const int argc, char **argv) {
 	memset(flow_matrix, 0, sizeof(flow_matrix));
 
 	/* create threads */
-	syslog(LOG_INFO, "Starting collector and broker threads");
+	syslog(LOG_INFO, "Starting up");
 	for(int i = 0; i < num_threads; i++) {
 		message_queues[i] = malloc(sizeof(queue_t));
 		queue_init(message_queues[i]);
@@ -166,8 +166,8 @@ int main(const int argc, char **argv) {
 		pthread_create(&collector_threads[i], NULL, collector_thread, (void*)&collector_data[i]);
         // pthread_create(&broker_threads[i], NULL, broker_thread, (void*)&broker_data[i]);
 	}
-	syslog(LOG_INFO, "Starting dumper thread");
-	pthread_create(&dumper_thread, NULL, matrix_dumper_thread, (void*)flow_matrix);
+	// syslog(LOG_INFO, "Starting dumper thread");
+	// pthread_create(&dumper_thread, NULL, matrix_dumper_thread, (void*)flow_matrix);
 
 	/* sleep and wait for signals */
 	for (;;) {
