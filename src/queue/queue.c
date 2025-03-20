@@ -37,21 +37,35 @@ void queue_push(queue_t *queue, void *data) {
 void *queue_pop(queue_t *queue) {
   pthread_mutex_lock(&(queue->lock));
 
-  void *data = queue->head->data;
-  qnode_t *temp = queue->head;
+  void    *data = NULL;
+  qnode_t *temp = NULL;
 
-  if (queue->head == queue->tail) {
-    queue->head = NULL;
-    queue->tail = NULL;
-    queue->size = 0;
+  switch (queue->size) {
+
+    case 0:
+      data = NULL;
+      break;
+
+    case 1:
+      temp = queue->head;
+      data = queue->head->data;
+      queue->head = NULL;
+      queue->tail = NULL;
+      queue->size = 0;
+      break;
+
+    default:
+      temp = queue->head;
+      data = queue->head->data;
+      queue->head = queue->head->next;
+      queue->size--;
+
   }
-  else {
-    queue->head = queue->head->next;
-    queue->size--;
-  }
-
-  free(temp);
-
   pthread_mutex_unlock(&(queue->lock));
+
+  if (temp != NULL) {
+    free(temp);
+  }
+
   return data;
 }
