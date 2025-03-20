@@ -33,7 +33,7 @@ clean:
 	rm src/broker/*.o
 	rm src/matrix/*.o
 	rm src/rrdtool/*.o
-	rm src/seaflows/*.o
+	rm src/*.o
 
 distclean: clean
 	rm bin/seaflows
