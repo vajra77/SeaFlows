@@ -16,11 +16,12 @@ void* broker_thread(void *arg){
   pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
 
   broker_data_t *broker_data = arg;
-  syslog(LOG_INFO, "Starting broker");
+
   for (;;) {
     storable_flow_t	*storable_flow = queue_pop(broker_data->queue);
     if(storable_flow != NULL){
-      matrix_add_flow(broker_data->matrix, storable_flow);
+      syslog(LOG_DEBUG, "Received flow: %s -> %s", storable_flow->src_mac, storable_flow->dst_mac);
+      // matrix_add_flow(broker_data->matrix, storable_flow);
       free(storable_flow);
     }
     pthread_testcancel();
