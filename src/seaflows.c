@@ -67,6 +67,7 @@ void* matrix_dumper_thread(void *arg) {
 	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
 
 	matrix_t **flow_matrix = arg;
+	syslog(LOG_INFO, "Starting dumper thread");
 
 	for (;;) {
 		sleep(300);

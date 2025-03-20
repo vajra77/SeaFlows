@@ -3,10 +3,12 @@
 //
 
 #include <stdlib.h>
+#include <syslog.h>
 #include "broker.h"
 #include "../sflow/sflow.h"
 #include "../matrix/matrix.h"
 #include "../queue/queue.h"
+
 
 void* broker_thread(void *arg){
 
@@ -14,7 +16,7 @@ void* broker_thread(void *arg){
   pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
 
   broker_data_t *broker_data = arg;
-
+  syslog(LOG_INFO, "Starting broker");
   for (;;) {
     storable_flow_t	*storable_flow = queue_pop(broker_data->queue);
     if(storable_flow != NULL){
