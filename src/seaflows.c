@@ -53,10 +53,10 @@ void signal_handler(int sig) {
 		// pthread_join(dumper_thread, NULL);
 	}
 
-	for(int i = 0; i < MAX_THREADS; i++) {
-		queue_destroy(message_queues[i]);
-		matrix_destroy(flow_matrix[i]);
-	}
+	// for(int i = 0; i < MAX_THREADS; i++) {
+	// 	queue_destroy(message_queues[i]);
+	// 	matrix_destroy(flow_matrix[i]);
+	// }
 	closelog();
 	exit(EXIT_SUCCESS);
 }
