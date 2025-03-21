@@ -8,17 +8,18 @@
 #include <arpa/inet.h>
 #include <strings.h>
 #include <syslog.h>
+#include <unistd.h>
+#include <gc.h>
 
 #include "sflow/sflow.h"
 #include "collector/collector.h"
 
-#include <unistd.h>
 
 
 void* collector_thread(void *arg) {
 
-	// pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-	// pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
 
     collector_data_t *collector_data = arg;
     const int sock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -43,20 +44,19 @@ void* collector_thread(void *arg) {
 
 		const ssize_t raw_data_len = recvfrom(sock, raw_data, MAX_SFLOW_DATA, 0, NULL, NULL);
 
-		syslog(LOG_DEBUG, "Received UDP datagram");
-		const sflow_datagram_t *datagram = sflow_decode_datagram(raw_data, raw_data_len);
+		sflow_datagram_t *datagram = sflow_decode_datagram(raw_data, raw_data_len);
 
 		if (datagram) {
-		// for (const flow_sample_t* sample = datagram->samples; sample != NULL; sample = sample->next) {
-		// 	for (const flow_record_t* record = sample->records; record != NULL; record = record->next) {
-		// 		storable_flow_t	*flow = sflow_encode_flow_record(record, sample->header.sampling_rate);
-		// 		queue_push(collector_data->queue, flow);
-		// 	}
-		// }
-		// sflow_free_datagram(datagram);
-			syslog(LOG_DEBUG, "Datagram decoded");
+			for (const flow_sample_t* sample = datagram->samples; sample != NULL; sample = sample->next) {
+				for (const flow_record_t* record = sample->records; record != NULL; record = record->next) {
+					storable_flow_t	*flow = sflow_encode_flow_record(record, sample->header.sampling_rate);
+					// queue_push(collector_data->queue, flow);
+					syslog(LOG_DEBUG, "Decoded flow: %s => %s", flow->src_mac, flow->dst_mac);
+				}
+			}
+			sflow_free_datagram(datagram);
 		}
 
-		// pthread_testcancel();
+		pthread_testcancel();
 	}
 }

@@ -16,6 +16,12 @@
 
 #define SFLOW_DEBUG
 
+#ifdef SFLOW_DEBUG
+#define MEMGUARD(ptr, start, len) if (ptr > start + len) { syslog(LOG_WARNING, "memory overflow"); return NULL; }
+#else
+#define MEMGUARD(ptr, start, len)
+#endif
+
 /* Storable Flow */
 
 typedef struct storable_flow {
