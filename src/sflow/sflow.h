@@ -5,6 +5,7 @@
 #ifndef SFLOW_H
 #define SFLOW_H
 
+#include <sys/types.h>
 #include "net.h"
 
 #define MAX_SFLOW_DATA 16384
@@ -12,6 +13,8 @@
 #define SFLOW_FLOW_SAMPLE_FORMAT                  0x00000001
 #define SFLOW_RAW_PACKET_HEADER_FORMAT            0x00000001
 #define SFLOW_RAW_PACKET_HEADER_PROTO_ETHERNET    0x00000001
+
+#define SFLOW_DEBUG
 
 /* Storable Flow */
 
@@ -104,8 +107,8 @@ typedef struct sflow_datagram {
   flow_sample_t *samples;
 } sflow_datagram_t;
 
-sflow_datagram_t* 	  sflow_decode_datagram(const sflow_raw_data_t*);
-storable_flow_t*	  sflow_encode_flow_record(const flow_record_t*, const uint32_t);
+sflow_datagram_t* 	  sflow_decode_datagram(const char *, ssize_t);
+storable_flow_t*	  sflow_encode_flow_record(const flow_record_t*, uint32_t);
 void                  sflow_free_datagram(sflow_datagram_t*);
 
 #endif //SFLOW_H
