@@ -21,7 +21,7 @@ void* collector_thread(void *arg) {
 	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
 
     collector_data_t *collector_data = arg;
-    int sock = socket(AF_INET, SOCK_DGRAM, 0);
+    const int sock = socket(AF_INET, SOCK_DGRAM, 0);
 
     if (sock < 0)
 		return NULL;
@@ -54,8 +54,9 @@ void* collector_thread(void *arg) {
 		// 	}
 		// }
 		// sflow_free_datagram(datagram);
+			syslog(LOG_DEBUG, "Datagram decoded");
 		}
 
-		pthread_testcancel();
+		// pthread_testcancel();
 	}
 }
