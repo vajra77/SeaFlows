@@ -256,12 +256,12 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
 
             				/* src address */
             				inet_ntop(AF_INET, data_ptr, ipv4->source_address, 256);
-            				data_ptr += 6;
+            				data_ptr += sizeof(uint32_t);
             				MEMGUARD(data_ptr, raw_data, raw_data_len);
 
             				/* dst address */
             				inet_ntop(AF_INET, data_ptr, ipv4->source_address, 256);
-            				data_ptr += 6;
+            				data_ptr += sizeof(uint32_t);
             				MEMGUARD(data_ptr, raw_data, raw_data_len);
 
             				packet->datalink = datalink;
