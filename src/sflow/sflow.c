@@ -11,6 +11,9 @@
 #include <stdarg.h>
 
 #include "sflow.h"
+
+#include <sys/syslog.h>
+
 #include "net.h"
 
 int memguard(const char *ptr, const char *start, const ssize_t len, const int argc, ...) {
@@ -44,13 +47,13 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
 	datagram->header.version = ntohl(buffer);
     data_ptr += sizeof(uint32_t);
 	if (memguard(data_ptr, raw_data, raw_data_len, 1, datagram)) return NULL;
+	syslog(LOG_DEBUG, "qui 1");
 
 	/* IP version */
     memcpy(&buffer, data_ptr, sizeof(uint32_t));
 	datagram->header.ip_version = ntohl(buffer);
     data_ptr += sizeof(uint32_t);
 	if (memguard(data_ptr, raw_data, raw_data_len, 1, datagram)) return NULL;
-
 
 	/* agent address */
 	if (datagram->header.ip_version == 1) {
@@ -62,6 +65,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
 		data_ptr += sizeof(uint32_t) * 4;
 		if (memguard(data_ptr, raw_data, raw_data_len, 1, datagram)) return NULL;
 	}
+	syslog(LOG_DEBUG, "qui 2");
 
 	/* sub agent id */
 	memcpy(&buffer, data_ptr, sizeof(uint32_t));
