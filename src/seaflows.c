@@ -35,7 +35,7 @@ void usage(){
 	printf("\tseaflows [options]\n");
 	printf("Options:\n");
 	printf("\t-h\t\t\tShow this help and exit\n");
-	printf("\t-a <ip_address>\t\tListen address\n");
+	printf("\t-l <ip_address>\t\tListen address\n");
 	printf("\t-t <n_threads>\t\tNumber of listener threads\n");
 }
 
@@ -92,9 +92,9 @@ int main(const int argc, char **argv) {
 		 exit(EXIT_FAILURE);
 	 }
 
-	 while((c = getopt(argc, argv, "a:t:h")) != -1) {
+	 while((c = getopt(argc, argv, "l:t:h")) != -1) {
 		 switch(c) {
-			case 'a':
+			case 'l':
 				strcpy(listen_address, optarg);
 				break;
 		 	case 't':
