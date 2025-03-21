@@ -161,7 +161,6 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
             	MEMGUARD(data_ptr, raw_data, raw_data_len);
 
             	const char *record_data_start = data_ptr;
-            	void *packet_data_start = data_ptr;
 
             	/* raw packet parser */
             	if (record->header.data_format & SFLOW_RAW_PACKET_HEADER_FORMAT) {
