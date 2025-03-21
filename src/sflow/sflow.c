@@ -12,6 +12,8 @@
 #include "sflow.h"
 #include "net.h"
 
+
+/* full sFlow datagram decoding routine */
 sflow_datagram_t *sflow_decode_datagram(const sflow_raw_data_t *sflow_raw_data) {
 
   	const char *raw_data = sflow_raw_data->data;
@@ -33,8 +35,7 @@ sflow_datagram_t *sflow_decode_datagram(const sflow_raw_data_t *sflow_raw_data) 
 	if (datagram->header.ip_version == 1) {
 		inet_ntop(AF_INET, raw_data, datagram->header.agent_address, 255);
 		raw_data += sizeof(uint32_t);
-	}
-	else {
+	} else {
 		inet_ntop(AF_INET6, raw_data, datagram->header.agent_address, 255);
 		raw_data += sizeof(uint32_t) * 4;
 	}
@@ -322,8 +323,7 @@ storable_flow_t	*sflow_encode_flow_record(const flow_record_t *record, const uin
         flow->size = pkt->ipv4->length + 34;
     	flow->sampling_rate = sampling_rate;
     	flow->computed_size = flow->size * flow->sampling_rate;
-    }
-    else if (flow->proto == ETHERTYPE_IPV6) { /* IPv6 */
+    } else if (flow->proto == ETHERTYPE_IPV6) { /* IPv6 */
 		strcpy(flow->src_ip, pkt->ipv6->source_address);
     	strcpy(flow->dst_ip, pkt->ipv6->source_address);
     	flow->size = pkt->ipv6->length + 40;
