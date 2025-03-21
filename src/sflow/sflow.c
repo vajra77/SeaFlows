@@ -255,20 +255,18 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
             				MEMGUARD(data_ptr, raw_data, raw_data_len);
 
             				struct in_addr ipv4_address;
-            				bzero(&ipv4_address, sizeof(ipv4_address));
+            				bzero(&ipv4_address, sizeof(struct in_addr));
 
             				/* src address */
-            				memcpy(&buffer, data_ptr, sizeof(uint32_t));
-            				ipv4_address.s_addr = ntohl(buffer);
+            				memcpy(&ipv4_address.s_addr, data_ptr, sizeof(uint32_t));
             				inet_ntop(AF_INET, &ipv4_address, ipv4->source_address, 256);
             				data_ptr += sizeof(uint32_t);
             				MEMGUARD(data_ptr, raw_data, raw_data_len);
 
-            				bzero(&ipv4_address, sizeof(ipv4_address));
+            				bzero(&ipv4_address, sizeof(struct in_addr));
 
             				/* dst address */
-            				memcpy(&buffer, data_ptr, sizeof(uint32_t));
-            				ipv4_address.s_addr = ntohl(buffer);
+            				memcpy(&ipv4_address.s_addr, data_ptr, sizeof(uint32_t));
             				inet_ntop(AF_INET, &ipv4_address, ipv4->destination_address, 256);
             				data_ptr += sizeof(uint32_t);
             				MEMGUARD(data_ptr, raw_data, raw_data_len);
@@ -296,7 +294,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
             				MEMGUARD(data_ptr, raw_data, raw_data_len);
 
             				struct in6_addr ipv6_address;
-            				bzero(&ipv6_address, sizeof(ipv6_address));
+            				bzero(&ipv6_address, sizeof(struct in6_addr));
 
             				/* src address */
             				memcpy(&ipv6_address.s6_addr, data_ptr, 16);
@@ -304,7 +302,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
             				data_ptr += 16;
             				MEMGUARD(data_ptr, raw_data, raw_data_len);
 
-            				bzero(&ipv6_address, sizeof(ipv6_address));
+            				bzero(&ipv6_address, sizeof(struct in6_addr));
 
             				/* dst address */
             				memcpy(&ipv6_address.s6_addr, data_ptr, 16);
