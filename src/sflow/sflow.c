@@ -202,12 +202,12 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
 						bzero(datalink, sizeof(datalink_header_t));
 
             			/* destination MAC address */
-            			memcpy(datalink->ethernet.destination_mac, data_ptr, 6);
+            			memcpy(&datalink->ethernet.destination_mac, data_ptr, 6);
             			data_ptr += 6;
             			MEMGUARD(data_ptr, raw_data, raw_data_len);
 
             			/* source MAC address */
-            			memcpy(datalink->ethernet.source_mac, data_ptr, 6);
+            			memcpy(&datalink->ethernet.source_mac, data_ptr, 6);
             			data_ptr += 6;
             			MEMGUARD(data_ptr, raw_data, raw_data_len);
 

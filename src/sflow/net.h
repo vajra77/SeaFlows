@@ -14,8 +14,8 @@
 #define ETHERTYPE_IPV6 0x86dd
 
 struct ethernet_header {
-    char destination_mac[6];
-    char source_mac[6];
+    uint8_t destination_mac[6];
+    uint8_t source_mac[6];
     uint16_t ethertype;
 };
 
