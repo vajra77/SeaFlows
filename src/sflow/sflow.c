@@ -254,16 +254,22 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
             				data_ptr += sizeof(uint32_t);
             				MEMGUARD(data_ptr, raw_data, raw_data_len);
 
-            				uint32_t address = 0;
+            				struct in_addr ipv4_address;
+            				bzero(&ipv4_address, sizeof(ipv4_address));
+
             				/* src address */
             				memcpy(&buffer, data_ptr, sizeof(uint32_t));
-            				inet_ntop(AF_INET, &buffer, ipv4->source_address, 256);
+            				ipv4_address.s_addr = ntohl(buffer);
+            				inet_ntop(AF_INET, &ipv4_address, ipv4->source_address, 256);
             				data_ptr += sizeof(uint32_t);
             				MEMGUARD(data_ptr, raw_data, raw_data_len);
 
+            				bzero(&ipv4_address, sizeof(ipv4_address));
+
             				/* dst address */
             				memcpy(&buffer, data_ptr, sizeof(uint32_t));
-            				inet_ntop(AF_INET, &buffer, ipv4->destination_address, 256);
+            				ipv4_address.s_addr = ntohl(buffer);
+            				inet_ntop(AF_INET, &ipv4_address, ipv4->destination_address, 256);
             				data_ptr += sizeof(uint32_t);
             				MEMGUARD(data_ptr, raw_data, raw_data_len);
 
@@ -289,13 +295,20 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
             				data_ptr += sizeof(uint32_t);
             				MEMGUARD(data_ptr, raw_data, raw_data_len);
 
+            				struct in6_addr ipv6_address;
+            				bzero(&ipv6_address, sizeof(ipv6_address));
+
             				/* src address */
-            				inet_ntop(AF_INET6, data_ptr, ipv6->source_address, 256);
+            				memcpy(&ipv6_address.__u6_addr, data_ptr, 16);
+            				inet_ntop(AF_INET6, &ipv6_address, ipv6->source_address, 256);
             				data_ptr += 16;
             				MEMGUARD(data_ptr, raw_data, raw_data_len);
 
+            				bzero(&ipv6_address, sizeof(ipv6_address));
+
             				/* dst address */
-            				inet_ntop(AF_INET6, data_ptr, ipv6->source_address, 256);
+            				memcpy(&ipv6_address.__u6_addr, data_ptr, 16);
+            				inet_ntop(AF_INET6, &ipv6_address, ipv6->source_address, 256);
             				data_ptr += 16;
             				MEMGUARD(data_ptr, raw_data, raw_data_len);
 
