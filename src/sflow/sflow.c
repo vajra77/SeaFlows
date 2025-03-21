@@ -161,6 +161,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
             	MEMGUARD(data_ptr, raw_data, raw_data_len);
 
             	const char *record_data_start = data_ptr;
+            	void *packet_data_start = data_ptr;
 
             	/* raw packet parser */
             	if (record->header.data_format & SFLOW_RAW_PACKET_HEADER_FORMAT) {
@@ -199,6 +200,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
             		if (packet->header.protocol & SFLOW_RAW_PACKET_HEADER_PROTO_ETHERNET) {
             			/* ethernet header follows */
             			datalink_header_t *datalink = GC_malloc(sizeof(datalink_header_t));
+						bzero(datalink, sizeof(datalink_header_t));
 
             			/* destination MAC address */
             			memcpy(datalink->ethernet.destination_mac, data_ptr, 6);
@@ -237,6 +239,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
             				datalink->vlan.length = 0;
 
             				ipv4_header_t *ipv4 = GC_malloc(sizeof(ipv4_header_t));
+							bzero(ipv4, sizeof(ipv4_header_t));
 
             				/* total length */
             				memcpy(&buffer, data_ptr, sizeof(uint32_t));
@@ -270,6 +273,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
             				datalink->vlan.length = 0;
 
             				ipv6_header_t *ipv6 = GC_malloc(sizeof(ipv6_header_t));
+							bzero(ipv6, sizeof(ipv6_header_t));
 
             				/* preamble */
             				memcpy(&buffer, data_ptr, sizeof(uint32_t));
