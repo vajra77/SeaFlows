@@ -326,6 +326,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
             	} /* end of raw packet parser */
 
             	/* add record to sample */
+        		syslog(LOG_DEBUG, "Adding record to datagram");
             	if (sample->records) {
             		flow_record_t *last = sample->records;
             		flow_record_t *current = sample->records;
@@ -340,6 +341,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
             } /* end of records loop */
 
         	/* add sample to datagram */
+        	syslog(LOG_DEBUG, "Adding sample to datagram");
         	if (datagram->samples) {
         		flow_sample_t *last = datagram->samples;
         		flow_sample_t *current = datagram->samples;
