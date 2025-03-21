@@ -259,7 +259,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
 
             				/* src address */
             				memcpy(&buffer, data_ptr, sizeof(uint32_t));
-            				ipv4_address.s_addr = ntohl(buffer);
+            				ipv4_address.s_addr = buffer;
             				inet_ntop(AF_INET, &ipv4_address, ipv4->source_address, 256);
             				data_ptr += sizeof(uint32_t);
             				MEMGUARD(data_ptr, raw_data, raw_data_len);
@@ -268,7 +268,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
 
             				/* dst address */
             				memcpy(&buffer, data_ptr, sizeof(uint32_t));
-            				ipv4_address.s_addr = ntohl(buffer);
+            				ipv4_address.s_addr = buffer;
             				inet_ntop(AF_INET, &ipv4_address, ipv4->destination_address, 256);
             				data_ptr += sizeof(uint32_t);
             				MEMGUARD(data_ptr, raw_data, raw_data_len);
