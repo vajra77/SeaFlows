@@ -159,46 +159,46 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
 
             /* records loop */
             for (int k = 0; k < sample->header.num_records; k++) {
-            	syslog(LOG_DEBUG, "Looping on record %d of %d", k, sample->header.num_records);
-                flow_record_t *record = malloc(sizeof(flow_record_t));
+	            syslog(LOG_DEBUG, "Looping on record %d of %d", k, sample->header.num_records);
+            	flow_record_t *record = malloc(sizeof(flow_record_t));
 
             	record->packet = NULL;
             	record->next = NULL;
 
-				/* data format */
+            	/* data format */
             	memcpy(&buffer, data_ptr, sizeof(uint32_t));
-				record->header.data_format = ntohl(buffer);
+            	record->header.data_format = ntohl(buffer);
             	data_ptr += sizeof(uint32_t);
-				if (memguard(data_ptr, raw_data, raw_data_len, 3, datagram, sample, record)) return NULL;
+            	if (memguard(data_ptr, raw_data, raw_data_len, 3, datagram, sample, record)) return NULL;
 
             	/* raw packet parser */
             	if (record->header.data_format & SFLOW_RAW_PACKET_HEADER_FORMAT) {
-					/* raw packet header */
+            		/* raw packet header */
             		raw_packet_t *packet = malloc(sizeof(raw_packet_t));
 
             		/* header protocol */
             		memcpy(&buffer, data_ptr, sizeof(uint32_t));
             		packet->header.protocol = ntohl(buffer);
             		data_ptr += sizeof(uint32_t);
-					if (memguard(data_ptr, raw_data, raw_data_len, 4, datagram, sample, record, packet)) return NULL;
+            		if (memguard(data_ptr, raw_data, raw_data_len, 4, datagram, sample, record, packet)) return NULL;
 
             		/* frame length */
             		memcpy(&buffer, data_ptr, sizeof(uint32_t));
             		packet->header.frame_length = ntohl(buffer);
             		data_ptr += sizeof(uint32_t);
-					if (memguard(data_ptr, raw_data, raw_data_len, 4, datagram, sample, record, packet)) return NULL;
+            		if (memguard(data_ptr, raw_data, raw_data_len, 4, datagram, sample, record, packet)) return NULL;
 
             		/* stripped */
             		memcpy(&buffer, data_ptr, sizeof(uint32_t));
             		packet->header.stripped = ntohl(buffer);
             		data_ptr += sizeof(uint32_t);
-					if (memguard(data_ptr, raw_data, raw_data_len, 4, datagram, sample, record, packet)) return NULL;
+            		if (memguard(data_ptr, raw_data, raw_data_len, 4, datagram, sample, record, packet)) return NULL;
 
             		/* size */
             		memcpy(&buffer, data_ptr, sizeof(uint32_t));
             		packet->header.size = ntohl(buffer);
             		data_ptr += sizeof(uint32_t);
-					if (memguard(data_ptr, raw_data, raw_data_len, 4, datagram, sample, record, packet)) return NULL;
+            		if (memguard(data_ptr, raw_data, raw_data_len, 4, datagram, sample, record, packet)) return NULL;
 
             		/* reset all packet data */
             		packet->datalink = NULL;
@@ -212,137 +212,145 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
             			/* destination MAC address */
             			memcpy(datalink->ethernet.destination_mac, data_ptr, 6);
             			data_ptr += 6;
-						if (memguard(data_ptr, raw_data, raw_data_len, 5,
+            			if (memguard(data_ptr, raw_data, raw_data_len, 5,
 							datagram, sample, record, packet, datalink)) return NULL;
 
             			/* source MAC address */
             			memcpy(datalink->ethernet.source_mac, data_ptr, 6);
             			data_ptr += 6;
-						if (memguard(data_ptr, raw_data, raw_data_len, 5,
+            			if (memguard(data_ptr, raw_data, raw_data_len, 5,
 							datagram, sample, record, packet, datalink)) return NULL;
 
             			/* ethertype */
             			uint16_t	type_len;
             			memcpy(&type_len, data_ptr, sizeof(uint16_t));
             			data_ptr += sizeof(uint16_t);
-						if (memguard(data_ptr, raw_data, raw_data_len, 5,
+            			if (memguard(data_ptr, raw_data, raw_data_len, 5,
 							datagram, sample, record, packet, datalink)) return NULL;
 
             			if (ntohs(type_len) == ETHERTYPE_8021Q) {
             				/* vlan id */
-							uint16_t vlan;
+            				uint16_t vlan;
             				memcpy(&vlan, data_ptr, sizeof(uint16_t));
             				datalink->vlan.id = ntohs(vlan);
-							datalink->vlan.length = 0;
+            				datalink->vlan.length = 0;
             				data_ptr += sizeof(uint16_t);
-							if (memguard(data_ptr, raw_data, raw_data_len, 5,
+            				if (memguard(data_ptr, raw_data, raw_data_len, 5,
 								datagram, sample, record, packet, datalink)) return NULL;
 
             				/* re-read shifted type_len */
             				memcpy(&type_len, data_ptr, sizeof(uint16_t));
             				data_ptr += sizeof(uint16_t);
-							if (memguard(data_ptr, raw_data, raw_data_len, 5,
+            				if (memguard(data_ptr, raw_data, raw_data_len, 5,
 								datagram, sample, record, packet, datalink)) return NULL;
             			}
 
             			if (ntohs(type_len) == ETHERTYPE_IPV4) {
-							datalink->ethernet.ethertype = ETHERTYPE_IPV4;
-							datalink->vlan.id = 0;
+            				datalink->ethernet.ethertype = ETHERTYPE_IPV4;
+            				datalink->vlan.id = 0;
             				datalink->vlan.length = 0;
 
-							ipv4_header_t *ipv4 = malloc(sizeof(ipv4_header_t));
+            				ipv4_header_t *ipv4 = malloc(sizeof(ipv4_header_t));
 
             				/* total length */
             				memcpy(&buffer, data_ptr, sizeof(uint32_t));
             				ipv4->preamble = ntohl(buffer) & 0xffff0000;
             				ipv4->length = ntohl(buffer) & 0x0000ffff;
             				data_ptr += sizeof(uint32_t);
-							if (memguard(data_ptr, raw_data, raw_data_len, 6,
+            				if (memguard(data_ptr, raw_data, raw_data_len, 6,
 								datagram, sample, record, packet, datalink, ipv4)) return NULL;
 
             				/* ttl/protocol */
             				memcpy(&buffer, data_ptr, sizeof(uint32_t));
-							ipv4->ttl = (ntohl(buffer) & 0xff000000) >> 6;
+            				ipv4->ttl = (ntohl(buffer) & 0xff000000) >> 6;
             				ipv4->protocol = (ntohl(buffer) & 0x00ff0000) >> 4;
-							data_ptr += sizeof(uint32_t);
-							if (memguard(data_ptr, raw_data, raw_data_len, 6,
+            				data_ptr += sizeof(uint32_t);
+            				if (memguard(data_ptr, raw_data, raw_data_len, 6,
 								datagram, sample, record, packet, datalink, ipv4)) return NULL;
 
             				/* src address */
             				inet_ntop(AF_INET, data_ptr, ipv4->source_address, 256);
-							data_ptr += 6;
-							if (memguard(data_ptr, raw_data, raw_data_len, 6,
+            				data_ptr += 6;
+            				if (memguard(data_ptr, raw_data, raw_data_len, 6,
 								datagram, sample, record, packet, datalink, ipv4)) return NULL;
 
             				/* dst address */
             				inet_ntop(AF_INET, data_ptr, ipv4->source_address, 256);
-							data_ptr += 6;
-							if (memguard(data_ptr, raw_data, raw_data_len, 6,
+            				data_ptr += 6;
+            				if (memguard(data_ptr, raw_data, raw_data_len, 6,
 								datagram, sample, record, packet, datalink, ipv4)) return NULL;
 
-							packet->datalink = datalink;
-							packet->ipv4 = ipv4;
-						} else if (ntohs(type_len) == ETHERTYPE_IPV6) {
-							datalink->ethernet.ethertype = ETHERTYPE_IPV6;
-							datalink->vlan.id = 0;
-							datalink->vlan.length = 0;
+            				packet->datalink = datalink;
+            				packet->ipv4 = ipv4;
+            			} else if (ntohs(type_len) == ETHERTYPE_IPV6) {
+            				datalink->ethernet.ethertype = ETHERTYPE_IPV6;
+            				datalink->vlan.id = 0;
+            				datalink->vlan.length = 0;
 
-							ipv6_header_t *ipv6 = malloc(sizeof(ipv6_header_t));
+            				ipv6_header_t *ipv6 = malloc(sizeof(ipv6_header_t));
 
-							/* preamble */
-							memcpy(&buffer, data_ptr, sizeof(uint32_t));
-							ipv6->preamble = ntohl(buffer);
-							data_ptr += sizeof(uint32_t);
-							if (memguard(data_ptr, raw_data, raw_data_len, 6,
+            				/* preamble */
+            				memcpy(&buffer, data_ptr, sizeof(uint32_t));
+            				ipv6->preamble = ntohl(buffer);
+            				data_ptr += sizeof(uint32_t);
+            				if (memguard(data_ptr, raw_data, raw_data_len, 6,
 								datagram, sample, record, packet, datalink, ipv6)) return NULL;
 
-							/* length */
-							memcpy(&buffer, data_ptr, sizeof(uint32_t));
-							ipv6->length = (ntohl(buffer) & 0xffff0000) >> 4;
-							data_ptr += sizeof(uint32_t);
-							if (memguard(data_ptr, raw_data, raw_data_len, 6,
+            				/* length */
+            				memcpy(&buffer, data_ptr, sizeof(uint32_t));
+            				ipv6->length = (ntohl(buffer) & 0xffff0000) >> 4;
+            				data_ptr += sizeof(uint32_t);
+            				if (memguard(data_ptr, raw_data, raw_data_len, 6,
 								datagram, sample, record, packet, datalink, ipv6)) return NULL;
 
-							/* src address */
-							inet_ntop(AF_INET6, data_ptr, ipv6->source_address, 256);
-							data_ptr += 16;
-							if (memguard(data_ptr, raw_data, raw_data_len, 6,
+            				/* src address */
+            				inet_ntop(AF_INET6, data_ptr, ipv6->source_address, 256);
+            				data_ptr += 16;
+            				if (memguard(data_ptr, raw_data, raw_data_len, 6,
 								datagram, sample, record, packet, datalink, ipv6)) return NULL;
 
-							/* dst address */
-							inet_ntop(AF_INET6, data_ptr, ipv6->source_address, 256);
-							data_ptr += 16;
-							if (memguard(data_ptr, raw_data, raw_data_len, 6,
+            				/* dst address */
+            				inet_ntop(AF_INET6, data_ptr, ipv6->source_address, 256);
+            				data_ptr += 16;
+            				if (memguard(data_ptr, raw_data, raw_data_len, 6,
 								datagram, sample, record, packet, datalink, ipv6)) return NULL;
 
-							packet->datalink = datalink;
-							packet->ipv6 = ipv6;
+            				packet->datalink = datalink;
+            				packet->ipv6 = ipv6;
 
-						} else {
-							packet->datalink = datalink;
+            			} else {
+            				packet->datalink = datalink;
             			}
             		}
             		record->packet = packet;
             	} /* end of raw packet parser */
 
             	/* add record to sample */
-            	flow_record_t *last = sample->records;
-            	flow_record_t *current = sample->records;
-            	while (current) {
-            		last = current;
-            		current = current->next;
-            	}
-            	last->next = record;
+            	if (sample->records) {
+            		flow_record_t *last = sample->records;
+            		flow_record_t *current = sample->records;
+            		while (current) {
+            			last = current;
+            			current = current->next;
+            		}
+            		last->next = record;
+				} else {
+					sample->records = record;
+				}
             } /* end of records loop */
 
         	/* add sample to datagram */
-        	flow_sample_t *last = datagram->samples;
-        	flow_sample_t *current = datagram->samples;
-        	while (current) {
-        		last = current;
-        		current = current->next;
+        	if (datagram->samples) {
+        		flow_sample_t *last = datagram->samples;
+        		flow_sample_t *current = datagram->samples;
+        		while (current) {
+        			last = current;
+        			current = current->next;
+        		}
+        		last->next = sample;
+        	} else {
+        		datagram->samples = sample;
         	}
-        	last->next = sample;
         }
     }  /* end of samples loop */
 
