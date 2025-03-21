@@ -26,11 +26,11 @@
 
 typedef struct storable_flow {
   time_t timestamp;
-  char src_mac[18];
-  char dst_mac[18];
+  char src_mac[13];
+  char dst_mac[13];
   uint32_t proto;
-  char src_ip[18];
-  char dst_ip[18];
+  char src_ip[256];
+  char dst_ip[256];
   uint32_t size;
   uint32_t sampling_rate;
   uint32_t computed_size;
