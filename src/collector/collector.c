@@ -17,8 +17,8 @@
 
 void* collector_thread(void *arg) {
 
-	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
+	// pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+	// pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
 
     collector_data_t *collector_data = arg;
     const int sock = socket(AF_INET, SOCK_DGRAM, 0);

@@ -19,8 +19,8 @@
 int memguard(const void *ptr, const void *start, const ssize_t len, const int argc, ...) {
 
 #ifdef SFLOW_DEBUG
-	syslog(LOG_DEBUG, "MEMGUARD: ptr(%p), start(%p), limit(%p)", ptr, start, start + len);
 	if (ptr > (start + len)) {
+		syslog(LOG_ERR, "memguard: ptr overflow");
 		va_list ap;
 		va_start(ap, argc);
 		for (int i = 1; i < argc; i++) {
@@ -92,6 +92,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
 
     /* samples loop */
     for (int n = 0; n < datagram->header.num_samples; n++) {
+    	syslog(LOG_DEBUG, "sflow: sample %d of %d", n, datagram->header.num_samples);
     	/* sample format */
         memcpy(&buffer, data_ptr, sizeof(uint32_t));
 		data_ptr += sizeof(uint32_t);
