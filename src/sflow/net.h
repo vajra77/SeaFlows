@@ -5,6 +5,8 @@
 #ifndef NET_H
 #define NET_H
 
+#include <stdint.h>
+
 #define ETHERTYPE_8021Q 0x8100
 #define ETHERTYPE_IPV4 0x0800
 #define ETHERTYPE_ARP 0x0806

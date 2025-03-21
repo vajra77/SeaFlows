@@ -4,6 +4,7 @@
 
 #ifndef SFLOW_H
 #define SFLOW_H
+
 #include "net.h"
 
 #define MAX_SFLOW_DATA 16384
