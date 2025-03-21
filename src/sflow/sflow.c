@@ -172,6 +172,14 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
             	data_ptr += sizeof(uint32_t);
             	if (memguard(data_ptr, raw_data, raw_data_len, 3, datagram, sample, record)) return NULL;
 
+            	/* flow data length */
+            	memcpy(&buffer, data_ptr, sizeof(uint32_t));
+            	record->header.length = ntohl(buffer);
+            	data_ptr += sizeof(uint32_t);
+            	if (memguard(data_ptr, raw_data, raw_data_len, 3, datagram, sample, record)) return NULL;
+
+            	const char *record_data_start = data_ptr;
+
             	/* raw packet parser */
             	if (record->header.data_format & SFLOW_RAW_PACKET_HEADER_FORMAT) {
             		/* raw packet header */
@@ -341,6 +349,11 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
             		record->next = NULL;
 					sample->records = record;
 				}
+
+            	/* align pointer for next record or sample */
+            	if (data_ptr < (record_data_start + record->header.length)) {
+            		data_ptr = record_data_start + record->header.length;
+            	}
             } /* end of records loop */
 
         	/* add sample to datagram */
