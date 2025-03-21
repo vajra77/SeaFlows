@@ -95,7 +95,6 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
     for (int n = 0; n < datagram->header.num_samples; n++) {
     	syslog(LOG_DEBUG, "sflow: sample %d of %d", n+1, datagram->header.num_samples);
 
-    	const char *sample_data_start = data_ptr;
 
         flow_sample_t *sample = malloc(sizeof(flow_sample_t));
         bzero(sample, sizeof(flow_sample_t));
@@ -112,9 +111,9 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
         data_ptr += sizeof(uint32_t);
 		if (memguard(data_ptr, raw_data, raw_data_len, 2, datagram, sample)) return NULL;
 
-        if(ntohl(buffer) & SFLOW_FLOW_SAMPLE_FORMAT) {
+    	const char *sample_data_start = data_ptr;
 
-
+        if(sample->header.data_format & SFLOW_FLOW_SAMPLE_FORMAT) {
 
         	/* sample sequence number */
             memcpy(&buffer, data_ptr, sizeof(uint32_t));
@@ -168,7 +167,6 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
             /* records loop */
             for (int k = 0; k < sample->header.num_records; k++) {
 
-            	const char *record_data_start = data_ptr;
 
             	flow_record_t *record = malloc(sizeof(flow_record_t));
             	bzero(record, sizeof(flow_record_t));
@@ -185,6 +183,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
             	data_ptr += sizeof(uint32_t);
             	if (memguard(data_ptr, raw_data, raw_data_len, 3, datagram, sample, record)) return NULL;
 
+            	const char *record_data_start = data_ptr;
 
             	/* raw packet parser */
             	if (record->header.data_format & SFLOW_RAW_PACKET_HEADER_FORMAT) {
