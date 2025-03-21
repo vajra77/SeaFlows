@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -Wall -g  
 LIBS = -lrrd
 
-all: sflow queue matrix collector broker rrdtool seaflows
+all: sflow queue matrix collector broker rrdtool app/seaflows
 	$(CC) -o bin/seaflows src/sflow/sflow.o src/queue/queue.o src/matrix/matrix.o src/rrdtool/rrdtool.o src/collector/collector.o src/broker/broker.o src/seaflows.o $(LIBS)
 
 seaflows:
