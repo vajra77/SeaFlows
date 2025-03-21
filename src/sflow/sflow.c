@@ -16,9 +16,10 @@
 
 #include "net.h"
 
-int memguard(const char *ptr, const char *start, const ssize_t len, const int argc, ...) {
+int memguard(const void *ptr, const void *start, const ssize_t len, const int argc, ...) {
 
 #ifdef SFLOW_DEBUG
+	syslog(LOG_DEBUG, "MEMGUARD: ptr(%p), start(%p), limit(%p)", ptr, start, start + len);
 	if (ptr > (start + len)) {
 		va_list ap;
 		va_start(ap, argc);
