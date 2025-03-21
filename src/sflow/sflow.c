@@ -424,13 +424,13 @@ storable_flow_t	*sflow_encode_flow_record(const flow_record_t *record, const uin
 
     if (flow->proto == ETHERTYPE_IPV4) {
 		strcpy(flow->src_ip, pkt->ipv4->source_address);
-    	strcpy(flow->dst_ip, pkt->ipv4->source_address);
+    	strcpy(flow->dst_ip, pkt->ipv4->destination_address);
         flow->size = pkt->ipv4->length + 34;
     	flow->sampling_rate = sampling_rate;
     	flow->computed_size = flow->size * flow->sampling_rate;
     } else if (flow->proto == ETHERTYPE_IPV6) { /* IPv6 */
 		strcpy(flow->src_ip, pkt->ipv6->source_address);
-    	strcpy(flow->dst_ip, pkt->ipv6->source_address);
+    	strcpy(flow->dst_ip, pkt->ipv6->destination_address);
     	flow->size = pkt->ipv6->length + 40;
     	flow->sampling_rate = sampling_rate;
     	flow->computed_size = flow->size * flow->sampling_rate;
