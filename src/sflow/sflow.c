@@ -93,26 +93,28 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
 
     /* samples loop */
     for (int n = 0; n < datagram->header.num_samples; n++) {
-    	syslog(LOG_DEBUG, "sflow: sample %d of %d", n, datagram->header.num_samples);
+    	syslog(LOG_DEBUG, "sflow: sample %d of %d", n+1, datagram->header.num_samples);
 
     	const char *sample_data_start = data_ptr;
+
+        flow_sample_t *sample = malloc(sizeof(flow_sample_t));
+        bzero(sample, sizeof(flow_sample_t));
 
     	/* sample format */
         memcpy(&buffer, data_ptr, sizeof(uint32_t));
 		data_ptr += sizeof(uint32_t);
+    	sample->header.data_format = ntohl(buffer);
     	if (memguard(data_ptr, raw_data, raw_data_len, 1, datagram)) return NULL;
 
+    	/* sample length */
+        memcpy(&buffer, data_ptr, sizeof(uint32_t));
+        sample->header.length = ntohl(buffer);
+        data_ptr += sizeof(uint32_t);
+		if (memguard(data_ptr, raw_data, raw_data_len, 2, datagram, sample)) return NULL;
+
         if(ntohl(buffer) & SFLOW_FLOW_SAMPLE_FORMAT) {
-            flow_sample_t *sample = malloc(sizeof(flow_sample_t));
-        	bzero(sample, sizeof(flow_sample_t));
 
-        	sample->header.data_format = ntohl(buffer);
 
-        	/* sample length */
-            memcpy(&buffer, data_ptr, sizeof(uint32_t));
-        	sample->header.length = ntohl(buffer);
-        	data_ptr += sizeof(uint32_t);
-			if (memguard(data_ptr, raw_data, raw_data_len, 2, datagram, sample)) return NULL;
 
         	/* sample sequence number */
             memcpy(&buffer, data_ptr, sizeof(uint32_t));
