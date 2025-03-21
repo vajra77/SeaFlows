@@ -22,26 +22,22 @@
 #define MEMGUARD(ptr, start, len)
 #endif
 
+#define MAC_ADDR_SIZE 14
+#define IP_ADDR_SIZE 256
+
 /* Storable Flow */
 
 typedef struct storable_flow {
   time_t timestamp;
-  char src_mac[13];
-  char dst_mac[13];
+  char src_mac[MAC_ADDR_SIZE];
+  char dst_mac[MAC_ADDR_SIZE];
   uint32_t proto;
-  char src_ip[256];
-  char dst_ip[256];
+  char src_ip[IP_ADDR_SIZE];
+  char dst_ip[IP_ADDR_SIZE];
   uint32_t size;
   uint32_t sampling_rate;
   uint32_t computed_size;
 } storable_flow_t;
-
-/* Sflow RAW Data */
-
-typedef struct sflow_raw_data {
-    char data[MAX_SFLOW_DATA];
-    ssize_t size;
-} sflow_raw_data_t;
 
 /* RAW packet */
 

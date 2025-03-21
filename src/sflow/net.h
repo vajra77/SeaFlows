@@ -6,6 +6,7 @@
 #define NET_H
 
 #include <stdint.h>
+#include <netinet/in.h>
 
 #define ETHERTYPE_8021Q 0x8100
 #define ETHERTYPE_IPV4 0x0800
@@ -34,15 +35,15 @@ typedef struct ipv4_header {
     uint16_t length;
     uint8_t ttl;
 	uint8_t protocol;
-	char source_address[256];
-	char destination_address[256];
+	struct in_addr source_address;
+	struct in_addr destination_address;
 } ipv4_header_t;
 
 typedef struct ipv6_header {
 	uint32_t preamble;
     uint16_t length;
-    char	source_address[256];
-    char	destination_address[256];
+	struct in6_addr source_address;
+	struct in6_addr destination_address;
 } ipv6_header_t;
 
 #endif //NET_H
