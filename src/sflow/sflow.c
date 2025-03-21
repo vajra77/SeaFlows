@@ -144,7 +144,6 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
 			/* records loop */
 			for (int k = 0; k < sample->header.num_records; k++) {
 
-
 				flow_record_t *record = GC_malloc(sizeof(flow_record_t));
 				bzero(record, sizeof(flow_record_t));
 
