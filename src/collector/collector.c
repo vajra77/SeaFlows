@@ -51,7 +51,7 @@ void* collector_thread(void *arg) {
 				for (const flow_record_t* record = sample->records; record != NULL; record = record->next) {
 					storable_flow_t	*flow = sflow_encode_flow_record(record, sample->header.sampling_rate);
 					// queue_push(collector_data->queue, flow);
-					syslog(LOG_DEBUG, "Decoded flow: %s => %s", flow->src_mac, flow->dst_mac);
+					syslog(LOG_DEBUG, "Decoded flow: %s (%s) => %s (%s)", flow->src_ip, flow->src_mac, flow->dst_ip, flow->dst_mac);
 				}
 			}
 			sflow_free_datagram(datagram);
