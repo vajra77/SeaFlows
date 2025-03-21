@@ -384,9 +384,23 @@ storable_flow_t	*sflow_encode_flow_record(const flow_record_t *record, const uin
 	const raw_packet_t 	*pkt = record->packet;
 
 	flow->timestamp = time(NULL);
+	snprintf(flow->dst_mac, 6, "%02x%02x%02x%02x%02x%02x",
+		pkt->datalink->ethernet.destination_mac[5],
+		pkt->datalink->ethernet.destination_mac[4],
+		pkt->datalink->ethernet.destination_mac[3],
+		pkt->datalink->ethernet.destination_mac[2],
+		pkt->datalink->ethernet.destination_mac[1],
+		pkt->datalink->ethernet.destination_mac[0]);
 
-	strcpy(flow->dst_mac, pkt->datalink->ethernet.destination_mac);
-	strcpy(flow->src_mac, pkt->datalink->ethernet.source_mac);
+	snprintf(flow->src_mac, 6, "%02x%02x%02x%02x%02x%02x",
+		pkt->datalink->ethernet.source_mac[5],
+		pkt->datalink->ethernet.source_mac[4],
+		pkt->datalink->ethernet.source_mac[3],
+		pkt->datalink->ethernet.source_mac[2],
+		pkt->datalink->ethernet.source_mac[1],
+		pkt->datalink->ethernet.source_mac[0]);
+
+
 
     flow->proto = pkt->datalink->ethernet.ethertype;
 

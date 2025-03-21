@@ -54,9 +54,9 @@ struct raw_packet_header {
 
 typedef struct raw_packet {
   struct raw_packet_header header;
-  datalink_header_t		*datalink;
-  ipv4_header_t			*ipv4;
-  ipv6_header_t			*ipv6;
+  datalink_header_t		    *datalink;
+  ipv4_header_t			      *ipv4;
+  ipv6_header_t			      *ipv6;
 } raw_packet_t;
 
 
