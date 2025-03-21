@@ -104,9 +104,11 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
             flow_sample_t *sample = malloc(sizeof(flow_sample_t));
         	bzero(sample, sizeof(flow_sample_t));
 
+        	sample->header.data_format = ntohl(buffer);
+
         	/* sample length */
             memcpy(&buffer, data_ptr, sizeof(uint32_t));
-        	sample->header.data_format = ntohl(buffer);
+        	sample->header.length = ntohl(buffer);
         	data_ptr += sizeof(uint32_t);
 			if (memguard(data_ptr, raw_data, raw_data_len, 2, datagram, sample)) return NULL;
 
@@ -154,13 +156,13 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
 
         	/* n records */
             memcpy(&buffer, data_ptr, sizeof(uint32_t));
-        	sample->header.num_records = buffer;
+        	sample->header.num_records = ntohl(buffer);
         	data_ptr += sizeof(uint32_t);
 			if (memguard(data_ptr, raw_data, raw_data_len, 2, datagram, sample)) return NULL;
+			syslog(LOG_DEBUG, "number of records in sample: %d", sample->header.num_records);
 
             /* records loop */
             for (int k = 0; k < sample->header.num_records; k++) {
-	            syslog(LOG_DEBUG, "Looping on record %d of %d", k, sample->header.num_records);
             	flow_record_t *record = malloc(sizeof(flow_record_t));
             	bzero(record, sizeof(flow_record_t));
 
