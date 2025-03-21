@@ -44,9 +44,9 @@ void* collector_thread(void *arg) {
 		const ssize_t len = recvfrom(sock, raw_data, MAX_SFLOW_DATA, 0, NULL, NULL);
 
 		syslog(LOG_DEBUG, "Received UDP datagram");
-		const sflow_datagram_t *datagram = sflow_decode_datagram(raw_data, len);
+		// const sflow_datagram_t *datagram = sflow_decode_datagram(raw_data, len);
 
-		if (datagram) {
+		// if (datagram) {
 		// for (const flow_sample_t* sample = datagram->samples; sample != NULL; sample = sample->next) {
 		// 	for (const flow_record_t* record = sample->records; record != NULL; record = record->next) {
 		// 		storable_flow_t	*flow = sflow_encode_flow_record(record, sample->header.sampling_rate);
@@ -55,7 +55,7 @@ void* collector_thread(void *arg) {
 		// }
 		// sflow_free_datagram(datagram);
 			syslog(LOG_DEBUG, "Datagram decoded");
-		}
+		// }
 
 		// pthread_testcancel();
 	}
