@@ -47,7 +47,6 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
 	datagram->header.version = ntohl(buffer);
     data_ptr += sizeof(uint32_t);
 	if (memguard(data_ptr, raw_data, raw_data_len, 1, datagram)) return NULL;
-	syslog(LOG_DEBUG, "qui 1");
 
 	/* IP version */
     memcpy(&buffer, data_ptr, sizeof(uint32_t));
@@ -65,7 +64,6 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
 		data_ptr += sizeof(uint32_t) * 4;
 		if (memguard(data_ptr, raw_data, raw_data_len, 1, datagram)) return NULL;
 	}
-	syslog(LOG_DEBUG, "qui 2");
 
 	/* sub agent id */
 	memcpy(&buffer, data_ptr, sizeof(uint32_t));
@@ -90,6 +88,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
 	datagram->header.num_samples = ntohl(buffer);
 	data_ptr += sizeof(uint32_t);
 	if (memguard(data_ptr, raw_data, raw_data_len, 1, datagram)) return NULL;
+	syslog(LOG_DEBUG, "qui ce sto");
 
     /* samples loop */
     for (int n = 0; n < datagram->header.num_samples; n++) {
