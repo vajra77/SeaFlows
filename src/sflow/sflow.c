@@ -362,7 +362,6 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
             } /* end of records loop */
 
         	/* add sample to datagram */
-        	syslog(LOG_DEBUG, "Adding sample to datagram");
         	if (datagram->samples) {
         		flow_sample_t *last = datagram->samples;
         		flow_sample_t *current = datagram->samples;
@@ -376,12 +375,12 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
         		sample->next = NULL;
         		datagram->samples = sample;
         	}
-
-        	/* align pointer for next sample */
-        	if (data_ptr < sample_data_start + sample->header.length) {
-        		data_ptr = sample_data_start + sample->header.length;
-        	}
         }
+
+    	/* align pointer for next sample */
+    	if (data_ptr < sample_data_start + sample->header.length) {
+			data_ptr = sample_data_start + sample->header.length;
+    	}
     }  /* end of samples loop */
 
 	return datagram;
