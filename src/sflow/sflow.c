@@ -299,7 +299,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
             				bzero(&ipv6_address, sizeof(ipv6_address));
 
             				/* src address */
-            				memcpy(&ipv6_address.__u6_addr, data_ptr, 16);
+            				memcpy(&ipv6_address.s6_addr, data_ptr, 16);
             				inet_ntop(AF_INET6, &ipv6_address, ipv6->source_address, 256);
             				data_ptr += 16;
             				MEMGUARD(data_ptr, raw_data, raw_data_len);
@@ -307,7 +307,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
             				bzero(&ipv6_address, sizeof(ipv6_address));
 
             				/* dst address */
-            				memcpy(&ipv6_address.__u6_addr, data_ptr, 16);
+            				memcpy(&ipv6_address.s6_addr, data_ptr, 16);
             				inet_ntop(AF_INET6, &ipv6_address, ipv6->source_address, 256);
             				data_ptr += 16;
             				MEMGUARD(data_ptr, raw_data, raw_data_len);
