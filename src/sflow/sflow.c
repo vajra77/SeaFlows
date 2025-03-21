@@ -154,20 +154,15 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
 
         	/* n records */
             memcpy(&buffer, data_ptr, sizeof(uint32_t));
-        	sample->header.num_records = ntohl(buffer);
+        	sample->header.num_records = buffer;
         	data_ptr += sizeof(uint32_t);
 			if (memguard(data_ptr, raw_data, raw_data_len, 2, datagram, sample)) return NULL;
-
-            sample->next = NULL;
 
             /* records loop */
             for (int k = 0; k < sample->header.num_records; k++) {
 	            syslog(LOG_DEBUG, "Looping on record %d of %d", k, sample->header.num_records);
             	flow_record_t *record = malloc(sizeof(flow_record_t));
             	bzero(record, sizeof(flow_record_t));
-
-            	record->packet = NULL;
-            	record->next = NULL;
 
             	/* data format */
             	memcpy(&buffer, data_ptr, sizeof(uint32_t));
@@ -338,8 +333,10 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
             			last = current;
             			current = current->next;
             		}
+            		record->next = NULL;
             		last->next = record;
 				} else {
+            		record->next = NULL;
 					sample->records = record;
 				}
             } /* end of records loop */
@@ -353,8 +350,10 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
         			last = current;
         			current = current->next;
         		}
+        		sample->next = NULL;
         		last->next = sample;
         	} else {
+        		sample->next = NULL;
         		datagram->samples = sample;
         	}
         }
