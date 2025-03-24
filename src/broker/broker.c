@@ -4,6 +4,8 @@
 
 #include <stdlib.h>
 #include <syslog.h>
+#include <gc.h>
+
 #include "broker.h"
 #include "../sflow/sflow.h"
 #include "../matrix/matrix.h"
@@ -23,7 +25,7 @@ void* broker_thread(void *arg){
     storable_flow_t	*storable_flow = queue_pop(broker_data->queue);
     if(storable_flow != NULL){
       //matrix_add_flow(broker_data->matrix, storable_flow);
-      free(storable_flow);
+      GC_free(storable_flow);
     }
     pthread_testcancel();
   }
