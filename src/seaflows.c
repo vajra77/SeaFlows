@@ -124,7 +124,7 @@ int main(const int argc, char **argv) {
 
 	umask(0);
 
-	chdir("/data/rrd/");
+	chdir("/data/rrd");
 
 	openlog("seaflows", LOG_PID, LOG_DAEMON);
 
