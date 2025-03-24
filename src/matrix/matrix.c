@@ -88,7 +88,7 @@ void matrix_add_flow(matrix_t *matrix, const storable_flow_t *flow) {
 	dstnode_t *lst_dst = src_ptr->destinations;
 
     while(dst_ptr != NULL) {
-    	if(!strcmp(flow->dst_mac, dst_ptr->mac){
+    	if(!strcmp(flow->dst_mac, dst_ptr->mac)){
 			switch (flow->proto) {
 				case ETHERTYPE_IPV4:
 					dst_ptr->bytes_v4 += flow->computed_size;
