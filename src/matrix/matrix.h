@@ -13,23 +13,25 @@ typedef struct destination_node {
 	unsigned int key;
 	unsigned int bytes_v4;
 	unsigned int bytes_v6;
+	unsigned int bytes_nk;
 	struct destination_node *next;
 } dstnode_t;
 
 typedef struct source_node {
 	char mac[MAC_ADDR_SIZE];
-    unsigned int key;
     unsigned int bytes_v4;
     unsigned int bytes_v6;
+	unsigned int bytes_nk;
+	unsigned int num_destinations;
     struct destination_node  *destinations;
     struct source_node *next;
 } srcnode_t;
 
 typedef struct matrix {
 	pthread_mutex_t lock;
+	unsigned int dirty;
+	unsigned int num_sources;
   	struct source_node *sources;
-	int size;
-	int dirty;
 } matrix_t;
 
 void matrix_init(matrix_t *matrix);
