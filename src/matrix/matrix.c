@@ -117,7 +117,7 @@ void matrix_add_flow(matrix_t *matrix, const storable_flow_t *flow) {
 			break;
 
 		case default:
-			src_node->bytes_nk = flow->computed_size;
+			src_node->bytes_nk += flow->computed_size;
 			break;
 	}
 
@@ -135,11 +135,9 @@ void matrix_add_flow(matrix_t *matrix, const storable_flow_t *flow) {
 		case ETHERTYPE_IPV4:
 			dst_node->bytes_v4 += flow->computed_size;
 			break;
-
 		case ETHERTYPE_IPV6:
 			dst_node->bytes_v6 += flow->computed_size;
 			break;
-
 		case default:
 			dst_node->bytes_nk += flow->computed_size;
 			break;
