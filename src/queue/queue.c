@@ -27,9 +27,15 @@ void queue_push(queue_t *queue, void *data) {
   new_node->data = data;
   new_node->next = NULL;
 
-  queue->tail->next = new_node;
-  queue->tail = new_node;
-  queue->size++;
+  if (queue->head == NULL) {
+    queue->head = new_node;
+    queue->tail = new_node;
+    queue->size = 1;
+  } else {
+    queue->tail->next = new_node;
+    queue->tail = new_node;
+    queue->size++;
+  }
 
   pthread_mutex_unlock(&(queue->lock));
 }
@@ -59,7 +65,6 @@ void *queue_pop(queue_t *queue) {
       data = queue->head->data;
       queue->head = queue->head->next;
       queue->size--;
-
   }
   pthread_mutex_unlock(&(queue->lock));
 
