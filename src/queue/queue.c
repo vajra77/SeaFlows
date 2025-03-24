@@ -41,7 +41,6 @@ void queue_push(queue_t *queue, void *data) {
     queue->size++;
   }
   pthread_mutex_unlock(&queue->lock);
-  syslog(LOG_DEBUG, "Added data to queue");
 }
 
 void *queue_pop(queue_t *queue) {
@@ -49,7 +48,6 @@ void *queue_pop(queue_t *queue) {
   void    *data = NULL;
   qnode_t *temp = NULL;
 
-  syslog(LOG_DEBUG, "Removing data from queue");
   pthread_mutex_lock(&queue->lock);
   switch (queue->size) {
 

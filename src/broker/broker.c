@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <syslog.h>
 #include <gc.h>
+#include <unistd.h>
 
 #include "broker.h"
 #include "../sflow/sflow.h"
@@ -19,7 +20,9 @@ void* broker_thread(void *arg){
 
   const broker_data_t *broker_data = arg;
 
-  syslog(LOG_DEBUG, "Broker thread started");
+  syslog(LOG_DEBUG, "Starting broker thread");
+
+  sleep(1);
 
   for (;;) {
     storable_flow_t	*storable_flow = queue_pop(broker_data->queue);
