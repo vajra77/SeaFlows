@@ -12,14 +12,8 @@ main:
 collector:
 	$(CC) $(CFLAGS) -c -o src/collector/collector.o -I src/ src/collector/collector.c
 
-broker:
-	$(CC) $(CFLAGS) -c -o src/broker/broker.o -I src/ src/broker/broker.c
-
 sflow:
 	$(CC) $(CFLAGS) -c -o src/sflow/sflow.o -I src/ src/sflow/sflow.c
-
-queue:
-	$(CC) $(CFLAGS) -c -o src/queue/queue.o -I src/ src/queue/queue.c
 
 matrix:
 	$(CC) $(CFLAGS) -c -o src/matrix/matrix.o -I src/ src/matrix/matrix.c

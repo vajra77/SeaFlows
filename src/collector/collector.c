@@ -4,7 +4,6 @@
 
 #include <sys/socket.h>
 #include <pthread.h>
-#include <stdlib.h>
 #include <arpa/inet.h>
 #include <strings.h>
 #include <syslog.h>
@@ -52,7 +51,7 @@ void* collector_thread(void *arg) {
 				for (const flow_record_t* record = sample->records; record != NULL; record = record->next) {
 					storable_flow_t	*flow = sflow_encode_flow_record(record, sample->header.sampling_rate);
 					if (flow != NULL) {
-						matrix_add_flow(collector_data->matrix, flow);
+						// matrix_add_flow(collector_data->matrix, flow);
 						GC_free(flow);
 					}
 				}
