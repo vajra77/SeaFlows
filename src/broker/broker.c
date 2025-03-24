@@ -22,7 +22,7 @@ void* broker_thread(void *arg){
   for (;;) {
     storable_flow_t	*storable_flow = queue_pop(broker_data->queue);
     if(storable_flow != NULL){
-      // syslog(LOG_DEBUG, "Received flow: %s -> %s", storable_flow->src_mac, storable_flow->dst_mac);
+      syslog(LOG_DEBUG, "Received flow: %s -> %s", storable_flow->src_mac, storable_flow->dst_mac);
       matrix_add_flow(broker_data->matrix, storable_flow);
       free(storable_flow);
     }
