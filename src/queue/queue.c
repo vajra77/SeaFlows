@@ -30,7 +30,7 @@ void queue_push(queue_t *queue, void *data) {
   new_node->data = data;
   new_node->next = NULL;
 
-  pthread_mutex_lock(&(queue->lock));
+  pthread_mutex_lock(&queue->lock);
   if (queue->size == 0) {
     queue->head = new_node;
     queue->tail = new_node;
@@ -40,7 +40,7 @@ void queue_push(queue_t *queue, void *data) {
     queue->tail = new_node;
     queue->size++;
   }
-  pthread_mutex_unlock(&(queue->lock));
+  pthread_mutex_unlock(&queue->lock);
   syslog(LOG_DEBUG, "Added data to queue");
 }
 
@@ -49,7 +49,8 @@ void *queue_pop(queue_t *queue) {
   void    *data = NULL;
   qnode_t *temp = NULL;
 
-  pthread_mutex_lock(&(queue->lock));
+  syslog(LOG_DEBUG, "Removing data from queue");
+  pthread_mutex_lock(&queue->lock);
   switch (queue->size) {
 
     case 0:
@@ -70,11 +71,10 @@ void *queue_pop(queue_t *queue) {
       queue->size--;
       break;
   }
-  pthread_mutex_unlock(&(queue->lock));
+  pthread_mutex_unlock(&queue->lock);
 
   if (temp != NULL) {
     GC_free(temp);
   }
-  syslog(LOG_DEBUG, "Removed data from queue");
   return data;
 }

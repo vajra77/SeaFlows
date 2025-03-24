@@ -4,6 +4,8 @@
 
 #include <stdlib.h>
 #include <pthread.h>
+#include <gc.h>
+
 #include "matrix.h"
 #include "rrdtool/rrdtool.h"
 #include "sflow/net.h"
@@ -30,10 +32,10 @@ void matrix_destroy(matrix_t *matrix) {
       	while(src->destinations != NULL) {
           	dstnode_t *dst = src->destinations;
           	src->destinations = src->destinations->next;
-        	free(dst);
+        	GC_free(dst);
       	}
     	matrix->sources = matrix->sources->next;
-        free(src);
+        GC_free(src);
     }
 }
 
@@ -65,7 +67,7 @@ void matrix_add_flow(matrix_t *matrix, const storable_flow_t *flow) {
     }
 
 	if (src_ptr == NULL) {
-		src_ptr = malloc(sizeof(srcnode_t));
+		src_ptr = GC_malloc(sizeof(srcnode_t));
 		strcpy(src_ptr->mac, flow->src_mac);
 		src_ptr->key = mac_hash(flow->src_mac);
 		switch (flow->proto) {
@@ -105,7 +107,7 @@ void matrix_add_flow(matrix_t *matrix, const storable_flow_t *flow) {
     }
 
 	if(dst_ptr == NULL) {
-		dst_ptr = malloc(sizeof(dstnode_t));
+		dst_ptr = GC_malloc(sizeof(dstnode_t));
 		strcpy(dst_ptr->mac, flow->dst_mac);
 		dst_ptr->key = mac_hash(flow->dst_mac);
 		switch (flow->proto) {
