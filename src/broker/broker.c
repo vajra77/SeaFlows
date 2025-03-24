@@ -23,11 +23,11 @@ void* broker_thread(void *arg){
   syslog(LOG_DEBUG, "Starting broker thread");
 
   for (;;) {
-    storable_flow_t	*storable_flow = queue_pop(broker_data->queue);
-    if(storable_flow != NULL){
-      //matrix_add_flow(broker_data->matrix, storable_flow);
-      GC_free(storable_flow);
-    }
+    // storable_flow_t	*storable_flow = queue_pop(broker_data->queue);
+    // if(storable_flow != NULL){
+    //   //matrix_add_flow(broker_data->matrix, storable_flow);
+    //   GC_free(storable_flow);
+    // }
     pthread_testcancel();
   }
 }
