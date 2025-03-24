@@ -54,7 +54,7 @@ void* collector_thread(void *arg) {
 					// syslog(LOG_DEBUG, "Decoded flow: %s (%s) => %s (%s)", flow->src_ip, flow->src_mac, flow->dst_ip, flow->dst_mac);
 				}
 			}
-			//sflow_free_datagram(datagram);
+			sflow_free_datagram(datagram);
 		}
 
 		pthread_testcancel();
