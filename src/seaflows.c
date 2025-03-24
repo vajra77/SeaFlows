@@ -43,20 +43,21 @@ void signal_handler(int sig) {
 	syslog(LOG_INFO, "Received signal %d", sig);
 	for(int i = 0; i < MAX_THREADS; i++) {
 		pthread_cancel(collector_threads[i]);
-		// pthread_cancel(broker_threads[i]);
-		// pthread_cancel(dumper_thread);
+		pthread_cancel(broker_threads[i]);
+		pthread_cancel(dumper_thread);
 	}
 
 	for(int i = 0; i < MAX_THREADS; i++) {
 		pthread_join(collector_threads[i], NULL);
-		// pthread_join(broker_threads[i], NULL);
-		// pthread_join(dumper_thread, NULL);
+		pthread_join(broker_threads[i], NULL);
+		pthread_join(dumper_thread, NULL);
 	}
 
-	// for(int i = 0; i < MAX_THREADS; i++) {
-	// 	queue_destroy(message_queues[i]);
-	// 	matrix_destroy(flow_matrix[i]);
-	// }
+	for(int i = 0; i < MAX_THREADS; i++) {
+		queue_destroy(message_queues[i]);
+		matrix_destroy(flow_matrix[i]);
+	}
+
 	closelog();
 	exit(EXIT_SUCCESS);
 }
@@ -162,9 +163,9 @@ int main(const int argc, char **argv) {
         broker_data[i].matrix = flow_matrix[i];
 
 		pthread_create(&collector_threads[i], NULL, collector_thread, &collector_data[i]);
-        // pthread_create(&broker_threads[i], NULL, broker_thread, &broker_data[i]);
+        pthread_create(&broker_threads[i], NULL, broker_thread, &broker_data[i]);
 	}
-	// pthread_create(&dumper_thread, NULL, matrix_dumper_thread, (void*)flow_matrix);
+	pthread_create(&dumper_thread, NULL, matrix_dumper_thread, flow_matrix);
 
 	/* sleep and wait for signals */
 	for (;;) {
