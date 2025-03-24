@@ -32,8 +32,8 @@ int update_rrd(char *filename, const unsigned int bytes_v4, const unsigned int b
 	char str_bytes_v4[256];
 	char str_bytes_v6[256];
 
-	snprintf(str_bytes_v4, 256, "%lu", bytes_v4);
-	snprintf(str_bytes_v6, 256, "%lu", bytes_v6);
+	snprintf(str_bytes_v4, 256, "%u", bytes_v4);
+	snprintf(str_bytes_v6, 256, "%u", bytes_v6);
 
 	char *argv[] = {
 		filename,
