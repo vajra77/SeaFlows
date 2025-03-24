@@ -62,26 +62,6 @@ void signal_handler(int sig) {
 	exit(EXIT_SUCCESS);
 }
 
-void* matrix_dumper_thread(void *arg) {
-
-	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
-
-	matrix_t **flow_matrix = arg;
-
-	for (;;) {
-		sleep(300);
-		syslog(LOG_DEBUG, "Executing matrix dump");
-		for(int i = 0; i < MAX_THREADS; i++) {
-			if(flow_matrix[i] != NULL) {
-				matrix_dump(flow_matrix[i]);
-			}
-		}
-		pthread_testcancel();
-	}
-
-	return NULL;
-}
 
 int main(const int argc, char **argv) {
 
@@ -166,11 +146,16 @@ int main(const int argc, char **argv) {
 		pthread_create(&collector_threads[i], NULL, collector_thread, &collector_data[i]);
         pthread_create(&broker_threads[i], NULL, broker_thread, &broker_data[i]);
 	}
-	pthread_create(&dumper_thread, NULL, matrix_dumper_thread, flow_matrix);
 
-	/* sleep and wait for signals */
+	/* sleep, dump matrix */
 	for (;;) {
 		sleep(300);
+		syslog(LOG_DEBUG, "Executing matrix dump");
+		for(int i = 0; i < MAX_THREADS; i++) {
+			if(flow_matrix[i] != NULL) {
+				matrix_dump(flow_matrix[i]);
+			}
+		}
 	}
 
 	exit(EXIT_SUCCESS);
