@@ -3,8 +3,11 @@
 //
 
 #include <stdlib.h>
+#include <syslog.h>
 #include <gc.h>
+
 #include "queue.h"
+
 
 void queue_init(queue_t *queue) {
   queue->head = NULL;
@@ -38,6 +41,7 @@ void queue_push(queue_t *queue, void *data) {
     queue->size++;
   }
   pthread_mutex_unlock(&(queue->lock));
+  syslog(LOG_DEBUG, "Added data to queue");
 }
 
 void *queue_pop(queue_t *queue) {
@@ -71,6 +75,6 @@ void *queue_pop(queue_t *queue) {
   if (temp != NULL) {
     GC_free(temp);
   }
-
+  syslog(LOG_DEBUG, "Removed data from queue");
   return data;
 }

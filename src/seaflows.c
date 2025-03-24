@@ -128,13 +128,14 @@ int main(const int argc, char **argv) {
 
 	openlog("seaflows", LOG_PID, LOG_DAEMON);
 
-	memset(message_queues, 0, sizeof(message_queues));
-	memset(flow_matrix, 0, sizeof(flow_matrix));
+	bzero(message_queues, sizeof(message_queues));
+	bzero(flow_matrix, sizeof(flow_matrix));
 
 	/* create threads */
 	for(int i = 0; i < num_threads; i++) {
 		message_queues[i] = GC_malloc(sizeof(queue_t));
 		queue_init(message_queues[i]);
+
 		flow_matrix[i] = GC_malloc(sizeof(matrix_t));
 		matrix_init(flow_matrix[i]);
 
