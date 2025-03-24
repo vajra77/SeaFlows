@@ -3,6 +3,7 @@
 //
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <rrd.h>
 #include "rrdtool.h"
 
@@ -26,6 +27,19 @@ int create_rrd(char *filename) {
 	return rrd_create(argc, argv);
 }
 
-int update_rrd(char *filename, unsigned int bytes_v4, unsigned int bytes_v6) {
-	return rrd_update(4, filename, "N:%s:%s", bytes_v4, bytes_v6);
+int update_rrd(char *filename, const unsigned int bytes_v4, const unsigned int bytes_v6) {
+
+	char str_bytes_v4[256];
+	char str_bytes_v6[256];
+
+	snprintf(str_bytes_v4, 256, "%lu", bytes_v4);
+	snprintf(str_bytes_v6, 256, "%lu", bytes_v6);
+
+	char *argv[] = {
+		filename,
+		"N:%s:%s",
+		str_bytes_v4,
+		str_bytes_v6,
+	};
+	return rrd_update(4, argv);
 }
