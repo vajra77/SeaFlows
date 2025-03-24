@@ -22,8 +22,6 @@ void* broker_thread(void *arg){
 
   syslog(LOG_DEBUG, "Starting broker thread");
 
-  sleep(1);
-
   for (;;) {
     storable_flow_t	*storable_flow = queue_pop(broker_data->queue);
     if(storable_flow != NULL){
