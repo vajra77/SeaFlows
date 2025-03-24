@@ -21,11 +21,12 @@ void queue_destroy(queue_t *queue) {
 }
 
 void queue_push(queue_t *queue, void *data) {
-  pthread_mutex_lock(&(queue->lock));
 
   qnode_t *new_node = malloc(sizeof(qnode_t));
   new_node->data = data;
   new_node->next = NULL;
+
+  pthread_mutex_lock(&(queue->lock));
 
   if (queue->head == NULL) {
     queue->head = new_node;
@@ -49,7 +50,6 @@ void *queue_pop(queue_t *queue) {
   switch (queue->size) {
 
     case 0:
-      data = NULL;
       break;
 
     case 1:
