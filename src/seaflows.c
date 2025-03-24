@@ -11,6 +11,8 @@
 #include <sys/stat.h>
 #include <pthread.h>
 #include <syslog.h>
+#include <gc.h>
+
 #include "seaflows.h"
 #include "collector/collector.h"
 #include "broker/broker.h"
@@ -131,9 +133,9 @@ int main(const int argc, char **argv) {
 
 	/* create threads */
 	for(int i = 0; i < num_threads; i++) {
-		message_queues[i] = malloc(sizeof(queue_t));
+		message_queues[i] = GC_malloc(sizeof(queue_t));
 		queue_init(message_queues[i]);
-		flow_matrix[i] = malloc(sizeof(matrix_t));
+		flow_matrix[i] = GC_malloc(sizeof(matrix_t));
 		matrix_init(flow_matrix[i]);
 
 		collector_data[i].port = SEAFLOWS_LISTENER_PORT + i;
