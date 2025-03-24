@@ -15,7 +15,6 @@
 
 #include "seaflows.h"
 #include "collector/collector.h"
-#include "broker/broker.h"
 #include "matrix/matrix.h"
 
 
@@ -23,13 +22,10 @@
 
 /* thread share/control variables */
 pthread_t			collector_threads[MAX_THREADS];
-// pthread_t			broker_threads[MAX_THREADS];
 pthread_t			dumper_thread;
 
-queue_t				*message_queues[MAX_THREADS];
 matrix_t			*flow_matrix[MAX_THREADS];
 collector_data_t	collector_data[MAX_THREADS];
-broker_data_t		broker_data[MAX_THREADS];
 
 
 void usage(){
@@ -45,18 +41,10 @@ void signal_handler(int sig) {
 	syslog(LOG_INFO, "Received signal %d", sig);
 	for(int i = 0; i < MAX_THREADS; i++) {
 		pthread_cancel(collector_threads[i]);
-		//pthread_cancel(broker_threads[i]);
-		pthread_cancel(dumper_thread);
 	}
 
 	for(int i = 0; i < MAX_THREADS; i++) {
 		pthread_join(collector_threads[i], NULL);
-		//pthread_join(broker_threads[i], NULL);
-		pthread_join(dumper_thread, NULL);
-	}
-
-	for(int i = 0; i < MAX_THREADS; i++) {
-		queue_destroy(message_queues[i]);
 		matrix_destroy(flow_matrix[i]);
 	}
 
@@ -128,26 +116,19 @@ int main(const int argc, char **argv) {
 
 	openlog("seaflows", LOG_PID, LOG_DAEMON);
 
-	bzero(message_queues, sizeof(message_queues));
 	bzero(flow_matrix, sizeof(flow_matrix));
 
 	/* create threads */
 	for(int i = 0; i < num_threads; i++) {
-		message_queues[i] = GC_malloc(sizeof(queue_t));
-		queue_init(message_queues[i]);
 
 		flow_matrix[i] = GC_malloc(sizeof(matrix_t));
 		matrix_init(flow_matrix[i]);
 
 		collector_data[i].port = SEAFLOWS_LISTENER_PORT + i;
 		collector_data[i].address = listen_address;
-        collector_data[i].queue = message_queues[i];
-
-        // broker_data[i].queue = message_queues[i];
-        // broker_data[i].matrix = flow_matrix[i];
+		collector_data[i].matrix = flow_matrix[i];
 
 		pthread_create(&collector_threads[i], NULL, collector_thread, &collector_data[i]);
-        //pthread_create(&broker_threads[i], NULL, broker_thread, &broker_data[i]);
 	}
 
 	/* sleep, dump matrix */
