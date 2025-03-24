@@ -4,7 +4,7 @@ LIBS = -lrrd -lgc
 
 
 all: sflow matrix collector rrdtool main
-	$(CC) -o bin/seaflows src/sflow/sflow.o src/queue/queue.o src/matrix/matrix.o src/rrdtool/rrdtool.o src/collector/collector.o src/broker/broker.o src/seaflows.o $(LIBS)
+	$(CC) -o bin/seaflows src/sflow/sflow.o src/matrix/matrix.o src/rrdtool/rrdtool.o src/collector/collector.o src/seaflows.o $(LIBS)
 
 main:
 	$(CC) $(CFLAGS) -c -o src/seaflows.o -I src/ src/seaflows.c
