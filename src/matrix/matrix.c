@@ -47,7 +47,7 @@ void matrix_add_flow(matrix_t *matrix, const storable_flow_t *flow) {
 	srcnode_t	*lst_src = matrix->sources;
 
     while(src_ptr != NULL) {
-    	if(src_key == src_ptr->key){
+    	if(!strcmp(src_ptr->mac, flow->src_mac)){
     		switch (flow->proto) {
     			case ETHERTYPE_IPV4:
     				src_ptr->bytes_v4 += flow->computed_size;
@@ -88,7 +88,7 @@ void matrix_add_flow(matrix_t *matrix, const storable_flow_t *flow) {
 	dstnode_t *lst_dst = src_ptr->destinations;
 
     while(dst_ptr != NULL) {
-    	if(dst_key == dst_ptr->key){
+    	if(!strcmp(flow->dst_mac, dst_ptr->mac){
 			switch (flow->proto) {
 				case ETHERTYPE_IPV4:
 					dst_ptr->bytes_v4 += flow->computed_size;

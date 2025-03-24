@@ -71,6 +71,7 @@ void* matrix_dumper_thread(void *arg) {
 
 	for (;;) {
 		sleep(300);
+		syslog(LOG_DEBUG, "Executing matrix dump");
 		for(int i = 0; i < MAX_THREADS; i++) {
 			if(flow_matrix[i] != NULL) {
 				matrix_dump(flow_matrix[i]);

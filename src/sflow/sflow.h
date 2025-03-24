@@ -22,7 +22,7 @@
 #define MEMGUARD(ptr, start, len)
 #endif
 
-#define MAC_ADDR_SIZE 14
+#define MAC_ADDR_SIZE 13
 #define IP_ADDR_SIZE 256
 
 /* Storable Flow */
