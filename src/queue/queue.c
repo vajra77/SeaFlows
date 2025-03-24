@@ -3,6 +3,7 @@
 //
 
 #include <stdlib.h>
+#include <gc.h>
 #include "queue.h"
 
 void queue_init(queue_t *queue) {
@@ -14,15 +15,15 @@ void queue_init(queue_t *queue) {
 
 void queue_destroy(queue_t *queue) {
   for (; queue->head != NULL; queue->head = queue->head->next) {
-    free(queue->head);
+    GC_free(queue->head);
   }
   pthread_mutex_destroy(&(queue->lock));
-  free(queue);
+  GC_free(queue);
 }
 
 void queue_push(queue_t *queue, void *data) {
 
-  qnode_t *new_node = malloc(sizeof(qnode_t));
+  qnode_t *new_node = GC_malloc(sizeof(qnode_t));
   new_node->data = data;
   new_node->next = NULL;
 
@@ -42,10 +43,11 @@ void queue_push(queue_t *queue, void *data) {
 }
 
 void *queue_pop(queue_t *queue) {
-  pthread_mutex_lock(&(queue->lock));
 
   void    *data = NULL;
   qnode_t *temp = NULL;
+
+  pthread_mutex_lock(&(queue->lock));
 
   switch (queue->size) {
 
@@ -66,10 +68,11 @@ void *queue_pop(queue_t *queue) {
       queue->head = queue->head->next;
       queue->size--;
   }
+
   pthread_mutex_unlock(&(queue->lock));
 
   if (temp != NULL) {
-    free(temp);
+    GC_free(temp);
   }
 
   return data;
