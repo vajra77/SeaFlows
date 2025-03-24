@@ -27,5 +27,5 @@ int create_rrd(char *filename) {
 }
 
 int update_rrd(char *filename, unsigned int bytes_v4, unsigned int bytes_v6) {
-	return rrd_update(filename, "N:%s:%s", bytes_v4, bytes_v6);
+	return rrd_update(4, filename, "N:%s:%s", bytes_v4, bytes_v6);
 }
