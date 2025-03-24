@@ -4,11 +4,10 @@
 
 #include <stdio.h>
 #include <rrd.h>
-#include <time.h>
 #include "rrdtool.h"
 
-void create_rrd(char *filename) {
-	const size_t argc = 13;
+int create_rrd(char *filename) {
+	const size_t argc = 15;
 	char *argv[] = {
 		filename,
 		"--step", "300",
@@ -24,9 +23,9 @@ void create_rrd(char *filename) {
 		"RRA:MAX:0.5:24:775",
 		"RRA:MAX:0.5:444:797",
 	};
-	rrd_create(argc, argv);
+	return rrd_create(argc, argv);
 }
 
-void update_rrd(char *filename, unsigned int bytes_v4, unsigned int bytes_v6) {
-
+int update_rrd(char *filename, unsigned int bytes_v4, unsigned int bytes_v6) {
+	return rrd_update(filename, "N:%s:%s", bytes_v4, bytes_v6);
 }

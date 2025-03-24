@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/syslog.h>
 
 srcnode_t *get_src_node(const matrix_t *matrix, const char *mac) {
 	srcnode_t *node = matrix->sources;
@@ -154,10 +155,13 @@ void matrix_dump(matrix_t *matrix) {
 			/* filename format is flow_[SRC_MAC]_to_[DST_MAC].rrd */
 			char filename[255];
 			sprintf(filename, "/data/rrd/flows/flow_%s_to_%s.rrd", src_ptr->mac, dst_ptr->mac);
+			syslog(LOG_DEBUG, "Writing flow dump to %s", filename);
 			if (!access(filename, F_OK)) {
-				create_rrd(filename);
+				const int result = create_rrd(filename);
+				syslog(LOG_DEBUG, "Created new RRD file %s, got: %d", filename, result);
 			}
-			update_rrd(filename, dst_ptr->bytes_v4, dst_ptr->bytes_v6);
+			const int result = update_rrd(filename, dst_ptr->bytes_v4, dst_ptr->bytes_v6);
+			syslog(LOG_DEBUG, "Done updating flow dump to %s, got: %d", filename, result);
 
 			/* clear dst data */
 			dst_ptr->bytes_v4 = 0;
