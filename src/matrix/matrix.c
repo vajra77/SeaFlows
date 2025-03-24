@@ -110,13 +110,15 @@ void matrix_add_flow(matrix_t *matrix, const storable_flow_t *flow) {
 	switch (flow->proto) {
 		case ETHERTYPE_IPV4:
 			src_node->bytes_v4 += flow->computed_size;
-		break;
+			break;
+
 		case ETHERTYPE_IPV6:
 			src_node->bytes_v6 += flow->computed_size;
-		break;
+			break;
+
 		case default:
 			src_node->bytes_nk = flow->computed_size;
-		break;
+			break;
 	}
 
 	dstnode_t *dst_node = get_dst_node(src_node, flow->dst_mac);
@@ -132,13 +134,15 @@ void matrix_add_flow(matrix_t *matrix, const storable_flow_t *flow) {
 	switch (flow->proto) {
 		case ETHERTYPE_IPV4:
 			dst_node->bytes_v4 += flow->computed_size;
-		break;
+			break;
+
 		case ETHERTYPE_IPV6:
 			dst_node->bytes_v6 += flow->computed_size;
-		break;
+			break;
+
 		case default:
 			dst_node->bytes_nk += flow->computed_size;
-		break;
+			break;
 	}
 
 	matrix->dirty = 1;
