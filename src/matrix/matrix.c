@@ -40,8 +40,8 @@ void matrix_destroy(matrix_t *matrix) {
 void matrix_add_flow(matrix_t *matrix, const storable_flow_t *flow) {
 	pthread_mutex_lock((&(matrix->lock)));
 
-    const unsigned int src_key = mac_hash(flow->src_mac);
-    const unsigned int dst_key = mac_hash(flow->dst_mac);
+    // const unsigned int src_key = mac_hash(flow->src_mac);
+    // const unsigned int dst_key = mac_hash(flow->dst_mac);
 
     srcnode_t	*src_ptr = matrix->sources;
 	srcnode_t	*lst_src = matrix->sources;
