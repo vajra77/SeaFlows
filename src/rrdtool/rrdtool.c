@@ -30,7 +30,7 @@ int create_rrd(char *filename) {
 		"RRA:MAX:0.5:444:797",
 	};
 	rrdc_connect(NULL);
-	const int result = rrdc_create_r2(filename, 300, time(NULL), 1, 10, argv);
+	const int result = rrdc_create(filename, 300, time(NULL), 1, 10, argv);
 	rrdc_disconnect();
 	return result;
 }
