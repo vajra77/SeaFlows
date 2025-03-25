@@ -4,16 +4,18 @@
 
 #include <stdlib.h>
 #include <pthread.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/syslog.h>
 #include <gc.h>
+#include <rrd.h>
 
 #include "matrix.h"
 #include "rrdtool/rrdtool.h"
 #include "sflow/net.h"
 
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/syslog.h>
+
 
 srcnode_t *get_src_node(const matrix_t *matrix, const char *mac) {
 	srcnode_t *node = matrix->sources;
