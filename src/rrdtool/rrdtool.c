@@ -37,6 +37,10 @@ int create_rrd(char *filename) {
 	}
 
 	ret = rrdc_create(filename, 300, time(NULL), 1, 10, argv);
+	if (!ret )
+	{
+		syslog(LOG_ERR, "Unable to create RRD file");
+	}
 	rrdc_disconnect();
 	return ret;
 }
