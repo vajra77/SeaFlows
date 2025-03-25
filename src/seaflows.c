@@ -11,6 +11,7 @@
 #include <sys/stat.h>
 #include <pthread.h>
 #include <syslog.h>
+#include <rrd.h>
 #include <gc.h>
 
 #include "seaflows.h"
@@ -127,17 +128,17 @@ int main(const int argc, char **argv) {
 		collector_data[i].port = SEAFLOWS_LISTENER_PORT + i;
 		collector_data[i].address = listen_address;
 		collector_data[i].matrix = flow_matrix[i];
+		collector_data[i].rrd_client = rrd_client_new("unix:/var/run/rrdcached.sock");
 
 		pthread_create(&collector_threads[i], NULL, collector_thread, &collector_data[i]);
 	}
 
 	/* sleep, dump matrix */
 	for (;;) {
-		sleep(300);
-		syslog(LOG_DEBUG, "Executing matrix dump");
+		sleep(60);
 		for(int i = 0; i < MAX_THREADS; i++) {
 			if(flow_matrix[i] != NULL) {
-				matrix_dump(flow_matrix[i]);
+				matrix_dump(flow_matrix[i], collector_data[i].rrd_client);
 			}
 		}
 	}

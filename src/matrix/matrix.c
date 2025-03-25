@@ -148,20 +148,12 @@ void matrix_add_flow(matrix_t *matrix, const storable_flow_t *flow) {
 	pthread_mutex_unlock(&matrix->lock);
 }
 
-void matrix_dump(matrix_t *matrix) {
+void matrix_dump(matrix_t *matrix, const rrd_client_t *client) {
 	pthread_mutex_lock(&matrix->lock);
 	for(srcnode_t *src_ptr = matrix->sources; src_ptr != NULL; src_ptr = src_ptr->next) {
 		for (dstnode_t *dst_ptr = src_ptr->destinations; dst_ptr != NULL; dst_ptr = dst_ptr->next) {
-			/* filename format is flow_[SRC_MAC]_to_[DST_MAC].rrd */
-			char filename[255];
-			sprintf(filename, "/data/rrd/flows/flow_%s_to_%s.rrd", src_ptr->mac, dst_ptr->mac);
-			syslog(LOG_DEBUG, "Writing flow dump to %s", filename);
-			if (!access(filename, F_OK)) {
-				const int result = create_rrd(filename);
-				syslog(LOG_DEBUG, "Created new RRD file %s, got: %d", filename, result);
-			}
-			const int result = update_rrd(filename, dst_ptr->bytes_v4, dst_ptr->bytes_v6);
-			syslog(LOG_DEBUG, "Done updating flow dump to %s, got: %d", filename, result);
+			const int result = rrd_store_flow(client, src_ptr, dst_ptr);
+			syslog(LOG_DEBUG, "Done updating flow dump, got: %d", result);
 
 			/* clear dst data */
 			dst_ptr->bytes_v4 = 0;
