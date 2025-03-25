@@ -15,7 +15,7 @@
 #include "rrdtool.h"
 
 
-int create_rrd(const rrd_client_t *client, char *filename) {
+int create_rrd(rrd_client_t *client, char *filename) {
 
 	char *argv[] = {
 		"DS:ipv4_bytes:ABSOLUTE:600:U:U",
@@ -33,7 +33,7 @@ int create_rrd(const rrd_client_t *client, char *filename) {
 	return rrd_client_create(client, filename, 300, time(NULL), 1, 10, argv);
 }
 
-int update_rrd(const rrd_client_t *client, char *filename, const dstnode_t *dst) {
+int update_rrd(rrd_client_t *client, char *filename, const dstnode_t *dst) {
 
 	char str_bytes_v4[256];
 	char str_bytes_v6[256];
@@ -48,7 +48,7 @@ int update_rrd(const rrd_client_t *client, char *filename, const dstnode_t *dst)
 	return rrd_client_update(client, filename, 2, argv);
 }
 
-int rrd_store_flow(const rrd_client_t *client, const srcnode_t *src, const dstnode_t *dst) {
+int rrd_store_flow(rrd_client_t *client, const srcnode_t *src, const dstnode_t *dst) {
 
 	char filename[256];
 

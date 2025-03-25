@@ -39,6 +39,6 @@ typedef struct matrix {
 void matrix_init(matrix_t *matrix);
 void matrix_destroy(matrix_t *matrix);
 void matrix_clear(matrix_t *matrix);
-void matrix_dump(matrix_t *matrix, const rrd_client_t *);
+void matrix_dump(matrix_t *matrix, rrd_client_t *);
 void matrix_add_flow(matrix_t *matrix, const storable_flow_t *flow);
 #endif //MATRIX_H
