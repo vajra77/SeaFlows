@@ -74,7 +74,7 @@ int rrd_store_flow(const srcnode_t *src, const dstnode_t *dst) {
 	int ret = 0;
 
 	/* flow file */
-	sprintf(filename, "/data/rrd/flows/flow_%s_to_%s.rrd", src->mac, dst->mac);
+	sprintf(filename, "flow_%s_to_%s.rrd", src->mac, dst->mac);
 	if (!access(filename, F_OK)) {
 		ret = create_rrd(filename);
 	}
