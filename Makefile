@@ -2,7 +2,6 @@ CC = gcc
 CFLAGS = -Wall -g  
 LIBS = -lrrd -lgc
 
-
 all: sflow matrix collector rrdtool main
 	$(CC) -o bin/seaflows src/sflow/sflow.o src/matrix/matrix.o src/rrdtool/rrdtool.o src/collector/collector.o src/seaflows.o $(LIBS)
 
