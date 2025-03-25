@@ -30,7 +30,7 @@ int create_rrd(char *filename) {
 		"RRA:MAX:0.5:444:797",
 	};
 	rrdc_connect(NULL);
-	const int result = rrdc_create(filename, 300, time(NULL), 1, 10, argv);
+	const int result = rrdc_create_r(filename, 300, time(NULL), 1, 10, argv);
 	rrdc_disconnect();
 	return result;
 }
@@ -48,7 +48,7 @@ int update_rrd(char *filename, const dstnode_t *dst) {
 		str_bytes_v6,
 	};
 	rrdc_connect(NULL);
-	const int result = rrdc_update(filename, 2, argv);
+	const int result = rrdc_update_r(filename, 2, argv);
 	rrdc_disconnect();
 	return result;
 }
@@ -60,10 +60,10 @@ int rrd_store_flow(rrd_client_t *client, const srcnode_t *src, const dstnode_t *
 	/* flow file */
 	sprintf(filename, "/data/rrd/flows/flow_%s_to_%s.rrd", src->mac, dst->mac);
 	if (!access(filename, F_OK)) {
-		const int result = create_rrd(client, filename);
+		const int result = create_rrd(filename);
 		syslog(LOG_DEBUG, "Created new RRD file %s, got: %d", filename, result);
 	}
-	const int result = update_rrd(client, filename, dst);
+	const int result = update_rrd(filename, dst);
 	syslog(LOG_DEBUG, "Done updating flow dump to %s, got: %d", filename, result);
 	return result;
 }
