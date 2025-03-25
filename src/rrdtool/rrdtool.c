@@ -30,7 +30,7 @@ int create_rrd(char *filename) {
 		"RRA:MAX:0.5:444:797",
 	};
 
-	const int ret = rrdc_connect("unix:/var/run/rrdcached.sock");
+	int ret = rrdc_connect("unix:/var/run/rrdcached.sock");
 	if (!ret) {
 		syslog(LOG_ERR, "Unable to connect to rrdcached");
 		return ret;
