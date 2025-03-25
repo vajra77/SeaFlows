@@ -12,7 +12,6 @@
 #include <pthread.h>
 #include <syslog.h>
 #include <rrd.h>
-#include <rrd_client.h>
 #include <gc.h>
 
 #include "seaflows.h"
@@ -129,7 +128,6 @@ int main(const int argc, char **argv) {
 		collector_data[i].port = SEAFLOWS_LISTENER_PORT + i;
 		collector_data[i].address = listen_address;
 		collector_data[i].matrix = flow_matrix[i];
-		collector_data[i].rrd_client = rrd_client_new("unix:/var/run/rrdcached.sock");
 
 		pthread_create(&collector_threads[i], NULL, collector_thread, &collector_data[i]);
 	}
@@ -139,7 +137,7 @@ int main(const int argc, char **argv) {
 		sleep(60);
 		for(int i = 0; i < MAX_THREADS; i++) {
 			if(flow_matrix[i] != NULL) {
-				matrix_dump(flow_matrix[i], collector_data[i].rrd_client);
+				matrix_dump(flow_matrix[i]);
 			}
 		}
 	}

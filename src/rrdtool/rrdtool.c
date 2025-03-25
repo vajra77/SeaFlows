@@ -15,11 +15,11 @@
 #include "rrdtool.h"
 
 
-int create_rrd(rrd_client_t *client, char *filename) {
+int create_rrd(char *filename) {
 
 	const char *argv[] = {
-		"DS:ipv4_bytes:ABSOLUTE:600:U:U",
-		"DS:ipv6_bytes:ABSOLUTE:600:U:U",
+		"DS:bytes_v4:ABSOLUTE:600:U:U",
+		"DS:bytes_v6:ABSOLUTE:600:U:U",
 		"RRA:AVERAGE:0.5:1:600",
 		"RRA:AVERAGE:0.5:6:700",
 		"RRA:AVERAGE:0.5:24:775",
@@ -29,11 +29,13 @@ int create_rrd(rrd_client_t *client, char *filename) {
 		"RRA:MAX:0.5:24:775",
 		"RRA:MAX:0.5:444:797",
 	};
-
-	return rrd_client_create(client, filename, 300, time(NULL), 1, 10, argv);
+	rrdc_connect(NULL);
+	const int result = rrdc_create(filename, 300, time(NULL), 1, 10, argv);
+	rrdc_disconnect();
+	return result;
 }
 
-int update_rrd(rrd_client_t *client, char *filename, const dstnode_t *dst) {
+int update_rrd(char *filename, const dstnode_t *dst) {
 
 	char str_bytes_v4[256];
 	char str_bytes_v6[256];
@@ -45,7 +47,10 @@ int update_rrd(rrd_client_t *client, char *filename, const dstnode_t *dst) {
 		str_bytes_v4,
 		str_bytes_v6,
 	};
-	return rrd_client_update(client, filename, 2, argv);
+	rrdc_connect(NULL);
+	const int result = rrdc_update(filename, 2, argv);
+	rrdc_disconnect();
+	return result;
 }
 
 int rrd_store_flow(rrd_client_t *client, const srcnode_t *src, const dstnode_t *dst) {

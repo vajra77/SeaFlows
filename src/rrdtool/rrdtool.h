@@ -6,9 +6,8 @@
 #define RRDTOOL_H
 
 #include <rrd.h>
-#include <rrd_client.h>
 
 #include "matrix/matrix.h"
 
-int rrd_store_flow(rrd_client_t *, const srcnode_t *, const dstnode_t  *);
+int rrd_store_flow(const srcnode_t *, const dstnode_t  *);
 #endif //RRDTOOL_H
