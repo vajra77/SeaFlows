@@ -57,10 +57,16 @@ int update_rrd(char *filename, const dstnode_t *dst) {
 		str_bytes_v4,
 		str_bytes_v6,
 	};
-	rrdc_connect(NULL);
-	const int result = rrdc_update(filename, 2, argv);
+
+	int ret = rrdc_connect(NULL);
+	if (!ret)
+	{
+		syslog(LOG_ERR, "Unable to update RRD file");
+		return ret;
+	}
+	ret = rrdc_update(filename, 2, argv);
 	rrdc_disconnect();
-	return result;
+	return ret;
 }
 
 int rrd_store_flow(const srcnode_t *src, const dstnode_t *dst) {
