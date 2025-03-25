@@ -7,7 +7,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <sys/syslog.h>
-#include <rrd.h>
+#include <rrd_client.h>
 
 #include "sflow/sflow.h"
 #include "matrix/matrix.h"
