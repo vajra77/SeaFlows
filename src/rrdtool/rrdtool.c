@@ -17,7 +17,7 @@
 
 int create_rrd(rrd_client_t *client, char *filename) {
 
-	char *argv[] = {
+	const char *argv[] = {
 		"DS:ipv4_bytes:ABSOLUTE:600:U:U",
 		"DS:ipv6_bytes:ABSOLUTE:600:U:U",
 		"RRA:AVERAGE:0.5:1:600",
