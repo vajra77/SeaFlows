@@ -53,7 +53,7 @@ int update_rrd(char *filename, const dstnode_t *dst) {
 	return result;
 }
 
-int rrd_store_flow(rrd_client_t *client, const srcnode_t *src, const dstnode_t *dst) {
+int rrd_store_flow(const srcnode_t *src, const dstnode_t *dst) {
 
 	char filename[256];
 
