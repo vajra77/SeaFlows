@@ -29,10 +29,16 @@ int create_rrd(char *filename) {
 		"RRA:MAX:0.5:24:775",
 		"RRA:MAX:0.5:444:797",
 	};
-	rrdc_connect(NULL);
-	const int result = rrdc_create(filename, 300, time(NULL), 1, 10, argv);
+
+	const int ret = rrdc_connect("unix:/var/run/rrdcached.sock");
+	if (!ret) {
+		syslog(LOG_ERR, "Unable to connect to rrdcached");
+		return ret;
+	}
+
+	ret = rrdc_create(filename, 300, time(NULL), 1, 10, argv);
 	rrdc_disconnect();
-	return result;
+	return ret;
 }
 
 int update_rrd(char *filename, const dstnode_t *dst) {
