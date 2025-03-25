@@ -11,6 +11,7 @@
 #include <sys/stat.h>
 #include <pthread.h>
 #include <syslog.h>
+#include <rrd.h>
 #include <rrd_client.h>
 #include <gc.h>
 

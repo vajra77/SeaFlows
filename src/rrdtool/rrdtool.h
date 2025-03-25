@@ -4,6 +4,8 @@
 
 #ifndef RRDTOOL_H
 #define RRDTOOL_H
+
+#include <rrd.h>
 #include <rrd_client.h>
 
 #include "matrix/matrix.h"

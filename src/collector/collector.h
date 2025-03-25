@@ -6,6 +6,7 @@
 #define COLLECTOR_H
 
 #include <rrd.h>
+#include <rrd_client.h>
 #include "matrix/matrix.h"
 
 typedef struct collector_data {

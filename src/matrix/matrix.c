@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <sys/syslog.h>
 #include <gc.h>
+#include <rrd.h>
 #include <rrd_client.h>
 
 #include "matrix.h"

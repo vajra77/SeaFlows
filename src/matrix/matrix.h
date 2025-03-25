@@ -5,6 +5,7 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
+#include <rrd.h>
 #include <rrd_client.h>
 #include "sflow/sflow.h"
 
