@@ -16,7 +16,6 @@
 #include "sflow/net.h"
 
 
-
 srcnode_t *get_src_node(const matrix_t *matrix, const char *mac) {
 	srcnode_t *node = matrix->sources;
 

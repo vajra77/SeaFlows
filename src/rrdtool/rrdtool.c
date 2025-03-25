@@ -59,8 +59,7 @@ int update_rrd(char *filename, const dstnode_t *dst) {
 	};
 
 	int ret = rrdc_connect(NULL);
-	if (!ret)
-	{
+	if (!ret) {
 		syslog(LOG_ERR, "Unable to update RRD file");
 		return ret;
 	}
@@ -76,10 +75,8 @@ int rrd_store_flow(const srcnode_t *src, const dstnode_t *dst) {
 	/* flow file */
 	sprintf(filename, "/data/rrd/flows/flow_%s_to_%s.rrd", src->mac, dst->mac);
 	if (!access(filename, F_OK)) {
-		const int result = create_rrd(filename);
-		syslog(LOG_DEBUG, "Created new RRD file %s, got: %d", filename, result);
+		create_rrd(filename);
 	}
-	const int result = update_rrd(filename, dst);
-	syslog(LOG_DEBUG, "Done updating flow dump to %s, got: %d", filename, result);
+	update_rrd(filename, dst);
 	return result;
 }
