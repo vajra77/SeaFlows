@@ -58,13 +58,19 @@ int update_rrd(char *filename, const dstnode_t *dst) {
 		str_bytes_v6,
 	};
 
-	int ret = rrdc_connect(NULL);
+	int ret = rrdc_connect("unix:/var/run/rrdcached.sock");
 	if (!ret) {
-		syslog(LOG_ERR, "Unable to update RRD file");
+		syslog(LOG_ERR, "Unable to connect to rrdcached");
 		return ret;
 	}
 	ret = rrdc_update(filename, 2, argv);
-	rrdc_disconnect();
+	if (!ret)
+	{
+		syslog(LOG_ERR, "Unable to update RRD file");
+	} else
+	{
+		rrdc_disconnect();
+	}
 	return ret;
 }
 
