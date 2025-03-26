@@ -30,7 +30,7 @@ int create_rrd(char *filename) {
 		"RRA:MAX:0.5:444:797",
 	};
 
-	int ret = rrdc_connect("unix:/var/run/rrdcached.sock");
+	int ret = rrdc_connect("/var/run/rrdcached.sock");
 	if (!ret) {
 		syslog(LOG_ERR, "Unable to connect to rrdcached");
 		return ret;
@@ -58,7 +58,7 @@ int update_rrd(char *filename, const dstnode_t *dst) {
 		str_bytes_v6,
 	};
 
-	int ret = rrdc_connect("unix:/var/run/rrdcached.sock");
+	int ret = rrdc_connect("/var/run/rrdcached.sock");
 	if (!ret) {
 		syslog(LOG_ERR, "Unable to connect to rrdcached");
 		return ret;
