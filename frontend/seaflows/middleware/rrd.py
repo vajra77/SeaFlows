@@ -1,15 +1,6 @@
 from datetime import datetime, timedelta
-import rrdtool # noqa
 import os
-import pwd
-import grp
-import numpy as np # noqa
-
-
-def _chown(filename):
-    uid = pwd.getpwnam("root").pw_uid
-    gid = grp.getgrnam("www-data").gr_gid
-    os.chown(filename, uid, gid)
+import rrdtool # noqa
 
 
 def _octets2bits(x, gamma):
