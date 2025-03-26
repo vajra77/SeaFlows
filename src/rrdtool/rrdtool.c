@@ -10,7 +10,6 @@
 #include <rrd.h>
 #include <rrd_client.h>
 
-#include "sflow/sflow.h"
 #include "matrix/matrix.h"
 #include "rrdtool.h"
 
@@ -30,7 +29,7 @@ int create_rrd(char *filename) {
 		"RRA:MAX:0.5:444:797",
 	};
 
-	int err = rrdc_connect(NULL);
+	int err = rrdc_connect("127.0.0.1:42217");
 	if (err) {
 		syslog(LOG_ERR, "Unable to connect to rrdcached: %s (error=%d)", rrd_get_error(), err);
 		rrd_clear_error();
@@ -59,7 +58,7 @@ int update_rrd(char *filename, const dstnode_t *dst) {
 		str_bytes_v6,
 	};
 
-	int err = rrdc_connect(NULL);
+	int err = rrdc_connect("127.0.0.1:42217");
 	if (err) {
 		syslog(LOG_ERR, "Unable to connect to rrdcached: %s (error=%d)", rrd_get_error(), err);
 		rrd_clear_error();
