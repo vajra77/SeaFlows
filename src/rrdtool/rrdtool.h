@@ -10,4 +10,5 @@
 #include "matrix/matrix.h"
 
 int rrd_store_flow(const srcnode_t *, const dstnode_t  *);
+int rrd_store_peer(const srcnode_t *);
 #endif //RRDTOOL_H

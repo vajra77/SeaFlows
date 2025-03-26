@@ -160,6 +160,8 @@ void matrix_dump(matrix_t *matrix) {
 			dst_ptr->bytes_v6 = 0;
 			dst_ptr->bytes_nk = 0;
 		}
+
+		rrd_store_peer(src_ptr);
 		/* clear src data */
 		src_ptr->bytes_v4 = 0;
 		src_ptr->bytes_v6 = 0;
