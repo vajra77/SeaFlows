@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <sys/syslog.h>
 #include <rrd.h>
 #include <rrd_client.h>
@@ -77,15 +79,26 @@ int update_rrd(char *filename, const dstnode_t *dst) {
 int rrd_store_flow(const srcnode_t *src, const dstnode_t *dst) {
 
 	char filename[256];
+	char basename[256];
 	char pathname[256];
 	int err = 0;
 
 	/* flow file */
-	sprintf(pathname, "/data/rrd/flows/flow_%s_to_%s.rrd", src->mac, dst->mac);
-	sprintf(filename, "flows/flow_%s_to_%s.rrd", src->mac, dst->mac);
+	sprintf(basename, "/data/rrd/flows/%s", src->mac);
+	sprintf(pathname, "%s/flow_%s_to_%s.rrd", basename, src->mac, dst->mac);
+	sprintf(filename, "%s/flow_%s_to_%s.rrd", src->mac, src->mac, dst->mac);
 
-	if (access(pathname, F_OK) != 0)
+	if (access(basename, F_OK) != 0) {
+		if (mkdir(basename, 0755)) {
+			syslog(LOG_ERR, "Unable to create directory: %s", basename);
+			return err;
+		}
 		err = create_rrd(filename);
+	}
+	else {
+		if (access(pathname, F_OK) != 0)
+			err = create_rrd(filename);
+	}
 
 	if (err != 0)
 		err = update_rrd(pathname, dst);
