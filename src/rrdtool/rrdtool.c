@@ -78,8 +78,8 @@ int update_rrd(char *filename, const dstnode_t *dst) {
 
 int rrd_store_flow(const srcnode_t *src, const dstnode_t *dst) {
 
-	char filename[256];
-	char basename[256];
+	char filename[32];
+	char basename[32];
 	char pathname[256];
 	int err = 0;
 
