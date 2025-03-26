@@ -32,17 +32,16 @@ int create_rrd(char *filename) {
 
 	int ret = rrdc_connect("/var/run/rrdcached.sock");
 	if (!ret) {
-		syslog(LOG_ERR, "Unable to connect to rrdcached");
-		return ret;
+		syslog(LOG_ERR, "Unable to connect to rrdcached: %s (error=%d)", rrd_get_error(), ret);
+		return -1;
 	}
 
 	ret = rrdc_create(filename, 300, time(NULL), 1, 10, argv);
-	if (!ret )
-	{
-		syslog(LOG_ERR, "Unable to create RRD file");
+	if (!ret) 	{
+		syslog(LOG_ERR, "Unable to create RRD file: %s (error=%d)", rrd_get_error(), ret);
 	}
 	rrdc_disconnect();
-	return ret;
+	return 0;
 }
 
 int update_rrd(char *filename, const dstnode_t *dst) {
@@ -60,18 +59,17 @@ int update_rrd(char *filename, const dstnode_t *dst) {
 
 	int ret = rrdc_connect("/var/run/rrdcached.sock");
 	if (!ret) {
-		syslog(LOG_ERR, "Unable to connect to rrdcached");
-		return ret;
+		syslog(LOG_ERR, "Unable to connect to rrdcached: %s (error=%d)", rrd_get_error(), ret);
+		return -1;
 	}
 	ret = rrdc_update(filename, 2, argv);
-	if (!ret)
-	{
-		syslog(LOG_ERR, "Unable to update RRD file");
-	} else
-	{
-		rrdc_disconnect();
+	if (!ret) {
+		syslog(LOG_ERR, "Unable to update RRD file: %s (error=%d)", rrd_get_error(), ret);
+		return -1;
 	}
-	return ret;
+
+	rrdc_disconnect();
+	return 0;
 }
 
 int rrd_store_flow(const srcnode_t *src, const dstnode_t *dst) {
