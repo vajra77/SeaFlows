@@ -77,13 +77,19 @@ int update_rrd(char *filename, const dstnode_t *dst) {
 int rrd_store_flow(const srcnode_t *src, const dstnode_t *dst) {
 
 	char filename[256];
+	char pathname[256];
 	int err = 0;
 
 	/* flow file */
+	sprintf(pathname, "/data/rrd/flows/flow_%s_to_%s.rrd", src->mac, dst->mac);
 	sprintf(filename, "flows/flow_%s_to_%s.rrd", src->mac, dst->mac);
-	if (!access(filename, F_OK)) {
+
+	if (!access(pathname, F_OK)) {
 		err = create_rrd(filename);
 	}
-	err = update_rrd(filename, dst);
+
+	if (!err)
+		err = update_rrd(filename, dst);
+
 	return err;
 }
