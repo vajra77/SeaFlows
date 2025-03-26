@@ -22,11 +22,9 @@
 #define MAX_THREADS 24
 
 /* thread share/control variables */
-pthread_t			collector_threads[MAX_THREADS];
-pthread_t			dumper_thread;
-
-matrix_t			*flow_matrix[MAX_THREADS];
-collector_data_t	collector_data[MAX_THREADS];
+static pthread_t			collector_threads[MAX_THREADS];
+static matrix_t				*flow_matrix[MAX_THREADS];
+static collector_data_t		collector_data[MAX_THREADS];
 
 
 void usage(){
