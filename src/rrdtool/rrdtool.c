@@ -86,7 +86,7 @@ int rrd_store_flow(const srcnode_t *src, const dstnode_t *dst) {
 	/* flow file */
 	sprintf(basename, "/data/rrd/flows/%s", src->mac);
 	sprintf(pathname, "%s/flow_%s_to_%s.rrd", basename, src->mac, dst->mac);
-	sprintf(filename, "%s/flow_%s_to_%s.rrd", src->mac, src->mac, dst->mac);
+	sprintf(filename, "flows/%s/flow_%s_to_%s.rrd", src->mac, src->mac, dst->mac);
 
 	if (access(basename, F_OK) != 0) {
 		if (mkdir(basename, 0755)) {
