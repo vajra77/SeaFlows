@@ -1,4 +1,4 @@
-from seaflows import api as api_blueprint
+from api import seaflows_api as api_blueprint
 from flask import Flask
 
 
