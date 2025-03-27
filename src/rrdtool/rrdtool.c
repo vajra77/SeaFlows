@@ -75,8 +75,6 @@ int update_flow_rrd(char *filename, const dstnode_t *dst) {
 
 	err = rrdc_update(filename, 3, argv);
 
-	syslog(LOG_ERR, "Updated %s with values: %u, %u", filename, dst->bytes_v4, dst->bytes_v6);
-
 	if (err) {
 		syslog(LOG_ERR, "Unable to update RRD file: %s (error=%d)", rrd_get_error(), err);
 		rrd_clear_error();
@@ -112,7 +110,6 @@ int update_peer_rrd(char *filename, const srcnode_t *src) {
 	}
 
 	err = rrdc_update(filename, 1, frmtstr);
-	syslog(LOG_ERR, "Updated %s with values: %u, %u", filename, src->bytes_v4, src->bytes_v6);
 
 	if (err) {
 		syslog(LOG_ERR, "Unable to update RRD file: %s (error=%d)", rrd_get_error(), err);
