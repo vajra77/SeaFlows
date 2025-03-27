@@ -49,14 +49,8 @@ int create_rrd(char *filename) {
 
 int update_flow_rrd(char *filename, const dstnode_t *dst) {
 
-	char timestamp[256];
-	char str_bytes_v4[256];
-	char str_bytes_v6[256];
 	char frmtstr[256];
 
-	snprintf(timestamp, 256, "%li", time(NULL));
-	snprintf(str_bytes_v4, 256, "%u", dst->bytes_v4);
-	snprintf(str_bytes_v6, 256, "%u", dst->bytes_v6);
 	snprintf(frmtstr, 256, "N:%u:%u", dst->bytes_v4, dst->bytes_v6);
 
 	const char *argv[] = {
@@ -84,14 +78,8 @@ int update_flow_rrd(char *filename, const dstnode_t *dst) {
 
 int update_peer_rrd(char *filename, const srcnode_t *src) {
 
-	char timestamp[256];
-	char str_bytes_v4[256];
-	char str_bytes_v6[256];
 	char frmtstr[256];
 
-	snprintf(timestamp, 256, "%li", time(NULL));
-	snprintf(str_bytes_v4, 256, "%u", src->bytes_v4);
-	snprintf(str_bytes_v6, 256, "%u", src->bytes_v6);
 	snprintf(frmtstr, 256, "N:%u:%u", src->bytes_v4, src->bytes_v6);
 
 	const char *argv[] = {
@@ -100,7 +88,7 @@ int update_peer_rrd(char *filename, const srcnode_t *src) {
 
 	int err = rrdc_connect("127.0.0.1:42217");
 	if (err) {
-		syslog(LOG_ERR, "Unable to connect to rrdcached: %s (error=%d)", rrd_get_error(), err);
+		//syslog(LOG_ERR, "Unable to connect to rrdcached: %s (error=%d)", rrd_get_error(), err);
 		rrd_clear_error();
 		return -1;
 	}
@@ -174,8 +162,7 @@ int rrd_store_peer(const srcnode_t *src) {
 			return err;
 	}
 
-	if (err == 0)
-		err = update_peer_rrd(filename, src);
+	err = update_peer_rrd(filename, src);
 
 	return err;
 }
