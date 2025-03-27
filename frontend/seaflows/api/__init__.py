@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint # noqa
 
 
 api = Blueprint('api', __name__)

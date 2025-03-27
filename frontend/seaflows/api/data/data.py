@@ -1,5 +1,5 @@
 from seaflows.api import api    # noqa
-from seaflows.middleware import RRDBackend
+from seaflows.middleware import RRDBackend # noqa
 from flask import Flask, request, make_response, render_template, jsonify # noqa
 
 
