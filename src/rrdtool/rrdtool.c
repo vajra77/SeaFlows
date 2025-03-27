@@ -49,14 +49,16 @@ int create_rrd(char *filename) {
 
 int update_flow_rrd(char *filename, const dstnode_t *dst) {
 
+	char timestamp[256];
 	char str_bytes_v4[256];
 	char str_bytes_v6[256];
 
+	snprintf(timestamp, 256, "%u", time(NULL));
 	snprintf(str_bytes_v4, 256, "%u", dst->bytes_v4);
 	snprintf(str_bytes_v6, 256, "%u", dst->bytes_v6);
 
 	const char *argv[] = {
-		"N",
+		timestamp,
 		str_bytes_v4,
 		str_bytes_v6,
 	};
@@ -84,14 +86,16 @@ int update_flow_rrd(char *filename, const dstnode_t *dst) {
 
 int update_peer_rrd(char *filename, const srcnode_t *src) {
 
+	char timestamp[256];
 	char str_bytes_v4[256];
 	char str_bytes_v6[256];
 
+	snprintf(timestamp, 256, "%u", time(NULL));
 	snprintf(str_bytes_v4, 256, "%u", src->bytes_v4);
 	snprintf(str_bytes_v6, 256, "%u", src->bytes_v6);
 
 	const char *argv[] = {
-		"N",
+		timestamp,
 		str_bytes_v4,
 		str_bytes_v6,
 	};
