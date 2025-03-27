@@ -52,10 +52,12 @@ int update_flow_rrd(char *filename, const dstnode_t *dst) {
 	char timestamp[256];
 	char str_bytes_v4[256];
 	char str_bytes_v6[256];
+	char frmtstr[256];
 
 	snprintf(timestamp, 256, "%li", time(NULL));
 	snprintf(str_bytes_v4, 256, "%u", dst->bytes_v4);
 	snprintf(str_bytes_v6, 256, "%u", dst->bytes_v6);
+	snprintf(frmtstr, 256, "N:%u:%u", dst->bytes_v4, dst->bytes_v6);
 
 	const char *argv[] = {
 		timestamp,
@@ -89,10 +91,12 @@ int update_peer_rrd(char *filename, const srcnode_t *src) {
 	char timestamp[256];
 	char str_bytes_v4[256];
 	char str_bytes_v6[256];
+	char frmtstr[256];
 
 	snprintf(timestamp, 256, "%li", time(NULL));
 	snprintf(str_bytes_v4, 256, "%u", src->bytes_v4);
 	snprintf(str_bytes_v6, 256, "%u", src->bytes_v6);
+	snprintf(frmtstr, 256, "N:%u:%u", src->bytes_v4, src->bytes_v6);
 
 	const char *argv[] = {
 		timestamp,
@@ -107,7 +111,7 @@ int update_peer_rrd(char *filename, const srcnode_t *src) {
 		return -1;
 	}
 
-	err = rrdc_update(filename, 3, argv);
+	err = rrdc_update(filename, 1, frmtstr);
 	syslog(LOG_ERR, "Updated %s with values: %u, %u", filename, src->bytes_v4, src->bytes_v6);
 
 	if (err) {
