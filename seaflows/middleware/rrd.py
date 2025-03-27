@@ -4,7 +4,6 @@ import rrdtool # noqa
 
 
 def _octets2bits(x, gamma):
-    return x
     if isinstance(x, (int, float)) and x >= 0:
         return x * 8 * gamma / 1000000000
     else:
