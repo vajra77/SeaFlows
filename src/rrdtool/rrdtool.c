@@ -74,7 +74,7 @@ int update_flow_rrd(char *filename, const dstnode_t *dst) {
 	err = rrdc_update(filename, 1, argv);
 
 	if (err) {
-		syslog(LOG_ERR, "Unable to update RRD file: %s (error=%d)", rrd_get_error(), err);
+		syslog(LOG_ERR, "Unable to update RRD file %s: %s (error=%d)", filename, rrd_get_error(), err);
 		rrd_clear_error();
 	}
 
@@ -108,7 +108,7 @@ int update_peer_rrd(char *filename, const srcnode_t *src) {
 	err = rrdc_update(filename, 1, argv);
 
 	if (err) {
-		syslog(LOG_ERR, "Unable to update RRD file: %s (error=%d)", rrd_get_error(), err);
+		syslog(LOG_ERR, "Unable to update RRD file %s: %s (error=%d)", filename, rrd_get_error(), err);
 		rrd_clear_error();
 	}
 
@@ -165,6 +165,8 @@ int rrd_store_peer(const srcnode_t *src) {
 			return err;
 		}
 		err = create_rrd(filename);
+
+		return err;
 	}
 
 	if (access(pathname, F_OK) != 0) {
