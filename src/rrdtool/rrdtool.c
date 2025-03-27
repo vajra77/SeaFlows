@@ -134,14 +134,15 @@ int rrd_store_flow(const srcnode_t *src, const dstnode_t *dst) {
 			return err;
 		}
 		err = create_rrd(filename);
-	}
-	else {
-		if (access(pathname, F_OK) != 0)
-			err = create_rrd(filename);
+		return err;
 	}
 
-	if (err == 0)
-		err = update_flow_rrd(filename, dst);
+	if (access(pathname, F_OK) != 0) {
+		err = create_rrd(filename);
+		return err;
+	}
+
+	err = update_flow_rrd(filename, dst);
 
 	return err;
 }
