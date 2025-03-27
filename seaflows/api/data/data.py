@@ -12,8 +12,8 @@ def test():
 def get_flow():
     src = request.args.get('src')
     dst = request.args.get('dst')
-    schedule = request.args.get('period')
-    proto = request.args.get('proto')
+    schedule = request.args.get('period') or 'daily'
+    proto = request.args.get('proto') or 4
 
     rrd = RRDBackend('/data/rrd', 1)
 

@@ -26,11 +26,11 @@ class RRDBackend:
 
     def get_flow_data(self, schedule, proto, src, dst):
 
-        f_path = self._base_path + f"flows/{src}"
-        r_path = self._base_path + f"flows/{dst}"
+        f_path = self._base_path + f"/flows/{src}"
+        r_path = self._base_path + f"/flows/{dst}"
 
-        f_rrdfile = f"{f_path}/flow__{src}__to__{dst}.rrd"
-        r_rrdfile = f"{r_path}/flow__{dst}__to__{src}.rrd"
+        f_rrdfile = f"{f_path}/flow_{src}_to_{dst}.rrd"
+        r_rrdfile = f"{r_path}/flow_{dst}_to_{src}.rrd"
 
         if os.path.isfile(f_rrdfile) and os.path.isfile(r_rrdfile):
 
