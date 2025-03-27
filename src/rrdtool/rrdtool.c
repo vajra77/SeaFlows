@@ -60,9 +60,7 @@ int update_flow_rrd(char *filename, const dstnode_t *dst) {
 	snprintf(frmtstr, 256, "N:%u:%u", dst->bytes_v4, dst->bytes_v6);
 
 	const char *argv[] = {
-		timestamp,
-		str_bytes_v4,
-		str_bytes_v6,
+		frmtstr,
 	};
 
 	int err = rrdc_connect("127.0.0.1:42217");
@@ -73,7 +71,7 @@ int update_flow_rrd(char *filename, const dstnode_t *dst) {
 		return -1;
 	}
 
-	err = rrdc_update(filename, 3, argv);
+	err = rrdc_update(filename, 1, argv);
 
 	if (err) {
 		syslog(LOG_ERR, "Unable to update RRD file: %s (error=%d)", rrd_get_error(), err);
@@ -97,9 +95,7 @@ int update_peer_rrd(char *filename, const srcnode_t *src) {
 	snprintf(frmtstr, 256, "N:%u:%u", src->bytes_v4, src->bytes_v6);
 
 	const char *argv[] = {
-		timestamp,
-		str_bytes_v4,
-		str_bytes_v6,
+		frmtstr,
 	};
 
 	int err = rrdc_connect("127.0.0.1:42217");
@@ -109,7 +105,7 @@ int update_peer_rrd(char *filename, const srcnode_t *src) {
 		return -1;
 	}
 
-	err = rrdc_update(filename, 1, frmtstr);
+	err = rrdc_update(filename, 1, argv);
 
 	if (err) {
 		syslog(LOG_ERR, "Unable to update RRD file: %s (error=%d)", rrd_get_error(), err);
