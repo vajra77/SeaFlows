@@ -1,7 +1,11 @@
 from seaflows.api import api    # noqa
 from seaflows.middleware import RRDBackend
-import numpy as np  # noqa
 from flask import Flask, request, make_response, render_template, jsonify # noqa
+
+
+@api.route('/data/test', methods=['GET'])
+def test():
+    return make_response(jsonify({ 'message': 'ok' })), 200
 
 
 @api.route('/data/flow', methods=['GET'])
