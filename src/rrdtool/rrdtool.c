@@ -166,9 +166,10 @@ int rrd_store_peer(const srcnode_t *src) {
 		}
 		err = create_rrd(filename);
 	}
-	else {
-		if (access(pathname, F_OK) != 0)
+
+	if (access(pathname, F_OK) != 0) {
 			err = create_rrd(filename);
+			return err;
 	}
 
 	if (err == 0)
