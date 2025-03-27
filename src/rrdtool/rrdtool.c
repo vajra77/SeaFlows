@@ -53,7 +53,7 @@ int update_flow_rrd(char *filename, const dstnode_t *dst) {
 	char str_bytes_v4[256];
 	char str_bytes_v6[256];
 
-	snprintf(timestamp, 256, "%l", time(NULL));
+	snprintf(timestamp, 256, "%li", time(NULL));
 	snprintf(str_bytes_v4, 256, "%u", dst->bytes_v4);
 	snprintf(str_bytes_v6, 256, "%u", dst->bytes_v6);
 
@@ -90,7 +90,7 @@ int update_peer_rrd(char *filename, const srcnode_t *src) {
 	char str_bytes_v4[256];
 	char str_bytes_v6[256];
 
-	snprintf(timestamp, 256, "%l", time(NULL));
+	snprintf(timestamp, 256, "%li", time(NULL));
 	snprintf(str_bytes_v4, 256, "%u", src->bytes_v4);
 	snprintf(str_bytes_v6, 256, "%u", src->bytes_v6);
 
