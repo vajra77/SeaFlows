@@ -153,6 +153,7 @@ void matrix_dump(matrix_t *matrix) {
 	pthread_mutex_lock(&matrix->lock);
 	for(srcnode_t *src_ptr = matrix->sources; src_ptr != NULL; src_ptr = src_ptr->next) {
 		for (dstnode_t *dst_ptr = src_ptr->destinations; dst_ptr != NULL; dst_ptr = dst_ptr->next) {
+
 			rrd_store_flow(src_ptr, dst_ptr);
 
 			/* clear dst data */

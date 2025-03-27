@@ -130,7 +130,7 @@ int rrd_store_flow(const srcnode_t *src, const dstnode_t *dst) {
 			err = create_rrd(filename);
 	}
 
-	if (err != 0)
+	if (err == 0)
 		err = update_flow_rrd(pathname, dst);
 
 	return err;
