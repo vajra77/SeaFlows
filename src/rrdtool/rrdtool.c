@@ -61,12 +61,15 @@ int update_flow_rrd(char *filename, const dstnode_t *dst) {
 	};
 
 	int err = rrdc_connect("127.0.0.1:42217");
+
 	if (err) {
 		syslog(LOG_ERR, "Unable to connect to rrdcached: %s (error=%d)", rrd_get_error(), err);
 		rrd_clear_error();
 		return -1;
 	}
+
 	err = rrdc_update(filename, 2, argv);
+
 	syslog(LOG_ERR, "Updated %s with values: %u, %u", filename, dst->bytes_v4, dst->bytes_v6);
 	if (err) {
 		syslog(LOG_ERR, "Unable to update RRD file: %s (error=%d)", rrd_get_error(), err);
@@ -96,7 +99,9 @@ int update_peer_rrd(char *filename, const srcnode_t *src) {
 		rrd_clear_error();
 		return -1;
 	}
+
 	err = rrdc_update(filename, 2, argv);
+
 	if (err) {
 		syslog(LOG_ERR, "Unable to update RRD file: %s (error=%d)", rrd_get_error(), err);
 		rrd_clear_error();
@@ -131,7 +136,7 @@ int rrd_store_flow(const srcnode_t *src, const dstnode_t *dst) {
 	}
 
 	if (err == 0)
-		err = update_flow_rrd(pathname, dst);
+		err = update_flow_rrd(filename, dst);
 
 	return err;
 }
@@ -160,8 +165,8 @@ int rrd_store_peer(const srcnode_t *src) {
 			err = create_rrd(filename);
 	}
 
-	if (err != 0)
-		err = update_peer_rrd(pathname, src);
+	if (err == 0)
+		err = update_peer_rrd(filename, src);
 
 	return err;
 }
