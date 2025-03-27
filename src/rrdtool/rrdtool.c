@@ -67,6 +67,7 @@ int update_flow_rrd(char *filename, const dstnode_t *dst) {
 		return -1;
 	}
 	err = rrdc_update(filename, 2, argv);
+	syslog(LOG_INFO, "Updated %s with values: %u, %u", filename, dst->bytes_v4, dst->bytes_v6);
 	if (err) {
 		syslog(LOG_ERR, "Unable to update RRD file: %s (error=%d)", rrd_get_error(), err);
 		rrd_clear_error();
