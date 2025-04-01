@@ -135,6 +135,7 @@ int main(const int argc, char **argv) {
 		sleep(60);
 		for(int i = 0; i < MAX_THREADS; i++) {
 			if(flow_matrix[i] != NULL) {
+				syslog(LOG_DEBUG, "Dumping matrix: %d", i);
 				matrix_dump(flow_matrix[i]);
 			}
 		}
