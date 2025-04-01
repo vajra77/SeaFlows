@@ -120,7 +120,7 @@ int main(const int argc, char **argv) {
 	/* create threads */
 	for(int i = 0; i < num_threads; i++) {
 
-		flow_matrix[i] = GC_malloc(sizeof(matrix_t));
+		flow_matrix[i] = MEM_alloc(sizeof(matrix_t));
 		matrix_init(flow_matrix[i]);
 
 		collector_data[i].port = SEAFLOWS_LISTENER_PORT + i;

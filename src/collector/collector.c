@@ -8,8 +8,8 @@
 #include <strings.h>
 #include <syslog.h>
 #include <unistd.h>
-#include <gc.h>
 
+#include "seaflows.h"
 #include "sflow/sflow.h"
 #include "matrix/matrix.h"
 #include "collector/collector.h"
@@ -52,7 +52,7 @@ void* collector_thread(void *arg) {
 					storable_flow_t	*flow = sflow_encode_flow_record(record, sample->header.sampling_rate);
 					if (flow != NULL) {
 						matrix_add_flow(collector_data->matrix, flow);
-						GC_free(flow);
+						MEM_free(flow);
 					}
 				}
 			}

@@ -11,6 +11,7 @@
 #include <gc.h>
 #include <rrd.h>
 
+#include "seaflows.h"
 #include "matrix.h"
 #include "rrdtool/rrdtool.h"
 #include "sflow/net.h"
@@ -89,10 +90,10 @@ void matrix_destroy(matrix_t *matrix) {
 		while(src->destinations != NULL) {
 			dstnode_t *dst = src->destinations;
 			src->destinations = src->destinations->next;
-			GC_free(dst);
+			MEM_free(dst);
 		}
 		matrix->sources = matrix->sources->next;
-		GC_free(src);
+		MEM_free(src);
 	}
 }
 
@@ -102,7 +103,7 @@ void matrix_add_flow(matrix_t *matrix, const storable_flow_t *flow) {
 	srcnode_t *src_node = get_src_node(matrix, flow->src_mac);
 
 	if (!src_node) {
-		src_node = GC_malloc(sizeof(srcnode_t));
+		src_node = MEM_alloc(sizeof(srcnode_t));
 		bzero(src_node, sizeof(srcnode_t));
 		strcpy(src_node->mac, flow->src_mac);
 		src_node->next = NULL;
@@ -126,7 +127,7 @@ void matrix_add_flow(matrix_t *matrix, const storable_flow_t *flow) {
 	dstnode_t *dst_node = get_dst_node(src_node, flow->dst_mac);
 
 	if (!dst_node) {
-		dst_node = GC_malloc(sizeof(dstnode_t));
+		dst_node = MEM_alloc(sizeof(dstnode_t));
 		bzero(dst_node, sizeof(dstnode_t));
 		strcpy(dst_node->mac, flow->dst_mac);
 		dst_node->next = NULL;

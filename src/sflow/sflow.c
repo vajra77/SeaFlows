@@ -8,9 +8,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <time.h>
-#include <gc.h>
 #include <sys/syslog.h>
 
+#include "seaflows.h"
 #include "sflow.h"
 #include "net.h"
 
@@ -21,7 +21,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
 	const char *data_ptr = raw_data;
 	uint32_t	buffer = 0x0;
 
-	sflow_datagram_t *datagram = GC_malloc(sizeof(sflow_datagram_t));
+	sflow_datagram_t *datagram = MEM_alloc(sizeof(sflow_datagram_t));
 	bzero(datagram, sizeof(sflow_datagram_t));
 
 	/* sFlow version */
@@ -74,7 +74,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
 	/* samples loop */
 	for (int n = 0; n < datagram->header.num_samples; n++) {
 
-		flow_sample_t *sample = GC_malloc(sizeof(flow_sample_t));
+		flow_sample_t *sample = MEM_alloc(sizeof(flow_sample_t));
 		bzero(sample, sizeof(flow_sample_t));
 
 		/* sample format */
@@ -144,7 +144,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
 			/* records loop */
 			for (int k = 0; k < sample->header.num_records; k++) {
 
-				flow_record_t *record = GC_malloc(sizeof(flow_record_t));
+				flow_record_t *record = MEM_alloc(sizeof(flow_record_t));
 				bzero(record, sizeof(flow_record_t));
 
 				/* data format */
@@ -164,7 +164,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
 				/* raw packet parser */
 				if (record->header.data_format & SFLOW_RAW_PACKET_HEADER_FORMAT) {
 					/* raw packet header */
-					raw_packet_t *packet = GC_malloc(sizeof(raw_packet_t));
+					raw_packet_t *packet = MEM_alloc(sizeof(raw_packet_t));
 
 					/* header protocol */
 					memcpy(&buffer, data_ptr, sizeof(uint32_t));
@@ -197,7 +197,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
 
 					if (packet->header.protocol & SFLOW_RAW_PACKET_HEADER_PROTO_ETHERNET) {
 						/* ethernet header follows */
-						datalink_header_t *datalink = GC_malloc(sizeof(datalink_header_t));
+						datalink_header_t *datalink = MEM_alloc(sizeof(datalink_header_t));
 						bzero(datalink, sizeof(datalink_header_t));
 
 						/* destination MAC address */
@@ -236,7 +236,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
 							datalink->vlan.id = 0;
 							datalink->vlan.length = 0;
 
-							ipv4_header_t *ipv4 = GC_malloc(sizeof(ipv4_header_t));
+							ipv4_header_t *ipv4 = MEM_alloc(sizeof(ipv4_header_t));
 							bzero(ipv4, sizeof(ipv4_header_t));
 
 							/* total length */
@@ -270,7 +270,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
 							datalink->vlan.id = 0;
 							datalink->vlan.length = 0;
 
-							ipv6_header_t *ipv6 = GC_malloc(sizeof(ipv6_header_t));
+							ipv6_header_t *ipv6 = MEM_alloc(sizeof(ipv6_header_t));
 							bzero(ipv6, sizeof(ipv6_header_t));
 
 							/* preamble */
@@ -361,28 +361,28 @@ void sflow_free_datagram(sflow_datagram_t *sflow_datagram) {
 		ptr = ptr->next;
 		if (fptr->packet) {
 			if (fptr->packet->datalink) {
-				GC_free(fptr->packet->datalink);
+				MEM_free(fptr->packet->datalink);
 			}
 			if (fptr->packet->ipv4) {
-				GC_free(fptr->packet->ipv4);
+				MEM_free(fptr->packet->ipv4);
 			}
 			if (fptr->packet->ipv6) {
-				GC_free(fptr->packet->ipv6);
+				MEM_free(fptr->packet->ipv6);
 			}
-			GC_free(fptr->packet);
+			MEM_free(fptr->packet);
 		}
-		GC_free(fptr);
+		MEM_free(fptr);
 	  }
 	  flow_sample_t *fpts = pts;
 	  pts = pts->next;
-	  GC_free(fpts);
+	  MEM_free(fpts);
 	}
-	GC_free(sflow_datagram);
+	MEM_free(sflow_datagram);
 }
 
 storable_flow_t	*sflow_encode_flow_record(const flow_record_t *record, const uint32_t sampling_rate) {
 
-	storable_flow_t	*flow = GC_malloc(sizeof(storable_flow_t));
+	storable_flow_t	*flow = MEM_alloc(sizeof(storable_flow_t));
 	const raw_packet_t 	*pkt = record->packet;
 
 	flow->timestamp = time(NULL);
