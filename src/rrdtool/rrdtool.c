@@ -121,6 +121,7 @@ int rrd_store_flow(const srcnode_t *src, const dstnode_t *dst) {
 			syslog(LOG_ERR, "Unable to create directory: %s", basename);
 			return err;
 		}
+
 		err = create_rrd(filename);
 		return err;
 	}
@@ -143,7 +144,7 @@ int rrd_store_peer(const srcnode_t *src) {
 
 	/* peer file */
 	sprintf(filename, "peers/peer_%s.rrd", src->mac);
-	sprintf(pathname, "/data/rrd/peers/%s.rrd", src->mac);
+	sprintf(pathname, "/data/rrd/peers/peer_%s.rrd", src->mac);
 
 	if (access(pathname, F_OK) != 0) {
 			err = create_rrd(filename);
