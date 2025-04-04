@@ -96,7 +96,7 @@ int update_peer_rrd(char *filename, const srcnode_t *src) {
 	err = rrdc_update(filename, 1, argv);
 
 	if (err) {
-		syslog(LOG_ERR, "Unable to update RRD file %s: %s (error=%d)", filename, rrd_get_error(), err);
+		//syslog(LOG_ERR, "Unable to update RRD file %s: %s (error=%d)", filename, rrd_get_error(), err);
 		rrd_clear_error();
 	}
 
