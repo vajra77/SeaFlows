@@ -88,7 +88,7 @@ int update_peer_rrd(char *filename, const srcnode_t *src) {
 
 	int err = rrdc_connect("127.0.0.1:42217");
 	if (err) {
-		//syslog(LOG_ERR, "Unable to connect to rrdcached: %s (error=%d)", rrd_get_error(), err);
+		syslog(LOG_ERR, "Unable to connect to rrdcached: %s (error=%d)", rrd_get_error(), err);
 		rrd_clear_error();
 		return -1;
 	}
@@ -96,7 +96,7 @@ int update_peer_rrd(char *filename, const srcnode_t *src) {
 	err = rrdc_update(filename, 1, argv);
 
 	if (err) {
-		//syslog(LOG_ERR, "Unable to update RRD file %s: %s (error=%d)", filename, rrd_get_error(), err);
+		syslog(LOG_ERR, "Unable to update RRD file %s: %s (error=%d)", filename, rrd_get_error(), err);
 		rrd_clear_error();
 	}
 
