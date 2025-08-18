@@ -41,13 +41,12 @@ void *queue_pop(queue_t *queue) {
 		pthread_mutex_unlock(&(queue->mutex));
 		return NULL;
 	}
-	else {
-		void *data = queue->head->data;
-		node_t *temp = queue->head;
-		queue->head = queue->head->next;
-		queue->size--;
-		free(temp);
-		pthread_mutex_unlock(&(queue->mutex));
-		return data;
-	}
+
+	void *data = queue->head->data;
+	node_t *temp = queue->head;
+	queue->head = queue->head->next;
+	queue->size--;
+	free(temp);
+	pthread_mutex_unlock(&(queue->mutex));
+	return data;
 }
