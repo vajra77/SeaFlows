@@ -1,26 +1,25 @@
 //
-// Created by Francesco Ferreri (Namex) on 19/03/25.
+// Created by Francesco Ferreri (Namex) on 18/08/25.
 //
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/syslog.h>
 #include <rrd.h>
 #include <rrd_client.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <syslog.h>
+#include <unistd.h>
+#include <time.h>
+#include <sys/stat.h>
 
-#include "matrix/matrix.h"
 #include "rrdtool.h"
+#include "sflow/sflow.h"
 
 
-int create_rrd(char *filename) {
+int create_rrd(const char *filename) {
 
 	const char *argv[] = {
-		"DS:bytes_v4:ABSOLUTE:600:U:U",
-		"DS:bytes_v6:ABSOLUTE:600:U:U",
+		"DS:in:ABSOLUTE:600:U:U",
+		"DS:out:ABSOLUTE:600:U:U",
 		"RRA:AVERAGE:0.5:1:600",
 		"RRA:AVERAGE:0.5:6:700",
 		"RRA:AVERAGE:0.5:24:775",
@@ -31,7 +30,7 @@ int create_rrd(char *filename) {
 		"RRA:MAX:0.5:444:797",
 	};
 
-	int err = rrdc_connect("127.0.0.1:42217");
+	int err = rrdc_connect(RRDCACHE_ADDRESS);
 	if (err) {
 		syslog(LOG_ERR, "Unable to connect to rrdcached: %s (error=%d)", rrd_get_error(), err);
 		rrd_clear_error();
@@ -47,17 +46,17 @@ int create_rrd(char *filename) {
 	return err;
 }
 
-int update_flow_rrd(char *filename, const dstnode_t *dst) {
+int update_rrd(const char *filename, const uint32_t in, const uint32_t out) {
 
 	char frmtstr[256];
 
-	snprintf(frmtstr, 256, "N:%u:%u", dst->bytes_v4, dst->bytes_v6);
+	snprintf(frmtstr, 256, "N:%u:%u", in, out);
 
 	const char *argv[] = {
 		frmtstr,
 	};
 
-	int err = rrdc_connect("127.0.0.1:42217");
+	int err = rrdc_connect(RRDCACHE_ADDRESS);
 
 	if (err) {
 		syslog(LOG_ERR, "Unable to connect to rrdcached: %s (error=%d)", rrd_get_error(), err);
@@ -76,45 +75,21 @@ int update_flow_rrd(char *filename, const dstnode_t *dst) {
 	return err;
 }
 
-int update_peer_rrd(char *filename, const srcnode_t *src) {
-
-	char frmtstr[256];
-
-	snprintf(frmtstr, 256, "N:%u:%u", src->bytes_v4, src->bytes_v6);
-
-	const char *argv[] = {
-		frmtstr,
-	};
-
-	int err = rrdc_connect("127.0.0.1:42217");
-	if (err) {
-		syslog(LOG_ERR, "Unable to connect to rrdcached: %s (error=%d)", rrd_get_error(), err);
-		rrd_clear_error();
-		return -1;
-	}
-
-	err = rrdc_update(filename, 1, argv);
-
-	if (err) {
-		syslog(LOG_ERR, "Unable to update RRD file %s: %s (error=%d)", filename, rrd_get_error(), err);
-		rrd_clear_error();
-	}
-
-	rrdc_disconnect();
-	return err;
-}
-
-int rrd_store_flow(const srcnode_t *src, const dstnode_t *dst) {
+int update_flow_rrd(const char *src,
+                    const char *dst,
+                    const uint32_t proto,
+                    const uint32_t in,
+                    const uint32_t out) {
 
 	char basename[32];
 	char pathname[256];
 	char filename[256];
 	int err = 0;
 
-	/* flow file */
-	sprintf(basename, "/data/rrd/flows/%s", src->mac);
-	sprintf(pathname, "%s/flow_%s_to_%s.rrd", basename, src->mac, dst->mac);
-	sprintf(filename, "flows/%s/flow_%s_to_%s.rrd", src->mac, src->mac, dst->mac);
+	/* direct flow file */
+	sprintf(basename, "/data/rrd/flows/%s", src);
+	sprintf(pathname, "%s/flow_%s_to_%s_v%d.rrd", basename, src, dst, proto);
+	sprintf(filename, "flows/%s/flow_%s_to_%s_v%d.rrd", src, src, dst, proto);
 
 	if (access(basename, F_OK) != 0) {
 		if (mkdir(basename, 0755)) {
@@ -131,28 +106,53 @@ int rrd_store_flow(const srcnode_t *src, const dstnode_t *dst) {
 		return err;
 	}
 
-	err = update_flow_rrd(filename, dst);
+	err = update_rrd(filename, in, out);
 
 	return err;
 }
 
-int rrd_store_peer(const srcnode_t *src) {
+int update_peer_rrd(const char *peer,
+					const uint32_t proto,
+					const uint32_t in,
+					const uint32_t out) {
 
 	char pathname[256];
 	char filename[256];
 	int err = 0;
 
 	/* peer file */
-	sprintf(filename, "peers/peer_%s.rrd", src->mac);
-	sprintf(pathname, "/data/rrd/peers/peer_%s.rrd", src->mac);
+	sprintf(filename, "peers/peer_%s_v%d.rrd", peer, proto);
+	sprintf(pathname, "/data/rrd/peers/peer_%s_v%d.rrd", peer, proto);
 
 	if (access(pathname, F_OK) != 0) {
-			err = create_rrd(filename);
-			return err;
+		err = create_rrd(filename);
+		return err;
 	}
 
-	err = update_peer_rrd(filename, src);
+	err = update_rrd(filename, in, out);
 
 	return err;
 }
 
+int cache_flow(const storable_flow_t *flow) {
+
+  	const int err1 = update_flow_rrd(flow->src_mac, flow->dst_mac, flow->proto, flow->computed_size, 0);
+    if (err1)
+      syslog(LOG_ERR, "Unable to update direct flow: %s -> %s", flow->src_mac, flow->dst_mac);
+
+    const int err2 = update_flow_rrd(flow->dst_mac, flow->src_mac, flow->proto, 0, flow->computed_size);
+    if (err2)
+      syslog(LOG_ERR, "Unable to update reverse flow: %s -> %s", flow->dst_mac, flow->src_mac);
+
+  	const int err3 = update_peer_rrd(flow->src_mac, flow->proto, flow->computed_size, 0);
+    if (err3)
+      syslog(LOG_ERR, "Unable to update direct peer: %s", flow->src_mac);
+
+  	const int err4 = update_peer_rrd(flow->dst_mac, flow->proto, 0, flow->computed_size);
+    if (err4)
+      syslog(LOG_ERR, "Unable to update reverse peer: %s", flow->dst_mac);
+
+  	return err1 + err2 + err3 + err4;
+}
+
+// EOF

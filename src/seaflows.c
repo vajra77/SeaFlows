@@ -3,7 +3,6 @@
 //
 #include <ctype.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <signal.h>
@@ -11,7 +10,6 @@
 #include <sys/stat.h>
 #include <pthread.h>
 #include <syslog.h>
-#include <rrd.h>
 #include <gc.h>
 
 #include "seaflows.h"
@@ -23,7 +21,6 @@
 
 /* thread share/control variables */
 static pthread_t			collector_threads[MAX_THREADS];
-static matrix_t				*flow_matrix[MAX_THREADS];
 static collector_data_t		collector_data[MAX_THREADS];
 
 
@@ -44,7 +41,6 @@ void signal_handler(int sig) {
 
 	for(int i = 0; i < MAX_THREADS; i++) {
 		pthread_join(collector_threads[i], NULL);
-		matrix_destroy(flow_matrix[i]);
 	}
 
 	closelog();
@@ -115,30 +111,17 @@ int main(const int argc, char **argv) {
 
 	openlog("seaflows", LOG_PID, LOG_DAEMON);
 
-	bzero(flow_matrix, sizeof(flow_matrix));
-
 	/* create threads */
 	for(int i = 0; i < num_threads; i++) {
 
-		flow_matrix[i] = MEM_alloc(sizeof(matrix_t));
-		matrix_init(flow_matrix[i]);
-
 		collector_data[i].port = SEAFLOWS_LISTENER_PORT + i;
 		collector_data[i].address = listen_address;
-		collector_data[i].matrix = flow_matrix[i];
 
 		pthread_create(&collector_threads[i], NULL, collector_thread, &collector_data[i]);
 	}
 
-	/* sleep, dump matrix */
 	for (;;) {
-		sleep(60);
-		for(int i = 0; i < MAX_THREADS; i++) {
-			if(flow_matrix[i] != NULL) {
-
-				matrix_dump(flow_matrix[i]);
-			}
-		}
+		sleep(30);
 	}
 
 	exit(EXIT_SUCCESS);

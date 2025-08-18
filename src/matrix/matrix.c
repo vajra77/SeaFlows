@@ -4,7 +4,6 @@
 
 #include <stdlib.h>
 #include <pthread.h>
-#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/syslog.h>
@@ -152,23 +151,23 @@ void matrix_add_flow(matrix_t *matrix, const storable_flow_t *flow) {
 
 void matrix_dump(matrix_t *matrix) {
 	pthread_mutex_lock(&matrix->lock);
-	for(srcnode_t *src_ptr = matrix->sources; src_ptr != NULL; src_ptr = src_ptr->next) {
-		for (dstnode_t *dst_ptr = src_ptr->destinations; dst_ptr != NULL; dst_ptr = dst_ptr->next) {
+	if (matrix->dirty) {
+		for(srcnode_t *src_ptr = matrix->sources; src_ptr != NULL; src_ptr = src_ptr->next) {
+			for (dstnode_t *dst_ptr = src_ptr->destinations; dst_ptr != NULL; dst_ptr = dst_ptr->next) {
+				rrd_store_matrix_flow(src_ptr, dst_ptr);
+				/* clear dst data */
+				dst_ptr->bytes_v4 = 0;
+				dst_ptr->bytes_v6 = 0;
+				dst_ptr->bytes_nk = 0;
+			}
 
-			rrd_store_flow(src_ptr, dst_ptr);
-
-			/* clear dst data */
-			dst_ptr->bytes_v4 = 0;
-			dst_ptr->bytes_v6 = 0;
-			dst_ptr->bytes_nk = 0;
+			rrd_store_matrix_peer(src_ptr);
+			/* clear src data */
+			src_ptr->bytes_v4 = 0;
+			src_ptr->bytes_v6 = 0;
+			src_ptr->bytes_nk = 0;
 		}
-
-		rrd_store_peer(src_ptr);
-		/* clear src data */
-		src_ptr->bytes_v4 = 0;
-		src_ptr->bytes_v6 = 0;
-		src_ptr->bytes_nk = 0;
+		matrix->dirty = 0;
 	}
-	matrix->dirty = 0;
 	pthread_mutex_unlock(&(matrix->lock));
 }

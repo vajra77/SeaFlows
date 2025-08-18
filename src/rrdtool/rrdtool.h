@@ -5,10 +5,9 @@
 #ifndef RRDTOOL_H
 #define RRDTOOL_H
 
-#include <rrd.h>
+#define RRDCACHE_ADDRESS "127.0.0.1:42217"
 
-#include "matrix/matrix.h"
+#include "sflow/sflow.h"
 
-int rrd_store_flow(const srcnode_t *, const dstnode_t  *);
-int rrd_store_peer(const srcnode_t *);
+int cache_flow(const storable_flow_t *);
 #endif //RRDTOOL_H

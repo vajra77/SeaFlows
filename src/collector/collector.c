@@ -11,8 +11,8 @@
 
 #include "seaflows.h"
 #include "sflow/sflow.h"
-#include "matrix/matrix.h"
 #include "collector/collector.h"
+#include "rrdtool/rrdtool.h"
 
 
 
@@ -51,7 +51,7 @@ void* collector_thread(void *arg) {
 				for (const flow_record_t* record = sample->records; record != NULL; record = record->next) {
 					storable_flow_t	*flow = sflow_encode_flow_record(record, sample->header.sampling_rate);
 					if (flow != NULL) {
-						matrix_add_flow(collector_data->matrix, flow);
+						cache_flow(flow);
 						MEM_free(flow);
 					}
 				}
