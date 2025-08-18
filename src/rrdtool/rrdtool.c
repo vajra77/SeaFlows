@@ -18,8 +18,8 @@
 int create_rrd(const char *filename) {
 
 	const char *argv[] = {
-		"DS:in:ABSOLUTE:600:U:U",
-		"DS:out:ABSOLUTE:600:U:U",
+		"DS:in:GAUGE:600:U:U",
+		"DS:out:GAUGE:600:U:U",
 		"RRA:AVERAGE:0.5:1:600",
 		"RRA:AVERAGE:0.5:6:700",
 		"RRA:AVERAGE:0.5:24:775",
