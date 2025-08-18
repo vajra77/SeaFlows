@@ -12,8 +12,7 @@
 #include "seaflows.h"
 #include "sflow/sflow.h"
 #include "collector/collector.h"
-#include "rrdtool/rrdtool.h"
-
+#include "queue/queue.h"
 
 
 void* collector_thread(void *arg) {
@@ -51,8 +50,7 @@ void* collector_thread(void *arg) {
 				for (const flow_record_t* record = sample->records; record != NULL; record = record->next) {
 					storable_flow_t	*flow = sflow_encode_flow_record(record, sample->header.sampling_rate);
 					if (flow != NULL) {
-						cache_flow(flow);
-						MEM_free(flow);
+						queue_push(&collector_data->queue, flow);
 					}
 				}
 			}

@@ -14,7 +14,9 @@
 
 #include "seaflows.h"
 #include "collector/collector.h"
-#include "matrix/matrix.h"
+#include "queue/queue.h"
+#include "rrdtool/rrdtool.h"
+#include "sflow/sflow.h"
 
 
 #define MAX_THREADS 24
@@ -116,12 +118,18 @@ int main(const int argc, char **argv) {
 
 		collector_data[i].port = SEAFLOWS_LISTENER_PORT + i;
 		collector_data[i].address = listen_address;
+		queue_init(&collector_data[i].queue);
 
 		pthread_create(&collector_threads[i], NULL, collector_thread, &collector_data[i]);
 	}
 
 	for (;;) {
-		sleep(30);
+		sleep(1);
+		for(int i = 0; i < num_threads; i++) {
+			storable_flow_t *flow = queue_pop(&collector_data[i].queue);
+			cache_flow(flow);
+			MEM_free(flow);
+		}
 	}
 
 	exit(EXIT_SUCCESS);
