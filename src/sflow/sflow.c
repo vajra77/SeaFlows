@@ -406,12 +406,14 @@ storable_flow_t	*sflow_encode_flow_record(const flow_record_t *record, const uin
 	flow->proto = pkt->datalink->ethernet.ethertype;
 
 	if (flow->proto == ETHERTYPE_IPV4) {
+		flow->proto = 4;
 		inet_ntop(AF_INET, &pkt->ipv4->source_address, flow->src_ip, IP_ADDR_SIZE);
 		inet_ntop(AF_INET, &pkt->ipv4->destination_address, flow->dst_ip, IP_ADDR_SIZE);
 		flow->size = pkt->ipv4->length + 34;
 		flow->sampling_rate = sampling_rate;
 		flow->computed_size = flow->size * flow->sampling_rate;
 	} else if (flow->proto == ETHERTYPE_IPV6) { /* IPv6 */
+		flow->proto = 6;
 		inet_ntop(AF_INET6, &pkt->ipv6->source_address, flow->src_ip, IP_ADDR_SIZE);
 		inet_ntop(AF_INET6, &pkt->ipv6->destination_address, flow->dst_ip, IP_ADDR_SIZE);
 		flow->size = pkt->ipv6->length + 40;
