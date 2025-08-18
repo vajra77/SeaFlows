@@ -3,7 +3,7 @@ CFLAGS = -Wall -g
 LIBS = -lrrd -lgc
 
 all: sflow queue collector rrdtool main
-	$(CC) -o bin/seaflows src/sflow/sflow.o src/rrdtool/rrdtool.o src/collector/collector.o src/seaflows.o $(LIBS)
+	$(CC) -o bin/seaflows src/sflow/sflow.o src/queue/queue.o src/rrdtool/rrdtool.o src/collector/collector.o src/seaflows.o $(LIBS)
 
 main:
 	$(CC) $(CFLAGS) -c -o src/seaflows.o -I src/ src/seaflows.c
