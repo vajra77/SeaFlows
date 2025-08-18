@@ -42,6 +42,8 @@ int create_rrd(const char *filename) {
 		syslog(LOG_ERR, "Unable to create RRD file: %s (error=%d)", rrd_get_error(), err);
 		rrd_clear_error();
 	}
+
+	syslog(LOG_INFO, "rrdtool created: %s", filename);
 	rrdc_disconnect();
 	return err;
 }
