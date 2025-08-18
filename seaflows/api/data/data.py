@@ -27,7 +27,7 @@ def get_flow():
 
 @api.route('/data/peer', methods=['GET'])
 def get_flow():
-    macs = request.args.get('macs')
+    macs = request.args.get('macs').split(',')
     schedule = request.args.get('period') or 'daily'
     proto = request.args.get('proto') or 4
 
