@@ -112,7 +112,7 @@ int main(const int argc, char **argv) {
 
 	chdir("/data/rrd");
 
-	openlog("seaflows", LOG_PID, LOG_INFO);
+	openlog("seaflows", LOG_PID, LOG_DAEMON);
 
 	/* create threads */
 	for(int i = 0; i < num_threads; i++) {

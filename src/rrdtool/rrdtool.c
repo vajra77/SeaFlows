@@ -43,7 +43,6 @@ int create_rrd(const char *filename) {
 		rrd_clear_error();
 	}
 
-	syslog(LOG_DEBUG, "Created RRD file: %s", filename);
 	rrdc_disconnect();
 	return err;
 }
