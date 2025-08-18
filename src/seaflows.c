@@ -13,6 +13,7 @@
 #include <gc.h>
 
 #include "seaflows.h"
+#include "memory.h"
 #include "collector/collector.h"
 #include "queue/queue.h"
 #include "rrdtool/rrdtool.h"
