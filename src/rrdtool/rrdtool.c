@@ -76,11 +76,9 @@ int update_rrd(const char *filename, const uint32_t in, const uint32_t out) {
 	return err;
 }
 
-int update_flow_rrd(const char *src,
-                    const char *dst,
-                    const uint32_t proto,
-                    const uint32_t in,
-                    const uint32_t out) {
+int prepare_flow_rrd(const char *src,
+					const char *dst,
+					const uint32_t proto) {
 
 	char basename[32];
 	char pathname[256];
@@ -97,7 +95,6 @@ int update_flow_rrd(const char *src,
 			syslog(LOG_ERR, "Unable to create directory: %s", basename);
 			return err;
 		}
-
 		err = create_rrd(filename);
 		return err;
 	}
@@ -107,15 +104,25 @@ int update_flow_rrd(const char *src,
 		return err;
 	}
 
-	err = update_rrd(filename, in, out);
-
 	return err;
 }
 
-int update_peer_rrd(const char *peer,
-					const uint32_t proto,
-					const uint32_t in,
-					const uint32_t out) {
+int update_flow_rrd(const char *src,
+                    const char *dst,
+                    const uint32_t proto,
+                    const uint32_t in,
+                    const uint32_t out) {
+
+	char filename[256];
+	int err = 0;
+
+	sprintf(filename, "flows/%s/flow_%s_to_%s_v%d.rrd", src, src, dst, proto);
+	err = update_rrd(filename, in, out);
+	return err;
+}
+
+int prepare_peer_rrd(const char *peer,
+					const uint32_t proto) {
 
 	char pathname[256];
 	char filename[256];
@@ -130,19 +137,35 @@ int update_peer_rrd(const char *peer,
 		return err;
 	}
 
-	err = update_rrd(filename, in, out);
-
 	return err;
 }
 
-int cache_flow(const storable_flow_t *flow) {
+int update_peer_rrd(const char *peer,
+					const uint32_t proto,
+					const uint32_t in,
+					const uint32_t out) {
+
+	char filename[256];
+	int err = 0;
+
+	sprintf(filename, "peers/peer_%s_v%d.rrd", peer, proto);
+	err = update_rrd(filename, in, out);
+	return err;
+}
+
+void cache_prepare(const storable_flow_t *flow) {
+
+  	prepare_flow_rrd(flow->src_mac, flow->dst_mac, flow->proto);
+    prepare_flow_rrd(flow->dst_mac, flow->src_mac, flow->proto);
+  	prepare_peer_rrd(flow->src_mac, flow->proto);
+  	prepare_peer_rrd(flow->dst_mac, flow->proto);
+}
+
+void cache_store(const storable_flow_t *flow) {
 
   	update_flow_rrd(flow->src_mac, flow->dst_mac, flow->proto, flow->computed_size, 0);
     update_flow_rrd(flow->dst_mac, flow->src_mac, flow->proto, 0, flow->computed_size);
   	update_peer_rrd(flow->src_mac, flow->proto, flow->computed_size, 0);
   	update_peer_rrd(flow->dst_mac, flow->proto, 0, flow->computed_size);
-
-  	return 0;
 }
-
 // EOF

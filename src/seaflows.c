@@ -129,7 +129,7 @@ int main(const int argc, char **argv) {
 		for(int i = 0; i < num_threads; i++) {
 			storable_flow_t *flow = queue_pop(&collector_data[i].queue);
 			if(flow != NULL) {
-				cache_flow(flow);
+				cache_store(flow);
 				MEM_free(flow);
 			}
 		}

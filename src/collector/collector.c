@@ -9,7 +9,7 @@
 #include <syslog.h>
 #include <unistd.h>
 
-#include "memory.h"
+#include "rrdtool/rrdtool.h"
 #include "sflow/sflow.h"
 #include "collector/collector.h"
 #include "queue/queue.h"
@@ -50,6 +50,7 @@ void* collector_thread(void *arg) {
 				for (const flow_record_t* record = sample->records; record != NULL; record = record->next) {
 					storable_flow_t	*flow = sflow_encode_flow_record(record, sample->header.sampling_rate);
 					if (flow != NULL) {
+						cache_prepare(flow);
 						queue_push(&(collector_data->queue), flow);
 					}
 				}
