@@ -39,11 +39,11 @@ int create_rrd(const char *filename) {
 
 	err = rrdc_create(filename, 300, time(NULL), 1, 10, argv);
 	if (err) 	{
-		syslog(LOG_ERR, "Unable to create RRD file: %s (error=%d)", rrd_get_error(), err);
+		syslog(LOG_WARNING, "Unable to create RRD file: %s (error=%d)", rrd_get_error(), err);
 		rrd_clear_error();
 	}
 
-	syslog(LOG_INFO, "Created RRD file: %s", filename);
+	syslog(LOG_DEBUG, "Created RRD file: %s", filename);
 	rrdc_disconnect();
 	return err;
 }
@@ -69,7 +69,7 @@ int update_rrd(const char *filename, const uint32_t in, const uint32_t out) {
 	err = rrdc_update(filename, 1, argv);
 
 	if (err) {
-		syslog(LOG_ERR, "Unable to update RRD file %s: %s (error=%d)", filename, rrd_get_error(), err);
+		syslog(LOG_WARNING, "Unable to update RRD file %s: %s (error=%d)", filename, rrd_get_error(), err);
 		rrd_clear_error();
 	}
 
@@ -138,23 +138,12 @@ int update_peer_rrd(const char *peer,
 
 int cache_flow(const storable_flow_t *flow) {
 
-  	const int err1 = update_flow_rrd(flow->src_mac, flow->dst_mac, flow->proto, flow->computed_size, 0);
-    if (err1)
-      syslog(LOG_ERR, "Unable to update direct flow: %s -> %s", flow->src_mac, flow->dst_mac);
+  	update_flow_rrd(flow->src_mac, flow->dst_mac, flow->proto, flow->computed_size, 0);
+    update_flow_rrd(flow->dst_mac, flow->src_mac, flow->proto, 0, flow->computed_size);
+  	update_peer_rrd(flow->src_mac, flow->proto, flow->computed_size, 0);
+  	update_peer_rrd(flow->dst_mac, flow->proto, 0, flow->computed_size);
 
-    const int err2 = update_flow_rrd(flow->dst_mac, flow->src_mac, flow->proto, 0, flow->computed_size);
-    if (err2)
-      syslog(LOG_ERR, "Unable to update reverse flow: %s -> %s", flow->dst_mac, flow->src_mac);
-
-  	const int err3 = update_peer_rrd(flow->src_mac, flow->proto, flow->computed_size, 0);
-    if (err3)
-      syslog(LOG_ERR, "Unable to update direct peer: %s", flow->src_mac);
-
-  	const int err4 = update_peer_rrd(flow->dst_mac, flow->proto, 0, flow->computed_size);
-    if (err4)
-      syslog(LOG_ERR, "Unable to update reverse peer: %s", flow->dst_mac);
-
-  	return err1 + err2 + err3 + err4;
+  	return 0;
 }
 
 // EOF
