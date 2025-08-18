@@ -3,8 +3,7 @@
 //
 
 #include "queue.h"
-
-#include <stdlib.h>
+#include "memory.h"
 
 void queue_init(struct queue *queue) {
 	queue->head = NULL;
@@ -15,7 +14,7 @@ void queue_init(struct queue *queue) {
 
 void queue_push(queue_t *queue, void *data) {
 	pthread_mutex_lock(&(queue->mutex));
-	node_t *new_node = malloc(sizeof(node_t));
+	node_t *new_node = MEM_alloc(sizeof(node_t));
 
 	new_node->data = data;
 	new_node->next = NULL;
@@ -46,7 +45,7 @@ void *queue_pop(queue_t *queue) {
 	node_t *temp = queue->head;
 	queue->head = queue->head->next;
 	queue->size--;
-	free(temp);
+	MEM_free(temp);
 	pthread_mutex_unlock(&(queue->mutex));
 	return data;
 }

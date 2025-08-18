@@ -10,7 +10,7 @@
 #include <time.h>
 #include <sys/syslog.h>
 
-#include "seaflows.h"
+#include "memory.h"
 #include "sflow.h"
 #include "net.h"
 

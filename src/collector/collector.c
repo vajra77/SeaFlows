@@ -9,7 +9,7 @@
 #include <syslog.h>
 #include <unistd.h>
 
-#include "seaflows.h"
+#include "memory.h"
 #include "sflow/sflow.h"
 #include "collector/collector.h"
 #include "queue/queue.h"

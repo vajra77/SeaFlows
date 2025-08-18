@@ -10,7 +10,7 @@
 #include <gc.h>
 #include <rrd.h>
 
-#include "seaflows.h"
+#include "memory.h"
 #include "matrix.h"
 #include "rrdtool/rrdtool.h"
 #include "sflow/net.h"
