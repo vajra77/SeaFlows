@@ -26,7 +26,7 @@ void bucket_dump(bucket_t *bucket) {
     pthread_mutex_lock(&bucket->mutex);
 #ifdef DEBUG
     if(bucket->size == 0)
-      syslog(LOG_DEBUG, "Bucket is empty");
+        syslog(LOG_DEBUG, "Bucket is empty");
 #endif
     while(bucket->size > 0) {
         bucket_node_t *node = bucket_remove(bucket);
