@@ -15,9 +15,8 @@
 #include "seaflows.h"
 #include "memory.h"
 #include "collector/collector.h"
-#include "queue/queue.h"
 #include "rrdtool/rrdtool.h"
-#include "sflow/sflow.h"
+#include "bucket/bucket.h"
 
 
 #define MAX_THREADS 24
