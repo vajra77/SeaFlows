@@ -23,7 +23,6 @@ void bucket_init(bucket_t *bucket) {
 
 void bucket_dump(bucket_t *bucket) {
 
-    uint32_t in, out = 0;
     pthread_mutex_lock(&bucket->mutex);
     while(bucket->size > 0) {
         bucket_node_t *node = bucket_remove(bucket);
