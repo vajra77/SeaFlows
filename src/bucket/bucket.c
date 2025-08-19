@@ -3,6 +3,7 @@
 //
 
 #include <string.h>
+#include <unistd.h>
 
 #include "memory.h"
 #include "bucket.h"
