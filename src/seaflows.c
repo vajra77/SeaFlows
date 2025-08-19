@@ -51,15 +51,6 @@ void signal_handler(int sig) {
 	exit(EXIT_SUCCESS);
 }
 
-int all_queues_empty(const int num_threads) {
-	for (int i = 0; i < num_threads; i++) {
-		if (queue_size(&collector[i].queue) > 0) {
-			return 1;
-		}
-	}
-	return 0;
-}
-
 
 int main(const int argc, char **argv) {
 
