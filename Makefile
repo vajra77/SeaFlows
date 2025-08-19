@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -g  
+CFLAGS = -Wall -g -DDEBUG
 LIBS = -lrrd -lgc
 
 all: sflow queue collector rrdtool main

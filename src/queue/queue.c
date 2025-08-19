@@ -2,6 +2,7 @@
 // Created by Francesco Ferreri (Namex) on 18/08/25.
 //
 
+#include <time.h>
 #include "queue.h"
 #include "memory.h"
 

@@ -119,7 +119,7 @@ int main(const int argc, char **argv) {
 
 		collector_data[i].port = SEAFLOWS_LISTENER_PORT + i;
 		collector_data[i].address = listen_address;
-		queue_init(&collector_data[i].queue);
+		queue_init(&(collector_data[i].queue));
 
 		pthread_create(&collector_threads[i], NULL, collector_thread, &collector_data[i]);
 	}
