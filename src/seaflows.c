@@ -26,8 +26,7 @@
 static pthread_t			threads[MAX_THREADS];
 static collector_data_t		collector[MAX_THREADS];
 
-static bucket_t bucket_v4;
-static bucket_t bucket_v6;
+static bucket_t flow_bucket;
 
 
 void usage(){
@@ -52,7 +51,6 @@ void signal_handler(int sig) {
 	closelog();
 	exit(EXIT_SUCCESS);
 }
-
 
 int main(const int argc, char **argv) {
 
@@ -117,35 +115,21 @@ int main(const int argc, char **argv) {
 
 	openlog("seaflows", LOG_PID, LOG_DAEMON);
 
-	bucket_init(&bucket_v4);
-	bucket_init(&bucket_v6);
+	bucket_init(&flow_bucket);
 
 	/* create threads */
 	for(int i = 0; i < num_threads; i++) {
 
 		collector[i].port = SEAFLOWS_LISTENER_PORT + i;
 		collector[i].address = listen_address;
-		collector[i].bucket_v4 = bucket_v4;
-		collector[i].bucket_v6 = bucket_v6;
+		collector[i].bucket = flow_bucket;
 
 		pthread_create(&threads[i], NULL, collector_thread, &collector[i]);
 	}
 
 	for (;;) {
-		/* round-robin */
-		for (int i = 0; i < num_threads; i++) {
-			bucket_node_t *node4 = bucket_remove(&collector[i].bucket_v4);
-			if (node4 != NULL) {
-				rrdtool_store(node4->src, node4->dst, 4, node4->in, node4->out);
-				MEM_free(node4);
-			}
-
-			bucket_node_t *node6 = bucket_remove(&collector[i].bucket_v6);
-			if (node6 != NULL) {
-				rrdtool_store(node6->src, node6->dst, 6, node6->in, node6->out);
-				MEM_free(node6);
-			}
-		}
+		sleep(10);
+		bucket_dump(&flow_bucket);
 	}
 
 	exit(EXIT_SUCCESS);

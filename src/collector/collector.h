@@ -11,8 +11,7 @@
 typedef struct collector_data {
   int port;
   char *address;
-  bucket_t bucket_v4;
-  bucket_t bucket_v6;
+  bucket_t bucket;
 } collector_data_t;
 
 void* collector_thread(void *);

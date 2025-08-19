@@ -14,6 +14,7 @@
 typedef struct bucket_node {
     char src[MAC_ADDRESS_LEN];
     char dst[MAC_ADDRESS_LEN];
+    uint32_t proto;
     uint32_t in;
     uint32_t out;
 } bucket_node_t;
@@ -26,6 +27,7 @@ typedef struct bucket {
 } bucket_t;
 
 void bucket_init(bucket_t *);
-void bucket_add(bucket_t *, const char *, const char *, const uint32_t);
+void bucket_add(bucket_t *, const char *, const char *, const uint32_t, const uint32_t);
 bucket_node_t *bucket_remove(bucket_t *);
+void bucket_dump(bucket_t *);
 #endif //BUCKET_H

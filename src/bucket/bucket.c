@@ -8,6 +8,7 @@
 
 #include "memory.h"
 #include "bucket.h"
+#include "rrdtool/rrdtool.h"
 
 
 void bucket_init(bucket_t *bucket) {
@@ -20,7 +21,19 @@ void bucket_init(bucket_t *bucket) {
     pthread_mutex_init(&bucket->mutex, NULL);
 }
 
-void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac, const uint32_t nbytes) {
+void bucket_dump(bucket_t *bucket) {
+
+    pthread_mutex_lock(&bucket->mutex);
+    while(bucket->size > 0) {
+        bucket_node_t *node = bucket_remove(bucket);
+        rrd_store(node->src, node->dst, node->proto, node->in, node->out);
+        MEM_free(node);
+    }
+    pthread_mutex_unlock(&bucket->mutex);
+}
+
+void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
+                const uint32_t proto, const uint32_t nbytes) {
 
     pthread_mutex_lock(&bucket->mutex);
 
@@ -29,8 +42,7 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac, cons
 
     for (int k = 0; k < bucket->size && !found; k++) {
         bucket_node_t *node = bucket->nodes[k];
-        if (!strcmp(node->src, src_mac) && !strcmp(node->dst, dst_mac)) {
-            syslog(LOG_DEBUG, "Found in bucket: %s -> %s", src_mac, dst_mac);
+        if (!strcmp(node->src, src_mac) && !strcmp(node->dst, dst_mac) && (node->proto == proto)) {
             node->in += nbytes;
             found = 1;
         }
@@ -40,6 +52,7 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac, cons
         bucket_node_t *node = MEM_alloc(sizeof(bucket_node_t));
         strcpy(node->src, src_mac);
         strcpy(node->dst, dst_mac);
+        node->proto = proto;
         node->in = nbytes;
         node->out = 0;
         bucket->last = bucket->size;
@@ -52,7 +65,7 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac, cons
 
     for (int k = 0; k < bucket->size; k++) {
         bucket_node_t *node = bucket->nodes[k];
-        if (!strcmp(node->dst, src_mac) && !strcmp(node->src, dst_mac)) {
+        if (!strcmp(node->dst, src_mac) && !strcmp(node->src, dst_mac) && (node->proto == proto)) {
             node->out += nbytes;
             found = 1;
         }
@@ -62,6 +75,7 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac, cons
         bucket_node_t *node = MEM_alloc(sizeof(bucket_node_t));
         strcpy(node->src, dst_mac);
         strcpy(node->dst, src_mac);
+        node->proto = proto;
         node->out = nbytes;
         node->in = 0;
         bucket->last = bucket->size;
