@@ -24,8 +24,8 @@
 #define MAX_FLOWS 1024
 
 /* thread share/control variables */
-static pthread_t			collector_threads[MAX_THREADS];
-static collector_data_t		collector_data[MAX_THREADS];
+static pthread_t			threads[MAX_THREADS];
+static collector_data_t		collector[MAX_THREADS];
 
 
 void usage(){
@@ -40,11 +40,11 @@ void usage(){
 void signal_handler(int sig) {
 	syslog(LOG_INFO, "Received signal %d", sig);
 	for(int i = 0; i < MAX_THREADS; i++) {
-		pthread_cancel(collector_threads[i]);
+		pthread_cancel(threads[i]);
 	}
 
 	for(int i = 0; i < MAX_THREADS; i++) {
-		pthread_join(collector_threads[i], NULL);
+		pthread_join(threads[i], NULL);
 	}
 
 	closelog();
@@ -53,7 +53,7 @@ void signal_handler(int sig) {
 
 int all_queues_empty(const int num_threads) {
 	for (int i = 0; i < num_threads; i++) {
-		if (queue_size(&collector_data[i].queue) > 0) {
+		if (queue_size(&collector[i].queue) > 0) {
 			return 1;
 		}
 	}
@@ -127,25 +127,28 @@ int main(const int argc, char **argv) {
 	/* create threads */
 	for(int i = 0; i < num_threads; i++) {
 
-		collector_data[i].port = SEAFLOWS_LISTENER_PORT + i;
-		collector_data[i].address = listen_address;
-		queue_init(&(collector_data[i].queue));
+		collector[i].port = SEAFLOWS_LISTENER_PORT + i;
+		collector[i].address = listen_address;
+		bucket_init(&(collector[i].bucket_v4));
+		bucket_init(&(collector[i].bucket_v6));
 
-		pthread_create(&collector_threads[i], NULL, collector_thread, &collector_data[i]);
+		pthread_create(&threads[i], NULL, collector_thread, &collector[i]);
 	}
 
-	sleep(1);
+	sleep(3);
 
 	for (;;) {
-		// round-robin
 		for (int i = 0; i < num_threads; i++) {
-			storable_flow_t *flow = queue_pop(&collector_data[i].queue);
-			if(flow != NULL) {
-				cache_store(flow);
-				MEM_free(flow);
+			const bucket_node_t *node4 = bucket_remove(&collector[i].bucket_v4);
+			if (node4 != NULL) {
+				cache_store(node4->src, node4->dst, 4, node4->in, node4->out);
+			}
+
+			const bucket_node_t *node6 = bucket_remove(&collector[i].bucket_v6);
+			if (node6 != NULL) {
+				cache_store(node6->src, node6->dst, 6, node6->in, node6->out);
 			}
 		}
 	}
-
 	exit(EXIT_SUCCESS);
 }

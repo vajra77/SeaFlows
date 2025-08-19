@@ -21,6 +21,8 @@ typedef struct queue {
 
 void queue_init(queue_t *);
 int queue_size(queue_t *);
-void queue_push(queue_t *, void *);
-void *queue_pop(queue_t *);
+void queue_enqueue(queue_t *, void *);
+void *queue_dequeue(queue_t *);
+void *queue_get_head(queue_t *);
+void queue_del_head(queue_t *);
 #endif //QUEUE_H

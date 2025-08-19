@@ -9,6 +9,6 @@
 
 #include "sflow/sflow.h"
 
-void cache_store(const storable_flow_t *);
-void cache_prepare(const storable_flow_t *);
+void cache_store(const char*, const char*, const uint32_t, const uint32_t, const uint32_t);
+void cache_prepare(const char*, const char*, const uint32_t);
 #endif //RRDTOOL_H

@@ -20,7 +20,7 @@ int queue_size(queue_t *queue) {
 	return size;
 }
 
-void queue_push(queue_t *queue, void *data) {
+void queue_enqueue(queue_t *queue, void *data) {
 	pthread_mutex_lock(&queue->mutex);
 	node_t *new_node = MEM_alloc(sizeof(node_t));
 
@@ -41,7 +41,7 @@ void queue_push(queue_t *queue, void *data) {
 	pthread_mutex_unlock(&queue->mutex);
 }
 
-void *queue_pop(queue_t *queue) {
+void *queue_dequeue(queue_t *queue) {
 	pthread_mutex_lock(&(queue->mutex));
 
 	if (queue->head == NULL) {
@@ -54,6 +54,39 @@ void *queue_pop(queue_t *queue) {
 	queue->head = queue->head->next;
 	queue->size--;
 	MEM_free(temp);
+	pthread_mutex_unlock(&(queue->mutex));
+	return data;
+}
+
+void queue_del_head(queue_t *queue) {
+	pthread_mutex_lock(&(queue->mutex));
+
+	if (queue->head == NULL) {
+		pthread_mutex_unlock(&(queue->mutex));
+		return NULL;
+	}
+
+	void *data = queue->head->data;
+
+	node_t *temp = queue->head;
+	queue->head = queue->head->next;
+	queue->size--;
+
+	MEM_free(temp);
+	MEM_free(data);
+
+	pthread_mutex_unlock(&(queue->mutex));
+}
+
+void *queue_get_head(queue_t *queue) {
+	pthread_mutex_lock(&(queue->mutex));
+
+	if (queue->head == NULL) {
+		pthread_mutex_unlock(&(queue->mutex));
+		return NULL;
+	}
+
+	void *data = queue->head->data;
 	pthread_mutex_unlock(&(queue->mutex));
 	return data;
 }

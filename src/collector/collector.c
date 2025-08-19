@@ -9,10 +9,11 @@
 #include <syslog.h>
 #include <unistd.h>
 
+#include "memory.h"
 #include "rrdtool/rrdtool.h"
 #include "sflow/sflow.h"
 #include "collector/collector.h"
-#include "queue/queue.h"
+#include "bucket/bucket.h"
 
 
 void* collector_thread(void *arg) {
@@ -20,7 +21,7 @@ void* collector_thread(void *arg) {
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
 
-	collector_data_t *collector_data = arg;
+	collector_data_t *collector = arg;
 	const int sock = socket(AF_INET, SOCK_DGRAM, 0);
 
 	if (sock < 0)
@@ -30,10 +31,10 @@ void* collector_thread(void *arg) {
 	bzero(&address, sizeof(address));
 
 	address.sin_family = AF_INET;
-	inet_pton(AF_INET, collector_data->address, &address.sin_addr);
-	address.sin_port = htons(collector_data->port);
+	inet_pton(AF_INET, collector->address, &address.sin_addr);
+	address.sin_port = htons(collector->port);
 
-	syslog(LOG_INFO, "Starting collector on %s:%d", collector_data->address, collector_data->port );
+	syslog(LOG_INFO, "Starting collector on %s:%d", collector->address, collector->port );
 	if (bind(sock, (struct sockaddr *)&address, sizeof(address)) < 0 )
 		  return NULL;
 
@@ -50,8 +51,15 @@ void* collector_thread(void *arg) {
 				for (const flow_record_t* record = sample->records; record != NULL; record = record->next) {
 					storable_flow_t	*flow = sflow_encode_flow_record(record, sample->header.sampling_rate);
 					if (flow != NULL) {
-						cache_prepare(flow);
-						queue_push(&(collector_data->queue), flow);
+						cache_prepare(flow->src_mac, flow->dst_mac, flow->proto);
+
+						if (flow->proto == 4) {
+							bucket_add(&collector->bucket_v4, flow->src_mac, flow->dst_mac, flow->computed_size);
+						}
+						else {
+							bucket_add(&collector->bucket_v6, flow->src_mac, flow->dst_mac, flow->computed_size);
+						}
+						MEM_free(flow);
 					}
 				}
 			}

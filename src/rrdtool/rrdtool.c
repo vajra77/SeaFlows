@@ -155,19 +155,20 @@ int update_peer_rrd(const char *peer,
 	return err;
 }
 
-void cache_prepare(const storable_flow_t *flow) {
+void cache_prepare(const char *src, const char *dst, const uint32_t proto) {
 
-  	prepare_flow_rrd(flow->src_mac, flow->dst_mac, flow->proto);
-    prepare_flow_rrd(flow->dst_mac, flow->src_mac, flow->proto);
-  	prepare_peer_rrd(flow->src_mac, flow->proto);
-  	prepare_peer_rrd(flow->dst_mac, flow->proto);
+  	prepare_flow_rrd(src, dst, proto);
+    prepare_flow_rrd(dst, src, proto);
+  	prepare_peer_rrd(src, proto);
+  	prepare_peer_rrd(dst, proto);
 }
 
-void cache_store(const storable_flow_t *flow) {
+void cache_store(const char *src, const char *dst,
+				 const uint32_t proto, const uint32_t size) {
 
-  	update_flow_rrd(flow->src_mac, flow->dst_mac, flow->proto, flow->computed_size, 0);
-    update_flow_rrd(flow->dst_mac, flow->src_mac, flow->proto, 0, flow->computed_size);
-  	update_peer_rrd(flow->src_mac, flow->proto, flow->computed_size, 0);
-  	update_peer_rrd(flow->dst_mac, flow->proto, 0, flow->computed_size);
+  	update_flow_rrd(src, dst, proto, size, 0);
+    update_flow_rrd(dst, src, proto, 0, size);
+  	update_peer_rrd(src, proto, size, 0);
+  	update_peer_rrd(dst, proto, 0, size);
 }
 // EOF

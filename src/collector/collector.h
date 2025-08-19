@@ -4,13 +4,15 @@
 
 #ifndef COLLECTOR_H
 #define COLLECTOR_H
-#include <queue/queue.h>
+
+#include <bucket/bucket.h>
 
 
 typedef struct collector_data {
   int port;
   char *address;
-  queue_t queue;
+  bucket_t bucket_v4;
+  bucket_t bucket_v6;
 } collector_data_t;
 
 void* collector_thread(void *);
