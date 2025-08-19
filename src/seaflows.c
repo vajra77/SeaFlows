@@ -134,22 +134,16 @@ int main(const int argc, char **argv) {
 		pthread_create(&collector_threads[i], NULL, collector_thread, &collector_data[i]);
 	}
 
-	for (;;) {
-		sleep(5);
-		int nflows = 0;
-		while (nflows < MAX_FLOWS && !all_queues_empty(num_threads)) {
-			for (int i = 0; i < num_threads; i++) {
-				storable_flow_t *flow = queue_pop(&collector_data[i].queue);
-				if(flow != NULL) {
-					cache_store(flow);
-					MEM_free(flow);
-				}
-				nflows++;
-			}
-		}
+	sleep(1);
 
+	for (;;) {
+		// round-robin
 		for (int i = 0; i < num_threads; i++) {
-			syslog(LOG_INFO, "Collector: %d, queue: %d", i, queue_size(&collector_data[i].queue));
+			storable_flow_t *flow = queue_pop(&collector_data[i].queue);
+			if(flow != NULL) {
+				cache_store(flow);
+				MEM_free(flow);
+			}
 		}
 	}
 
