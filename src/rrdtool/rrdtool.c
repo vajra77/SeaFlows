@@ -8,11 +8,11 @@
 #include <stdlib.h>
 #include <syslog.h>
 #include <unistd.h>
+#include <stdint.h>
 #include <time.h>
 #include <sys/stat.h>
 
 #include "rrdtool.h"
-#include "sflow/sflow.h"
 
 
 int create_rrd(const char *filename) {
@@ -30,7 +30,7 @@ int create_rrd(const char *filename) {
 		"RRA:MAX:0.5:444:797",
 	};
 
-	int err = rrdc_connect(RRDCACHE_ADDRESS);
+	int err = rrdc_connect(RRDCACHED_ADDRESS);
 	if (err) {
 		syslog(LOG_ERR, "Unable to connect to rrdcached: %s (error=%d)", rrd_get_error(), err);
 		rrd_clear_error();
@@ -57,7 +57,7 @@ int update_rrd(const char *filename, const uint32_t in, const uint32_t out) {
 		frmtstr,
 	};
 
-	int err = rrdc_connect(RRDCACHE_ADDRESS);
+	int err = rrdc_connect(RRDCACHED_ADDRESS);
 
 	if (err) {
 		syslog(LOG_ERR, "Unable to connect to rrdcached: %s (error=%d)", rrd_get_error(), err);
@@ -155,20 +155,15 @@ int update_peer_rrd(const char *peer,
 	return err;
 }
 
-void cache_prepare(const char *src, const char *dst, const uint32_t proto) {
+void rrdtool_prepare(const char *src, const char *dst, const uint32_t proto) {
 
   	prepare_flow_rrd(src, dst, proto);
     prepare_flow_rrd(dst, src, proto);
-  	prepare_peer_rrd(src, proto);
-  	prepare_peer_rrd(dst, proto);
 }
 
-void cache_store(const char *src, const char *dst,
-				 const uint32_t proto, const uint32_t size) {
+void rrdtool_store(const char *src, const char *dst,
+				 const uint32_t proto, const uint32_t in, const uint32_t out) {
 
-  	update_flow_rrd(src, dst, proto, size, 0);
-    update_flow_rrd(dst, src, proto, 0, size);
-  	update_peer_rrd(src, proto, size, 0);
-  	update_peer_rrd(dst, proto, 0, size);
+  	update_flow_rrd(src, dst, proto, in, out);
 }
 // EOF

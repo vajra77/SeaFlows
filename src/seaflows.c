@@ -141,12 +141,12 @@ int main(const int argc, char **argv) {
 		for (int i = 0; i < num_threads; i++) {
 			const bucket_node_t *node4 = bucket_remove(&collector[i].bucket_v4);
 			if (node4 != NULL) {
-				cache_store(node4->src, node4->dst, 4, node4->in, node4->out);
+				rrdtool_store(node4->src, node4->dst, 4, node4->in, node4->out);
 			}
 
 			const bucket_node_t *node6 = bucket_remove(&collector[i].bucket_v6);
 			if (node6 != NULL) {
-				cache_store(node6->src, node6->dst, 6, node6->in, node6->out);
+				rrdtool_store(node6->src, node6->dst, 6, node6->in, node6->out);
 			}
 		}
 	}

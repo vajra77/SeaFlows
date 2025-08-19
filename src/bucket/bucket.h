@@ -8,6 +8,7 @@
 #define MAC_ADDRESS_LEN 13
 
 #include <stdint.h>
+#include <pthread.h>
 
 
 typedef struct bucket_node {

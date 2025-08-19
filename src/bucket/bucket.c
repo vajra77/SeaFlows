@@ -3,6 +3,7 @@
 //
 
 #include <string.h>
+#include <pthread.h>
 
 #include "memory.h"
 #include "bucket.h"
