@@ -8,7 +8,7 @@ all: sflow bucket collector rrdtool main
 main:
 	$(CC) $(CFLAGS) -c -o src/seaflows.o -I src/ src/seaflows.c
 
-collector: queue
+collector:
 	$(CC) $(CFLAGS) -c -o src/collector/collector.o -I src/ src/collector/collector.c
 
 sflow:
