@@ -26,8 +26,6 @@
 static pthread_t			threads[MAX_THREADS];
 static collector_data_t		collector[MAX_THREADS];
 
-static bucket_t flow_bucket;
-
 
 void usage(){
 	printf("Usage:\n");
@@ -115,6 +113,7 @@ int main(const int argc, char **argv) {
 
 	openlog("seaflows", LOG_PID, LOG_DAEMON);
 
+	bucket_t flow_bucket;
 	bucket_init(&flow_bucket);
 
 	/* create threads */
