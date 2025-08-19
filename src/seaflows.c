@@ -121,7 +121,7 @@ int main(const int argc, char **argv) {
 
 		collector[i].port = SEAFLOWS_LISTENER_PORT + i;
 		collector[i].address = listen_address;
-		collector[i].bucket = flow_bucket;
+		collector[i].bucket = &flow_bucket;
 
 		pthread_create(&threads[i], NULL, collector_thread, &collector[i]);
 	}

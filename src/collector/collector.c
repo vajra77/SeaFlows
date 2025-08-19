@@ -52,7 +52,7 @@ void* collector_thread(void *arg) {
 					storable_flow_t	*flow = sflow_encode_flow_record(record, sample->header.sampling_rate);
 					if (flow != NULL) {
 						//rrdtool_prepare(flow->src_mac, flow->dst_mac, flow->proto);
-						bucket_add(&collector->bucket, flow->src_mac, flow->dst_mac, flow->proto, flow->computed_size);
+						bucket_add(collector->bucket, flow->src_mac, flow->dst_mac, flow->proto, flow->computed_size);
 						MEM_free(flow);
 					}
 				}

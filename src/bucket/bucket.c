@@ -24,6 +24,10 @@ void bucket_init(bucket_t *bucket) {
 void bucket_dump(bucket_t *bucket) {
 
     pthread_mutex_lock(&bucket->mutex);
+#ifdef DEBUG
+    if(bucket->size == 0)
+      syslog(LOG_DEBUG, "Bucket is empty");
+#endif
     while(bucket->size > 0) {
         bucket_node_t *node = bucket_remove(bucket);
         //rrdtool_store(node->src, node->dst, node->proto, node->in, node->out);
@@ -51,6 +55,10 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
             (node->proto == proto)) {
             found = 1;
             node->in += nbytes;
+#ifdef DEBUG
+            syslog(LOG_DEBUG, "Bucket: existing %s => %s (%u, %u) [IPv%d] (size=%d)",
+                   node->src, node->dst, node->in, node->out, node->proto, bucket->size);
+#endif
         }
     }
 
@@ -66,7 +74,7 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
         bucket->size++;
 #ifdef DEBUG
         syslog(LOG_DEBUG, "Bucket: added %s => %s (%u, %u) [IPv%d] (size=%d)",
-               node->dst, node->src, node->in, node->out, node->proto, bucket->size);
+               node->src, node->dst, node->in, node->out, node->proto, bucket->size);
 #endif
     }
 
@@ -80,6 +88,10 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
             (node->proto == proto)) {
             found = 1;
             node->out += nbytes;
+#ifdef DEBUG
+            syslog(LOG_DEBUG, "Bucket: existing %s => %s (%u, %u) [IPv%d] (size=%d)",
+                   node->dst, node->src, node->in, node->out, node->proto, bucket->size);
+#endif
         }
     }
 
