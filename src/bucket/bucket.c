@@ -25,6 +25,9 @@ void bucket_dump(bucket_t *bucket) {
 
     uint32_t in, out = 0;
     pthread_mutex_lock(&bucket->mutex);
+#ifdef DEBUG
+    syslog(LOG_DEBUG, "Bucket: dumping %d-sized bucket", bucket->size);
+#endif
     while(bucket->size > 0) {
         bucket_node_t *node = bucket_remove(bucket);
         rrdtool_store(node->src, node->dst, node->proto, node->in, node->out);
