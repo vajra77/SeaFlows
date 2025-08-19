@@ -20,6 +20,7 @@ typedef struct queue {
 } queue_t;
 
 void queue_init(queue_t *);
+int queue_size(queue_t *);
 void queue_push(queue_t *, void *);
 void *queue_pop(queue_t *);
 #endif //QUEUE_H

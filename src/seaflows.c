@@ -21,6 +21,7 @@
 
 
 #define MAX_THREADS 24
+#define MAX_FLOWS 1024
 
 /* thread share/control variables */
 static pthread_t			collector_threads[MAX_THREADS];
@@ -48,6 +49,15 @@ void signal_handler(int sig) {
 
 	closelog();
 	exit(EXIT_SUCCESS);
+}
+
+int all_queues_empty(const int num_threads) {
+	for (int i = 0; i < num_threads; i++) {
+		if (queue_size(&collector_data[i].queue) > 0) {
+			return 1;
+		}
+	}
+	return 0;
 }
 
 
@@ -126,11 +136,15 @@ int main(const int argc, char **argv) {
 
 	for (;;) {
 		sleep(5);
-		for(int i = 0; i < num_threads; i++) {
-			storable_flow_t *flow = queue_pop(&collector_data[i].queue);
-			if(flow != NULL) {
-				cache_store(flow);
-				MEM_free(flow);
+		int nflows = 0;
+		while (nflows < MAX_FLOWS && !all_queues_empty(num_threads)) {
+			for (int i = 0; i < num_threads; i++) {
+				storable_flow_t *flow = queue_pop(&collector_data[i].queue);
+				if(flow != NULL) {
+					cache_store(flow);
+					MEM_free(flow);
+				}
+				nflows++;
 			}
 		}
 	}

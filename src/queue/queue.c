@@ -13,8 +13,15 @@ void queue_init(struct queue *queue) {
 	pthread_mutex_init(&(queue->mutex), NULL);
 }
 
+int queue_size(queue_t *queue) {
+	pthread_mutex_lock(&queue->mutex);
+	const int size = queue->size;
+	pthread_mutex_unlock(&queue->mutex);
+	return size;
+}
+
 void queue_push(queue_t *queue, void *data) {
-	pthread_mutex_lock(&(queue->mutex));
+	pthread_mutex_lock(&queue->mutex);
 	node_t *new_node = MEM_alloc(sizeof(node_t));
 
 	new_node->data = data;
@@ -31,7 +38,7 @@ void queue_push(queue_t *queue, void *data) {
 		queue->tail->next = NULL;
 		queue->size++;
 	}
-	pthread_mutex_unlock(&(queue->mutex));
+	pthread_mutex_unlock(&queue->mutex);
 }
 
 void *queue_pop(queue_t *queue) {
