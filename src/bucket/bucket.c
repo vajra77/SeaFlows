@@ -23,13 +23,19 @@ void bucket_init(bucket_t *bucket) {
 
 void bucket_dump(bucket_t *bucket) {
 
+    uint32_t in, out = 0;
     pthread_mutex_lock(&bucket->mutex);
     while(bucket->size > 0) {
         bucket_node_t *node = bucket_remove(bucket);
         rrdtool_store(node->src, node->dst, node->proto, node->in, node->out);
         MEM_free(node);
+        in += node->in;
+        out += node->out;
     }
     pthread_mutex_unlock(&bucket->mutex);
+#ifdef DEBUG
+    syslog(LOG_DEBUG, "Bucket: dumped %u bytes in, %u bytes out", in, out);
+#endif
 }
 
 void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
