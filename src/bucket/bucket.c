@@ -32,8 +32,8 @@ void bucket_dump(bucket_t *bucket) {
         bucket_node_t *node = bucket_remove(bucket);
         //rrdtool_store(node->src, node->dst, node->proto, node->in, node->out);
 #ifdef DEBUG
-        syslog(LOG_DEBUG, "Dump: %s -> %s = (%u, %u) [IPv%d]",
-               node->src, node->dst, node->in, node->out, node->proto);
+        syslog(LOG_DEBUG, "Dump: %s -> %s = (%u, %u) [IPv%d] (size=%d)",
+               node->src, node->dst, node->in, node->out, node->proto, bucket->size);
 #endif
         MEM_free(node);
     }
@@ -55,10 +55,6 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
             (node->proto == proto)) {
             found = 1;
             node->in += nbytes;
-#ifdef DEBUG
-            syslog(LOG_DEBUG, "Bucket: existing %s => %s (%u, %u) [IPv%d] (size=%d)",
-                   node->src, node->dst, node->in, node->out, node->proto, bucket->size);
-#endif
         }
     }
 
@@ -72,10 +68,6 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
         bucket->last = bucket->size;
         bucket->nodes[bucket->last] = node;
         bucket->size++;
-#ifdef DEBUG
-        syslog(LOG_DEBUG, "Bucket: added %s => %s (%u, %u) [IPv%d] (size=%d)",
-               node->src, node->dst, node->in, node->out, node->proto, bucket->size);
-#endif
     }
 
     // reverse path
@@ -88,10 +80,6 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
             (node->proto == proto)) {
             found = 1;
             node->out += nbytes;
-#ifdef DEBUG
-            syslog(LOG_DEBUG, "Bucket: existing %s => %s (%u, %u) [IPv%d] (size=%d)",
-                   node->dst, node->src, node->in, node->out, node->proto, bucket->size);
-#endif
         }
     }
 
@@ -105,10 +93,6 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
         bucket->last = bucket->size;
         bucket->nodes[bucket->last] = node;
         bucket->size++;
-#ifdef DEBUG
-        syslog(LOG_DEBUG, "Bucket: added %s => %s (%u, %u) [IPv%d] (size=%d)",
-               node->dst, node->src, node->in, node->out, node->proto, bucket->size);
-#endif
     }
     pthread_mutex_unlock(&bucket->mutex);
 }
