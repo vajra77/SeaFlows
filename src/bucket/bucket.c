@@ -64,6 +64,10 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
         bucket->last = bucket->size;
         bucket->nodes[bucket->last] = node;
         bucket->size++;
+#ifdef DEBUG
+        syslog(LOG_DEBUG, "Bucket: added %s => %s (%u, %u) [IPv%d]",
+               node->src, node->dst, node->in, node->out, node->proto);
+#endif
     }
 
     // reverse path
@@ -89,6 +93,10 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
         bucket->last = bucket->size;
         bucket->nodes[bucket->last] = node;
         bucket->size++;
+#ifdef DEBUG
+        syslog(LOG_DEBUG, "Bucket: added %s => %s (%u, %u) [IPv%d]",
+               node->dst, node->src, node->in, node->out, node->proto);
+#endif
     }
     pthread_mutex_unlock(&bucket->mutex);
 }
