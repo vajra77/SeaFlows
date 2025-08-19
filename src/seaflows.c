@@ -147,6 +147,10 @@ int main(const int argc, char **argv) {
 				nflows++;
 			}
 		}
+
+		for (int i = 0; i < num_threads; i++) {
+			syslog(LOG_INFO, "Collector: %d, queue: %d", i, queue_size(&collector_data[i].queue));
+		}
 	}
 
 	exit(EXIT_SUCCESS);
