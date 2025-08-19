@@ -25,20 +25,16 @@ void bucket_dump(bucket_t *bucket) {
 
     uint32_t in, out = 0;
     pthread_mutex_lock(&bucket->mutex);
-#ifdef DEBUG
-    syslog(LOG_DEBUG, "Bucket: dumping %u-sized bucket", bucket->size);
-#endif
     while(bucket->size > 0) {
         bucket_node_t *node = bucket_remove(bucket);
-        rrdtool_store(node->src, node->dst, node->proto, node->in, node->out);
-        in += node->in;
-        out += node->out;
+        //rrdtool_store(node->src, node->dst, node->proto, node->in, node->out);
+#ifdef DEBUG
+        syslog(LOG_DEBUG, "Dump: %s -> %s = (%u, %u) [IPv%d]",
+               node->src, node->dst, node->in, node->out, node->proto);
+#endif
         MEM_free(node);
     }
     pthread_mutex_unlock(&bucket->mutex);
-#ifdef DEBUG
-    syslog(LOG_DEBUG, "Bucket: dumped %u bytes in, %u bytes out", in, out);
-#endif
 }
 
 void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
