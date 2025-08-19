@@ -128,7 +128,7 @@ int main(const int argc, char **argv) {
 	}
 
 	for (;;) {
-		sleep(10);
+		sleep(5);
 		bucket_dump(&flow_bucket);
 	}
 

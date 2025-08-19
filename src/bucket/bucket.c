@@ -26,7 +26,7 @@ void bucket_dump(bucket_t *bucket) {
     uint32_t in, out = 0;
     pthread_mutex_lock(&bucket->mutex);
 #ifdef DEBUG
-    syslog(LOG_DEBUG, "Bucket: dumping %d-sized bucket", bucket->size);
+    syslog(LOG_DEBUG, "Bucket: dumping %u-sized bucket", bucket->size);
 #endif
     while(bucket->size > 0) {
         bucket_node_t *node = bucket_remove(bucket);
@@ -72,7 +72,7 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
     // reverse path
     found = 0;
 
-    for (int k = 0; k < bucket->size; k++) {
+    for (int k = 0; k < bucket->size && !found; k++) {
         bucket_node_t *node = bucket->nodes[k];
         if (!strcmp(node->dst, src_mac) && !strcmp(node->src, dst_mac) && (node->proto == proto)) {
             node->out += nbytes;
@@ -85,8 +85,8 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
         strcpy(node->src, dst_mac);
         strcpy(node->dst, src_mac);
         node->proto = proto;
-        node->out = nbytes;
         node->in = 0;
+        node->out = nbytes;
         bucket->last = bucket->size;
         bucket->nodes[bucket->last] = node;
         bucket->size++;
