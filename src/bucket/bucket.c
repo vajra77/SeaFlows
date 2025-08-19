@@ -2,7 +2,7 @@
 // Created by Francesco Ferreri on 19/08/25.
 //
 
-#include <strings.h>
+#include <string.h>
 
 #include "memory.h"
 #include "bucket.h"
