@@ -26,6 +26,6 @@ typedef struct bucket {
 } bucket_t;
 
 void bucket_init(bucket_t *);
-int bucket_add(bucket_t *, const char *, const char *, const uint32_t);
+void bucket_add(bucket_t *, const char *, const char *, const uint32_t);
 bucket_node_t *bucket_remove(bucket_t *);
 #endif //BUCKET_H
