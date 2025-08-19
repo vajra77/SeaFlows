@@ -26,7 +26,7 @@ void bucket_dump(bucket_t *bucket) {
     pthread_mutex_lock(&bucket->mutex);
     while(bucket->size > 0) {
         bucket_node_t *node = bucket_remove(bucket);
-        rrd_store(node->src, node->dst, node->proto, node->in, node->out);
+        rrdtool_store(node->src, node->dst, node->proto, node->in, node->out);
         MEM_free(node);
     }
     pthread_mutex_unlock(&bucket->mutex);
