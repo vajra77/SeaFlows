@@ -14,9 +14,6 @@ collector: queue
 sflow:
 	$(CC) $(CFLAGS) -c -o src/sflow/sflow.o -I src/ src/sflow/sflow.c
 
-queue:
-	$(CC) $(CFLAGS) -c -o src/queue/queue.o -I src/ src/queue/queue.c
-
 bucket:
 	$(CC) $(CFLAGS) -c -o src/bucket/bucket.o -I src/ src/bucket/bucket.c
 
@@ -26,7 +23,6 @@ rrdtool:
 clean:
 	rm src/collector/*.o
 	rm src/sflow/*.o
-	rm src/queue/*.o
 	rm src/bucket/*.o
 	rm src/rrdtool/*.o
 	rm src/*.o
