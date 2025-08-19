@@ -4,6 +4,7 @@
 
 #include <string.h>
 #include <pthread.h>
+#include <syslog.h>
 
 #include "memory.h"
 #include "bucket.h"
@@ -29,6 +30,7 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac, cons
     for (int k = 0; k < bucket->size && !found; k++) {
         bucket_node_t *node = bucket->nodes[k];
         if (!strcmp(node->src, src_mac) && !strcmp(node->dst, dst_mac)) {
+            syslog(LOG_DEBUG, "Found in bucket: %s -> %s", src_mac, dst_mac);
             node->in += nbytes;
             found = 1;
         }
