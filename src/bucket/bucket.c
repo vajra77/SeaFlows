@@ -44,18 +44,20 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
     // direct path
     int found = 0;
 
-    for (int k = 0; k < bucket->size && !found; k++) {
+    for (int k = 0; !found && (k < bucket->size); k++) {
         bucket_node_t *node = bucket->nodes[k];
-        if (!strcmp(node->src, src_mac) && !strcmp(node->dst, dst_mac) && (node->proto == proto)) {
-            node->in += nbytes;
+        if (!strncmp(node->src, src_mac, MAC_ADDRESS_LEN) &&
+            !strncmp(node->dst, dst_mac, MAC_ADDRESS_LEN) &&
+            (node->proto == proto)) {
             found = 1;
+            node->in += nbytes;
         }
     }
 
-    if (!found && bucket->size < MAX_BUCKET) {
+    if (!found && (bucket->size < MAX_BUCKET)) {
         bucket_node_t *node = MEM_alloc(sizeof(bucket_node_t));
-        strcpy(node->src, src_mac);
-        strcpy(node->dst, dst_mac);
+        strncpy(node->src, src_mac, MAC_ADDRESS_LEN);
+        strncpy(node->dst, dst_mac, MAC_ADDRESS_LEN);
         node->proto = proto;
         node->in = nbytes;
         node->out = 0;
@@ -67,18 +69,20 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
     // reverse path
     found = 0;
 
-    for (int k = 0; k < bucket->size && !found; k++) {
+    for (int k = 0; !found && (k < bucket->size); k++) {
         bucket_node_t *node = bucket->nodes[k];
-        if (!strcmp(node->dst, src_mac) && !strcmp(node->src, dst_mac) && (node->proto == proto)) {
-            node->out += nbytes;
+        if (!strncmp(node->dst, src_mac, MAC_ADDRESS_LEN) &&
+            !strncmp(node->src, dst_mac, MAC_ADDRESS_LEN) &&
+            (node->proto == proto)) {
             found = 1;
+            node->out += nbytes;
         }
     }
 
-    if (!found && bucket->size < MAX_BUCKET) {
+    if (!found && (bucket->size < MAX_BUCKET)) {
         bucket_node_t *node = MEM_alloc(sizeof(bucket_node_t));
-        strcpy(node->src, dst_mac);
-        strcpy(node->dst, src_mac);
+        strncpy(node->src, dst_mac, MAC_ADDRESS_LEN);
+        strncpy(node->dst, src_mac, MAC_ADDRESS_LEN);
         node->proto = proto;
         node->in = 0;
         node->out = nbytes;
