@@ -7,8 +7,7 @@
 #define MAX_BUCKET 2048
 #define MAC_ADDRESS_LEN 13
 
-#include <unistd.h>
-#include <pthread.h>
+#include <stdint.h>
 
 
 typedef struct bucket_node {
