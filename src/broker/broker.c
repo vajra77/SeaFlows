@@ -3,12 +3,11 @@
 //
 #include <pthread.h>
 #include <syslog.h>
+#include <unistd.h>
+#include <stdlib.h>
 
 #include "broker.h"
 
-#include <unistd.h>
-
-#include "memory.h"
 #include "rrdtool/rrdtool.h"
 #include "bucket/bucket.h"
 
@@ -28,9 +27,9 @@ void* broker_thread(void *arg) {
 		for (int k = 0; k < dump->size; k++) {
 			bucket_node_t *node = dump->nodes[k];
 			rrdtool_store(node->src, node->dst, node->bytes4, node->bytes6);
-			MEM_free(node);
+			free(node);
 		}
-		MEM_free(dump);
+		free(dump);
 		pthread_testcancel();
 	}
 	return NULL;

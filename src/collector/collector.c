@@ -8,8 +8,8 @@
 #include <strings.h>
 #include <syslog.h>
 #include <unistd.h>
+#include <stdlib.h>
 
-#include "memory.h"
 #include "rrdtool/rrdtool.h"
 #include "sflow/sflow.h"
 #include "collector/collector.h"
@@ -53,7 +53,7 @@ void* collector_thread(void *arg) {
 					if (flow != NULL) {
 						rrdtool_prepare(flow->src_mac, flow->dst_mac);
 						bucket_add(collector->bucket, flow->src_mac, flow->dst_mac, flow->proto, flow->computed_size);
-						MEM_free(flow);
+						free(flow);
 					}
 				}
 			}

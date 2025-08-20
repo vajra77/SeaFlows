@@ -7,7 +7,6 @@
 
 #include <bucket/bucket.h>
 
-
 typedef struct broker_data {
 	int id;
 	bucket_t *bucket;

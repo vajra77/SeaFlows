@@ -17,7 +17,7 @@
 #define SFLOW_DEBUG
 
 #ifdef SFLOW_DEBUG
-#define MEMGUARD(ptr, start, len) if (ptr > start + len) { syslog(LOG_WARNING, "memory overflow"); return NULL; }
+#define MEMGUARD(ptr, start, len) if (ptr > start + len) { syslog(LOG_ERR, "memory overflow"); gc_cleanup(&gc); return NULL; }
 #else
 #define MEMGUARD(ptr, start, len)
 #endif

@@ -3,6 +3,7 @@
 //
 #include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <signal.h>
@@ -13,7 +14,6 @@
 #include <gc.h>
 
 #include "seaflows.h"
-#include "memory.h"
 #include "collector/collector.h"
 #include "broker/broker.h"
 #include "bucket/bucket.h"
@@ -54,7 +54,7 @@ void signal_handler(const int sig) {
 	}
 
 	for(int i = 0; i < num_threads; i++) {
-		MEM_free(bucket[i]);
+		free(bucket[i]);
 	}
 
 	closelog();
@@ -127,7 +127,7 @@ int main(const int argc, char **argv) {
 	/* create threads */
 	for(int i = 0; i < num_threads; i++) {
 
-		bucket[i] = MEM_alloc(sizeof(bucket_t));
+		bucket[i] = malloc(sizeof(bucket_t));
 		bucket_init(bucket[i]);
 
 		collector_data[i].id = i;

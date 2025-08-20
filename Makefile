@@ -1,9 +1,9 @@
 CC = gcc
-CFLAGS = -Wall -g -DWITH_GC
+CFLAGS = -Wall -g
 LIBS = -lrrd -lgc
 
-all: sflow rrdtool bucket collector broker main
-	$(CC) -o bin/seaflows src/sflow/sflow.o src/rrdtool/rrdtool.o src/bucket/bucket.o src/collector/collector.o src/broker/broker.o src/seaflows.o $(LIBS)
+all: gc sflow rrdtool bucket collector broker main
+	$(CC) -o bin/seaflows src/gc/gc.o src/sflow/sflow.o src/rrdtool/rrdtool.o src/bucket/bucket.o src/collector/collector.o src/broker/broker.o src/seaflows.o $(LIBS)
 
 main:
 	$(CC) $(CFLAGS) -c -o src/seaflows.o -I src/ src/seaflows.c
@@ -22,6 +22,9 @@ bucket:
 
 rrdtool:
 	$(CC) $(CFLAGS) -c -o src/rrdtool/rrdtool.o -I src/ src/rrdtool/rrdtool.c
+
+gc:
+	$(CC) $(CFLAGS) -c -o src/gc/gc.o -I src/ src/gc/gc.c
 
 clean:
 	rm src/collector/*.o

@@ -4,9 +4,8 @@
 
 #include <string.h>
 #include <pthread.h>
-#include <syslog.h>
+#include <stdlib.h>
 
-#include "memory.h"
 #include "bucket.h"
 
 
@@ -23,7 +22,7 @@ void bucket_init(bucket_t *bucket) {
 bucket_dump_t *bucket_flush(bucket_t *bucket) {
 
     pthread_mutex_lock(&bucket->mutex);
-    bucket_dump_t *dump = MEM_alloc(sizeof(bucket_dump_t));
+    bucket_dump_t *dump = malloc(sizeof(bucket_dump_t));
     memset(dump, 0, sizeof(bucket_dump_t));
 
     for (int k = 0; k <= bucket->last; k++) {
@@ -62,7 +61,7 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
     }
 
     if (!found && (bucket->size < MAX_BUCKET)) {
-        bucket_node_t *node = MEM_alloc(sizeof(bucket_node_t));
+        bucket_node_t *node = malloc(sizeof(bucket_node_t));
         strncpy(node->src, src_mac, MAC_ADDRESS_LEN);
         strncpy(node->dst, dst_mac, MAC_ADDRESS_LEN);
         if (proto == 4) {
