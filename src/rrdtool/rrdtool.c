@@ -39,7 +39,7 @@ int create_rrd(const char *filename) {
 
 	err = rrdc_create(filename, 300, time(NULL), 1, 10, argv);
 	if (err) 	{
-		syslog(LOG_ERR, "Unable to create RRD file: %s (error=%d)", rrd_get_error(), err);
+		syslog(LOG_ERR, "Unable to create RRD file: %s (error=%d)", filename, err);
 		rrd_clear_error();
 	}
 
