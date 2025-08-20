@@ -35,4 +35,6 @@ void* broker_thread(void *arg) {
 		MEM_free(dump);
 		pthread_testcancel();
 	}
+
+	return NULL;
 }

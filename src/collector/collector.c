@@ -64,4 +64,6 @@ void* collector_thread(void *arg) {
 
 		pthread_testcancel();
 	}
+
+	return NULL;
 }
