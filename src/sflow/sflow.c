@@ -21,7 +21,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
 	const char *data_ptr = raw_data;
 	uint32_t	buffer = 0x0;
 
-	static gc_t gc;
+	gc_t gc;
 	gc_init(&gc);
 
 	// sflow_datagram_t *datagram = malloc(sizeof(sflow_datagram_t));

@@ -5,9 +5,8 @@
 #ifndef GC_H
 #define GC_H
 
-#define MAX_GC_DATA 2048
+#define MAX_GC_DATA 128
 
-#include <stdint.h>
 
 typedef struct gc {
 	int size;
