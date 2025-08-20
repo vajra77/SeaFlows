@@ -25,11 +25,11 @@ class RRDBackend:
     def base_gamma(self):
         return self._base_gamma
 
-    def get_flow_data(self, schedule, proto, src, dst):
+    def get_flow_data(self, schedule, src, dst):
 
         f_path = self._base_path + f"/flows/{src}"
 
-        f_rrdfile = f"{f_path}/flow_{src}_to_{dst}_v{proto}.rrd"
+        f_rrdfile = f"{f_path}/flow_{src}_to_{dst}.rrd"
 
         if os.path.isfile(f_rrdfile):
 
@@ -54,11 +54,11 @@ class RRDBackend:
                     f_avg_data = rrdtool.fetch(f_rrdfile, "AVERAGE", '-r', '300', '-s', "now-1d", '-e', 'now')
                     f_max_data = f_avg_data
 
-            f_clean_avg_data_in = list(map(lambda x: _octets2bits(x[0], self._base_gamma), f_avg_data[2]))
-            f_clean_avg_data_out = list(map(lambda x: _octets2bits(x[1], self._base_gamma), f_avg_data[2]))
+            f_clean_avg_data_v4 = list(map(lambda x: _octets2bits(x[0], self._base_gamma), f_avg_data[2]))
+            f_clean_avg_data_v6 = list(map(lambda x: _octets2bits(x[1], self._base_gamma), f_avg_data[2]))
 
-            f_clean_max_data_in = list(map(lambda x: _octets2bits(x[0], self._base_gamma), f_max_data[2]))
-            f_clean_max_data_out = list(map(lambda x: _octets2bits(x[1], self._base_gamma), f_max_data[2]))
+            f_clean_max_data_v4 = list(map(lambda x: _octets2bits(x[0], self._base_gamma), f_max_data[2]))
+            f_clean_max_data_v6 = list(map(lambda x: _octets2bits(x[1], self._base_gamma), f_max_data[2]))
 
             # prepare date list for x-axis
             base = datetime.now()
@@ -66,22 +66,22 @@ class RRDBackend:
 
             match schedule:
                 case 'yearly':
-                    date_list.extend([base - timedelta(days=x) for x in range(len(f_clean_avg_data_in))])
+                    date_list.extend([base - timedelta(days=x) for x in range(len(f_clean_avg_data_v4))])
                 case 'monthly':
-                    date_list.extend([base - timedelta(hours=(2 * x)) for x in range(len(f_clean_avg_data_in))])
+                    date_list.extend([base - timedelta(hours=(2 * x)) for x in range(len(f_clean_avg_data_v4))])
                 case 'weekly':
-                    date_list.extend([base - timedelta(minutes=(30 * x)) for x in range(len(f_clean_avg_data_in))])
+                    date_list.extend([base - timedelta(minutes=(30 * x)) for x in range(len(f_clean_avg_data_v4))])
                 case 'daily':
-                    date_list.extend([base - timedelta(minutes=(5 * x)) for x in range(len(f_clean_avg_data_in))])
+                    date_list.extend([base - timedelta(minutes=(5 * x)) for x in range(len(f_clean_avg_data_v4))])
 
             date_list.reverse()
 
             result = {
                 'time': date_list,
-                'avg_in': f_clean_avg_data_in,
-                'avg_out': f_clean_avg_data_out,
-                'max_in': f_clean_max_data_in,
-                'max_out': f_clean_max_data_out,
+                'avg_v4': f_clean_avg_data_v4,
+                'avg_v6': f_clean_avg_data_v6,
+                'max_v4': f_clean_max_data_v4,
+                'max_v6': f_clean_max_data_v6,
             }
 
             return True, result
@@ -91,73 +91,5 @@ class RRDBackend:
 
 
     def get_peer_data(self, schedule, proto, macs):
-        avg_data_in = np.array([])
-        avg_data_out = np.array([])
-        max_data_in = np.array([])
-        max_data_out = np.array([])
-
-        for mac in macs:
-
-            f_rrdfile = self._base_path + f"/peers/peer_{mac}_v{proto}.rrd"
-
-            if os.path.isfile(f_rrdfile):
-                match schedule:
-                    case 'weekly', 'week':
-                        f_avg_data = rrdtool.fetch(f_rrdfile, "AVERAGE", '-r', '1800', '-s', "end-1w", '-e',
-                                                   'midnight today')
-                        f_max_data = rrdtool.fetch(f_rrdfile, "AVERAGE", '-r', '1800', '-s', "end-1w", '-e',
-                                                   'midnight today')
-
-                    case 'monthly', 'month':
-                        f_avg_data = rrdtool.fetch(f_rrdfile, "AVERAGE", '-r', '7200', '-s', "end-1m", '-e',
-                                                   'midnight today')
-                        f_max_data = rrdtool.fetch(f_rrdfile, "AVERAGE", '-r', '7200', '-s', "end-1m", '-e',
-                                                   'midnight today')
-
-                    case 'yearly', 'year':
-                        f_avg_data = rrdtool.fetch(f_rrdfile, "AVERAGE", '-r', '86400', '-s', "end-1y", '-e',
-                                                   'midnight today')
-                        f_max_data = rrdtool.fetch(f_rrdfile, "AVERAGE", '-r', '86400', '-s', "end-1y", '-e',
-                                                   'midnight today')
-
-                    case _:
-                        f_avg_data = rrdtool.fetch(f_rrdfile, "AVERAGE", '-r', '300', '-s', "now-1d", '-e', 'now')
-                        f_max_data = f_avg_data
-
-                f_clean_avg_data_in = list(map(lambda x: _octets2bits(x[0], self._base_gamma), f_avg_data[2]))
-                f_clean_avg_data_out = list(map(lambda x: _octets2bits(x[1], self._base_gamma), f_avg_data[2]))
-
-                f_clean_max_data_in = list(map(lambda x: _octets2bits(x[0], self._base_gamma), f_max_data[2]))
-                f_clean_max_data_out = list(map(lambda x: _octets2bits(x[1], self._base_gamma), f_max_data[2]))
-
-                avg_data_in = np.add(avg_data_in, f_clean_avg_data_in)
-                avg_data_out = np.add(avg_data_out, f_clean_avg_data_out)
-                max_data_in = np.add(max_data_in, f_clean_max_data_in)
-                max_data_out = np.add(max_data_out, f_clean_max_data_out)
-
-        # prepare date list for x-axis
-        base = datetime.now()
-        date_list = []
-
-        match schedule:
-            case 'yearly':
-                date_list.extend([base - timedelta(days=x) for x in range(len(avg_data_in))])
-            case 'monthly':
-                date_list.extend([base - timedelta(hours=(2 * x)) for x in range(len(avg_data_in))])
-            case 'weeky':
-                date_list.extend([base - timedelta(minutes=(30 * x)) for x in range(len(avg_data_in))])
-            case _:
-                date_list.extend([base - timedelta(minutes=(5 * x)) for x in range(len(avg_data_in))])
-
-        date_list.reverse()
-
-        result = {
-            'time': date_list,
-            'avg_in': avg_data_in,
-            'avg_out': avg_data_out,
-            'max_in': max_data_in,
-            'max_out': max_data_out,
-        }
-
-        return True, result
+        pass
 
