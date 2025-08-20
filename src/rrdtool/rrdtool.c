@@ -78,6 +78,36 @@ int update_rrd(const char *filename, const uint32_t bytes4, const uint32_t bytes
 	return err;
 }
 
+int rrdtool_prepare(const char *src, const char *dst) {
+
+	char basename[32];
+	char pathname[256];
+	char filename[256];
+
+	int err = 0;
+
+	/* direct flow file */
+	sprintf(basename, "/data/rrd/flows/%s", src);
+	sprintf(pathname, "%s/flow_%s_to_%s.rrd", basename, src, dst);
+	sprintf(filename, "flows/%s/flow_%s_to_%s.rrd", src, src, dst);
+
+	if (access(basename, F_OK) != 0) {
+		if (mkdir(basename, 0755)) {
+			syslog(LOG_ERR, "Unable to create directory: %s", basename);
+			return err;
+		}
+		err = create_rrd(filename);
+		if (err) return err;
+	}
+
+	if (access(pathname, F_OK) != 0) {
+		err = create_rrd(filename);
+		if (err) return err;
+	}
+
+	return err;
+}
+
 int rrdtool_store(const char *src, const char *dst, const uint32_t bytes4, const uint32_t bytes6) {
 
 	char basename[32];
