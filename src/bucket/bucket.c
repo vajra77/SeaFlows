@@ -8,7 +8,6 @@
 
 #include "memory.h"
 #include "bucket.h"
-#include "rrdtool/rrdtool.h"
 
 
 void bucket_init(bucket_t *bucket) {
@@ -21,23 +20,24 @@ void bucket_init(bucket_t *bucket) {
     pthread_mutex_init(&bucket->mutex, NULL);
 }
 
-void bucket_dump(bucket_t *bucket) {
+bucket_dump_t *bucket_flush(bucket_t *bucket) {
 
     pthread_mutex_lock(&bucket->mutex);
-#ifdef DEBUG
-    if(bucket->size == 0)
-        syslog(LOG_DEBUG, "Bucket is empty");
-#endif
-    while(bucket->size > 0) {
-        bucket_node_t *node = bucket_remove(bucket);
-        //rrdtool_store(node->src, node->dst, node->proto, node->in, node->out);
-#ifdef DEBUG
-        syslog(LOG_DEBUG, "Dump: %s -> %s = (%u, %u) [IPv%d] (size=%d)",
-               node->src, node->dst, node->in, node->out, node->proto, bucket->size);
-#endif
-        MEM_free(node);
+    bucket_dump_t *dump = malloc(sizeof(bucket_dump_t));
+    memset(dump, 0, sizeof(bucket_dump_t));
+
+    for (int k = 0; k <= bucket->last; k++) {
+        dump->nodes[k] = bucket->nodes[k];
+        bucket->nodes[k] = NULL;
     }
+
+    dump->size = bucket->last + 1;
+    bucket->size = 0;
+    bucket->last = -1;
+
     pthread_mutex_unlock(&bucket->mutex);
+
+    return dump;
 }
 
 void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
@@ -45,16 +45,19 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
 
     pthread_mutex_lock(&bucket->mutex);
 
-    // direct path
     int found = 0;
 
     for (int k = 0; !found && (k < bucket->size); k++) {
         bucket_node_t *node = bucket->nodes[k];
         if (!strncmp(node->src, src_mac, MAC_ADDRESS_LEN) &&
-            !strncmp(node->dst, dst_mac, MAC_ADDRESS_LEN) &&
-            (node->proto == proto)) {
+            !strncmp(node->dst, dst_mac, MAC_ADDRESS_LEN)) {
             found = 1;
-            node->in += nbytes;
+            if (proto == 4) {
+                node->bytes4 += nbytes;
+            }
+            else {
+                node->bytes6 += nbytes;
+            }
         }
     }
 
@@ -62,38 +65,19 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
         bucket_node_t *node = MEM_alloc(sizeof(bucket_node_t));
         strncpy(node->src, src_mac, MAC_ADDRESS_LEN);
         strncpy(node->dst, dst_mac, MAC_ADDRESS_LEN);
-        node->proto = proto;
-        node->in = nbytes;
-        node->out = 0;
-        bucket->last = bucket->size;
-        bucket->nodes[bucket->last] = node;
-        bucket->size++;
-    }
-
-    // reverse path
-    found = 0;
-
-    for (int k = 0; !found && (k < bucket->size); k++) {
-        bucket_node_t *node = bucket->nodes[k];
-        if (!strncmp(node->dst, src_mac, MAC_ADDRESS_LEN) &&
-            !strncmp(node->src, dst_mac, MAC_ADDRESS_LEN) &&
-            (node->proto == proto)) {
-            found = 1;
-            node->out += nbytes;
+        if (proto == 4) {
+            node->bytes4 = nbytes;
+            node->bytes6 = 0;
         }
-    }
-
-    if (!found && (bucket->size < MAX_BUCKET)) {
-        bucket_node_t *node = MEM_alloc(sizeof(bucket_node_t));
-        strncpy(node->src, dst_mac, MAC_ADDRESS_LEN);
-        strncpy(node->dst, src_mac, MAC_ADDRESS_LEN);
-        node->proto = proto;
-        node->in = 0;
-        node->out = nbytes;
+        else {
+            node->bytes4 = 0;
+            node->bytes6 = nbytes;
+        }
         bucket->last = bucket->size;
         bucket->nodes[bucket->last] = node;
         bucket->size++;
     }
+
     pthread_mutex_unlock(&bucket->mutex);
 }
 

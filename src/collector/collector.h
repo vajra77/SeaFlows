@@ -9,9 +9,10 @@
 
 
 typedef struct collector_data {
+  int id;
   int port;
   char *address;
-  bucket_t *bucket;
+  bucket_t bucket;
 } collector_data_t;
 
 void* collector_thread(void *);

@@ -34,7 +34,7 @@ void* collector_thread(void *arg) {
 	inet_pton(AF_INET, collector->address, &address.sin_addr);
 	address.sin_port = htons(collector->port);
 
-	syslog(LOG_INFO, "Starting collector on %s:%d", collector->address, collector->port );
+	syslog(LOG_INFO, "Starting collector[%d] on %s:%d", collector->id, collector->address, collector->port );
 	if (bind(sock, (struct sockaddr *)&address, sizeof(address)) < 0 )
 		  return NULL;
 
@@ -51,8 +51,8 @@ void* collector_thread(void *arg) {
 				for (const flow_record_t* record = sample->records; record != NULL; record = record->next) {
 					storable_flow_t	*flow = sflow_encode_flow_record(record, sample->header.sampling_rate);
 					if (flow != NULL) {
-						//rrdtool_prepare(flow->src_mac, flow->dst_mac, flow->proto);
-						bucket_add(collector->bucket, flow->src_mac, flow->dst_mac, flow->proto, flow->computed_size);
+						//rrdtool_prepare(flow->src_mac, flow->dst_mac);
+						bucket_add(&collector->bucket, flow->src_mac, flow->dst_mac, flow->proto, flow->computed_size);
 						MEM_free(flow);
 					}
 				}

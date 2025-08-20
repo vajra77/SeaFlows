@@ -18,8 +18,8 @@
 int create_rrd(const char *filename) {
 
 	const char *argv[] = {
-		"DS:in:GAUGE:600:U:U",
-		"DS:out:GAUGE:600:U:U",
+		"DS:bytes4:GAUGE:600:U:U",
+		"DS:bytes6:GAUGE:600:U:U",
 		"RRA:AVERAGE:0.5:1:600",
 		"RRA:AVERAGE:0.5:6:700",
 		"RRA:AVERAGE:0.5:24:775",
@@ -47,11 +47,11 @@ int create_rrd(const char *filename) {
 	return err;
 }
 
-int update_rrd(const char *filename, const uint32_t in, const uint32_t out) {
+int update_rrd(const char *filename, const uint32_t bytes4, const uint32_t bytes6) {
 
 	char frmtstr[256];
 
-	snprintf(frmtstr, 256, "N:%u:%u", in, out);
+	snprintf(frmtstr, 256, "N:%u:%u", bytes4, bytes6);
 
 	const char *argv[] = {
 		frmtstr,
@@ -78,19 +78,18 @@ int update_rrd(const char *filename, const uint32_t in, const uint32_t out) {
 	return err;
 }
 
-int prepare_flow_rrd(const char *src,
-					const char *dst,
-					const uint32_t proto) {
+int prepare_flow_rrd(const char *src, const char *dst) {
 
 	char basename[32];
 	char pathname[256];
 	char filename[256];
+
 	int err = 0;
 
 	/* direct flow file */
 	sprintf(basename, "/data/rrd/flows/%s", src);
-	sprintf(pathname, "%s/flow_%s_to_%s_v%d.rrd", basename, src, dst, proto);
-	sprintf(filename, "flows/%s/flow_%s_to_%s_v%d.rrd", src, src, dst, proto);
+	sprintf(pathname, "%s/flow_%s_to_%s.rrd", basename, src, dst);
+	sprintf(filename, "flows/%s/flow_%s_to_%s.rrd", src, src, dst);
 
 	if (access(basename, F_OK) != 0) {
 		if (mkdir(basename, 0755)) {
@@ -109,30 +108,26 @@ int prepare_flow_rrd(const char *src,
 	return err;
 }
 
-int update_flow_rrd(const char *src,
-                    const char *dst,
-                    const uint32_t proto,
-                    const uint32_t in,
-                    const uint32_t out) {
+int update_flow_rrd(const char *src, const char *dst, const uint32_t bytes4, const uint32_t bytes6) {
 
 	char filename[256];
 	int err = 0;
 
-	sprintf(filename, "flows/%s/flow_%s_to_%s_v%d.rrd", src, src, dst, proto);
-	err = update_rrd(filename, in, out);
+	sprintf(filename, "flows/%s/flow_%s_to_%s.rrd", src, src, dst);
+
+	err = update_rrd(filename, bytes4, bytes6);
 	return err;
 }
 
-int prepare_peer_rrd(const char *peer,
-					const uint32_t proto) {
+int prepare_peer_rrd(const char *peer) {
 
 	char pathname[256];
 	char filename[256];
 	int err = 0;
 
 	/* peer file */
-	sprintf(filename, "peers/peer_%s_v%d.rrd", peer, proto);
-	sprintf(pathname, "/data/rrd/peers/peer_%s_v%d.rrd", peer, proto);
+	sprintf(filename, "peers/peer_%s.rrd", peer);
+	sprintf(pathname, "/data/rrd/peers/peer_%s.rrd", peer);
 
 	if (access(pathname, F_OK) != 0) {
 		err = create_rrd(filename);
@@ -142,28 +137,23 @@ int prepare_peer_rrd(const char *peer,
 	return err;
 }
 
-int update_peer_rrd(const char *peer,
-					const uint32_t proto,
-					const uint32_t in,
-					const uint32_t out) {
+int update_peer_rrd(const char *peer, const uint32_t bytes4, const uint32_t bytes6) {
 
 	char filename[256];
 	int err = 0;
 
-	sprintf(filename, "peers/peer_%s_v%d.rrd", peer, proto);
-	err = update_rrd(filename, in, out);
+	sprintf(filename, "peers/peer_%s.rrd", peer);
+	err = update_rrd(filename, bytes4, bytes6);
 	return err;
 }
 
-void rrdtool_prepare(const char *src, const char *dst, const uint32_t proto) {
+void rrdtool_prepare(const char *src, const char *dst) {
 
-  	prepare_flow_rrd(src, dst, proto);
-    prepare_flow_rrd(dst, src, proto);
+  	prepare_flow_rrd(src, dst);
 }
 
-void rrdtool_store(const char *src, const char *dst,
-				 const uint32_t proto, const uint32_t in, const uint32_t out) {
+void rrdtool_store(const char *src, const char *dst, const uint32_t bytes4, const uint32_t bytes6) {
 
-  	update_flow_rrd(src, dst, proto, in, out);
+  	update_flow_rrd(src, dst, bytes4, bytes6);
 }
 // EOF

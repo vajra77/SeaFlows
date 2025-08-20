@@ -15,7 +15,7 @@
 #include "seaflows.h"
 #include "memory.h"
 #include "collector/collector.h"
-#include "rrdtool/rrdtool.h"
+#include "broker/broker.h"
 #include "bucket/bucket.h"
 
 
@@ -23,8 +23,10 @@
 #define MAX_FLOWS 1024
 
 /* thread share/control variables */
-static pthread_t			threads[MAX_THREADS];
-static collector_data_t		collector[MAX_THREADS];
+static pthread_t			collector[MAX_THREADS];
+static pthread_t			broker[MAX_THREADS];
+static collector_data_t		collector_data[MAX_THREADS];
+static broker_data_t		broker_data[MAX_THREADS];
 
 
 void usage(){
@@ -36,14 +38,16 @@ void usage(){
 	printf("\t-t <n_threads>\t\tNumber of listener threads\n");
 }
 
-void signal_handler(int sig) {
+void signal_handler(const int sig) {
 	syslog(LOG_INFO, "Received signal %d", sig);
 	for(int i = 0; i < MAX_THREADS; i++) {
-		pthread_cancel(threads[i]);
+		pthread_cancel(collector[i]);
+		pthread_cancel(broker[i]);
 	}
 
 	for(int i = 0; i < MAX_THREADS; i++) {
-		pthread_join(threads[i], NULL);
+		pthread_join(collector[i], NULL);
+		pthread_join(broker[i], NULL);
 	}
 
 	closelog();
@@ -119,16 +123,23 @@ int main(const int argc, char **argv) {
 	/* create threads */
 	for(int i = 0; i < num_threads; i++) {
 
-		collector[i].port = SEAFLOWS_LISTENER_PORT + i;
-		collector[i].address = listen_address;
-		collector[i].bucket = &flow_bucket;
+		collector_data[i].id = i;
+		collector_data[i].port = SEAFLOWS_LISTENER_PORT + i;
+		collector_data[i].address = listen_address;
+		bucket_init(&collector_data[i].bucket);
 
-		pthread_create(&threads[i], NULL, collector_thread, &collector[i]);
+		broker_data[i].id = i;
+		bucket_init(&broker_data[i].bucket);
+
+		pthread_create(&collector[i], NULL, collector_thread, &collector_data[i]);
+		pthread_create(&broker[i], NULL, broker_thread, &broker_data[i]);
 	}
 
-	for (;;) {
-		sleep(5);
-		bucket_dump(&flow_bucket);
+	sleep(10);
+
+	for(int i = 0; i < num_threads; i++) {
+		pthread_join(collector[i], NULL);
+		pthread_join(broker[i], NULL);
 	}
 
 	exit(EXIT_SUCCESS);
