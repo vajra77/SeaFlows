@@ -51,7 +51,7 @@ void* collector_thread(void *arg) {
 				for (const flow_record_t* record = sample->records; record != NULL; record = record->next) {
 					storable_flow_t	*flow = sflow_encode_flow_record(record, sample->header.sampling_rate);
 					if (flow != NULL) {
-						rrdtool_prepare(flow->src_mac, flow->dst_mac);
+						// rrdtool_prepare(flow->src_mac, flow->dst_mac);
 						bucket_add(collector->bucket, flow->src_mac, flow->dst_mac, flow->proto, flow->computed_size);
 						MEM_free(flow);
 					}
