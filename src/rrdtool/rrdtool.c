@@ -78,7 +78,7 @@ int update_rrd(const char *filename, const uint32_t bytes4, const uint32_t bytes
 	return err;
 }
 
-int prepare_flow_rrd(const char *src, const char *dst) {
+int rrdtool_store(const char *src, const char *dst, const uint32_t bytes4, const uint32_t bytes6) {
 
 	char basename[32];
 	char pathname[256];
@@ -97,63 +97,15 @@ int prepare_flow_rrd(const char *src, const char *dst) {
 			return err;
 		}
 		err = create_rrd(filename);
-		return err;
+		if (err) return err;
 	}
 
 	if (access(pathname, F_OK) != 0) {
 		err = create_rrd(filename);
-		return err;
+		if (err) return err;
 	}
-
-	return err;
-}
-
-int update_flow_rrd(const char *src, const char *dst, const uint32_t bytes4, const uint32_t bytes6) {
-
-	char filename[256];
-	int err = 0;
-
-	sprintf(filename, "flows/%s/flow_%s_to_%s.rrd", src, src, dst);
 
 	err = update_rrd(filename, bytes4, bytes6);
 	return err;
-}
-
-int prepare_peer_rrd(const char *peer) {
-
-	char pathname[256];
-	char filename[256];
-	int err = 0;
-
-	/* peer file */
-	sprintf(filename, "peers/peer_%s.rrd", peer);
-	sprintf(pathname, "/data/rrd/peers/peer_%s.rrd", peer);
-
-	if (access(pathname, F_OK) != 0) {
-		err = create_rrd(filename);
-		return err;
-	}
-
-	return err;
-}
-
-int update_peer_rrd(const char *peer, const uint32_t bytes4, const uint32_t bytes6) {
-
-	char filename[256];
-	int err = 0;
-
-	sprintf(filename, "peers/peer_%s.rrd", peer);
-	err = update_rrd(filename, bytes4, bytes6);
-	return err;
-}
-
-void rrdtool_prepare(const char *src, const char *dst) {
-
-  	prepare_flow_rrd(src, dst);
-}
-
-void rrdtool_store(const char *src, const char *dst, const uint32_t bytes4, const uint32_t bytes6) {
-
-  	update_flow_rrd(src, dst, bytes4, bytes6);
 }
 // EOF
