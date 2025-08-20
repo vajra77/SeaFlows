@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -g
+CFLAGS = -Wall -g -DWITH_GC
 LIBS = -lrrd -lgc
 
 all: sflow rrdtool bucket collector broker main
