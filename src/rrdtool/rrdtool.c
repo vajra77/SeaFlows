@@ -39,7 +39,9 @@ int create_rrd(const char *filename) {
 
 	err = rrdc_create(filename, 300, time(NULL), 1, 10, argv);
 	if (err) 	{
-		syslog(LOG_ERR, "Unable to create RRD file: %s (error=%d)", filename, err);
+#ifdef DEBUG
+		syslog(LOG_DEBUG, "Unable to create RRD file: %s (error=%d)", filename, err);
+#endif
 		rrd_clear_error();
 	}
 
@@ -60,7 +62,9 @@ int update_rrd(const char *filename, const uint32_t bytes4, const uint32_t bytes
 	int err = rrdc_connect(RRDCACHED_ADDRESS);
 
 	if (err) {
-		syslog(LOG_ERR, "Unable to connect to rrdcached: %s (error=%d)", rrd_get_error(), err);
+#ifdef DEBUG
+		syslog(LOG_DEBUG, "Unable to connect to rrdcached: %s (error=%d)", rrd_get_error(), err);
+#endif
 		rrd_clear_error();
 		return -1;
 	}
