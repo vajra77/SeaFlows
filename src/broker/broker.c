@@ -23,18 +23,15 @@ void* broker_thread(void *arg) {
 	syslog(LOG_INFO, "Starting broker[%d]", broker->id);
 
 	for (;;) {
-		sleep(5);
+		sleep(60);
 		bucket_dump_t *dump = bucket_flush(broker->bucket);
 		for (int k = 0; k < dump->size; k++) {
 			bucket_node_t *node = dump->nodes[k];
-			// rrdtool_store(node->src, node->dst, node->bytes4, node->bytes6);
-			syslog(LOG_INFO, "broker[%d]: %s => %s (%u, %u)",
-				broker->id, node->src, node->dst, node->bytes4, node->bytes6);
+			rrdtool_store(node->src, node->dst, node->bytes4, node->bytes6);
 			MEM_free(node);
 		}
 		MEM_free(dump);
 		pthread_testcancel();
-		return NULL;
 	}
 	return NULL;
 }
