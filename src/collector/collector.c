@@ -53,6 +53,8 @@ void* collector_thread(void *arg) {
 					if (flow != NULL) {
 						//rrdtool_prepare(flow->src_mac, flow->dst_mac);
 						bucket_add(&collector->bucket, flow->src_mac, flow->dst_mac, flow->proto, flow->computed_size);
+						syslog(LOG_DEBUG, "collector[%d] storing: %s => %s (%u) [IPv%d]",
+							collector->id, flow->src_mac, flow->dst_mac, flow->computed_size, flow->proto);
 						MEM_free(flow);
 					}
 				}
