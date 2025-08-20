@@ -13,7 +13,7 @@
 #include "bucket/bucket.h"
 
 
-void* collector_thread(void *arg) {
+void* broker_thread(void *arg) {
 
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
