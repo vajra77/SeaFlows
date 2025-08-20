@@ -23,7 +23,7 @@ void bucket_init(bucket_t *bucket) {
 bucket_dump_t *bucket_flush(bucket_t *bucket) {
 
     pthread_mutex_lock(&bucket->mutex);
-    bucket_dump_t *dump = malloc(sizeof(bucket_dump_t));
+    bucket_dump_t *dump = MEM_alloc(sizeof(bucket_dump_t));
     memset(dump, 0, sizeof(bucket_dump_t));
 
     for (int k = 0; k <= bucket->last; k++) {

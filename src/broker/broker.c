@@ -24,7 +24,7 @@ void* broker_thread(void *arg) {
 
 	for (;;) {
 		sleep(5);
-		bucket_dump_t *dump = bucket_flush(&broker->bucket);
+		bucket_dump_t *dump = bucket_flush(broker->bucket);
 		for (int k = 0; k < dump->size; k++) {
 			bucket_node_t *node = dump->nodes[k];
 			// rrd_store(node->src, node->dst, node->bytes4, node->bytes6);

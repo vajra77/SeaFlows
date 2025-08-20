@@ -10,7 +10,7 @@
 
 typedef struct broker_data {
 	int id;
-	bucket_t bucket;
+	bucket_t *bucket;
 } broker_data_t;
 
 void* broker_thread(void *);

@@ -25,8 +25,11 @@
 /* thread share/control variables */
 static pthread_t			collector[MAX_THREADS];
 static pthread_t			broker[MAX_THREADS];
-static collector_data_t		collector_data[MAX_THREADS];
-static broker_data_t		broker_data[MAX_THREADS];
+static int num_threads = 0;
+
+collector_data_t	collector_data[MAX_THREADS];
+broker_data_t		broker_data[MAX_THREADS];
+bucket_t*			bucket[MAX_THREADS];
 
 
 void usage(){
@@ -40,14 +43,18 @@ void usage(){
 
 void signal_handler(const int sig) {
 	syslog(LOG_INFO, "Received signal %d", sig);
-	for(int i = 0; i < MAX_THREADS; i++) {
+	for(int i = 0; i < num_threads; i++) {
 		pthread_cancel(collector[i]);
 		pthread_cancel(broker[i]);
 	}
 
-	for(int i = 0; i < MAX_THREADS; i++) {
+	for(int i = 0; i < num_threads; i++) {
 		pthread_join(collector[i], NULL);
 		pthread_join(broker[i], NULL);
+	}
+
+	for(int i = 0; i < num_threads; i++) {
+		MEM_free(bucket[i]);
 	}
 
 	closelog();
@@ -57,7 +64,6 @@ void signal_handler(const int sig) {
 int main(const int argc, char **argv) {
 
 	 char listen_address[1024];
-	 int num_threads = 0;
 	 int c;
 
 	 if(argc < 2){
@@ -117,19 +123,20 @@ int main(const int argc, char **argv) {
 
 	openlog("seaflows", LOG_PID, LOG_DAEMON);
 
-	bucket_t flow_bucket;
-	bucket_init(&flow_bucket);
 
 	/* create threads */
 	for(int i = 0; i < num_threads; i++) {
 
+		bucket[i] = MEM_alloc(sizeof(bucket_t));
+		bucket_init(bucket[i]);
+
 		collector_data[i].id = i;
 		collector_data[i].port = SEAFLOWS_LISTENER_PORT + i;
 		collector_data[i].address = listen_address;
-		bucket_init(&collector_data[i].bucket);
+		collector_data[i].bucket = bucket[i];
 
 		broker_data[i].id = i;
-		bucket_init(&broker_data[i].bucket);
+		broker_data[i].bucket = bucket[i];
 
 		pthread_create(&collector[i], NULL, collector_thread, &collector_data[i]);
 		pthread_create(&broker[i], NULL, broker_thread, &broker_data[i]);
