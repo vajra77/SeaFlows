@@ -4,7 +4,7 @@
 
 #ifndef BUCKET_H
 #define BUCKET_H
-#define MAX_BUCKET 4096
+#define MAX_BUCKET 65536
 #define MAC_ADDRESS_LEN 13
 
 #include <stdint.h>
