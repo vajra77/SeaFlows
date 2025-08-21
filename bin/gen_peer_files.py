@@ -77,7 +77,7 @@ if __name__ == '__main__':
         elif opt in ("-s", "--schedule"):
             my_schedule = arg
 
-    sources = [x[0] for x in os.walk(SRC_DIR)]
+    sources = [os.path.basename(x[0]) for x in os.walk(SRC_DIR)]
     pprint(sources)
     sys.exit(0)
     for source in sources:
