@@ -25,6 +25,7 @@ def get_in_data(schedule, proto, src):
 
     avg_in = None
     max_in = None
+    ts = None
 
     rrd_files = os.listdir(SRC_DIR + '/' + src)
     for rrd_f in rrd_files:
@@ -42,7 +43,8 @@ def get_in_data(schedule, proto, src):
             else:
                 max_in = np.add(max_in, tmp_max)
 
-    ts = rrdb.get_timestamps(schedule, avg_in)
+    if avg_in:
+        ts = rrdb.get_timestamps(schedule, avg_in)
 
     return avg_in, max_in, ts
 
@@ -53,10 +55,10 @@ def get_out_data(schedule, proto, src):
 
     avg_out = None
     max_out = None
+    ts = None
 
     search_term = SRC_DIR + f"*/flow_*_to_{src}.rrd"
     targets = glob.glob(search_term)
-    pprint(targets)
 
     for tgt_f in targets:
         if os.path.isfile(tgt_f):
@@ -72,7 +74,9 @@ def get_out_data(schedule, proto, src):
             else:
                 max_out = np.add(max_out, tmp_max)
 
-    ts = rrdb.get_timestamps(schedule, avg_out)
+    if avg_out:
+        ts = rrdb.get_timestamps(schedule, avg_out)
+
     return avg_out, max_out, ts
 
 
@@ -118,7 +122,6 @@ if __name__ == '__main__':
         json_str = json.dumps(data, indent=4)
         with open(tgt_file, "w") as f:
             f.write(json_str)
-
 
     sys.exit(0)
 
