@@ -10,7 +10,7 @@ from seaflows.middleware import RRDBackend
 
 RRD_DIR = '/data/rrd'
 SRC_DIR = f"{RRD_DIR}/flows"
-TGT_DIR = '/data/json'
+TGT_DIR = '/data/json/peers'
 
 
 def usage():
@@ -82,6 +82,7 @@ if __name__ == '__main__':
             my_schedule = arg
 
     sources = [os.path.basename(x[0]) for x in os.walk(SRC_DIR)].pop(0)
+    sources.pop(0)
 
     for source in sources:
         src_avg_in, src_max_in, dates_in = get_in_data(my_schedule, my_proto, source)
