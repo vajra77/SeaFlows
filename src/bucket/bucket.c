@@ -12,7 +12,6 @@
 void bucket_init(bucket_t *bucket) {
 
     bucket->size = 0;
-    bucket->last = -1;
     for(int k = 0; k < MAX_BUCKET; k++) {
         bucket->nodes[k] = NULL;
     }
@@ -25,14 +24,11 @@ bucket_dump_t *bucket_flush(bucket_t *bucket) {
     bucket_dump_t *dump = malloc(sizeof(bucket_dump_t));
     memset(dump, 0, sizeof(bucket_dump_t));
 
-    for (int k = 0; k <= bucket->last; k++) {
-        dump->nodes[k] = bucket->nodes[k];
-        bucket->nodes[k] = NULL;
-    }
+    memcpy(dump->nodes, bucket->nodes, MAX_BUCKET);
+    memset(bucket->nodes, 0, sizeof(bucket_node_t*) * MAX_BUCKET);
 
-    dump->size = bucket->last + 1;
+    dump->size = bucket->size;
     bucket->size = 0;
-    bucket->last = -1;
 
     pthread_mutex_unlock(&bucket->mutex);
 
@@ -72,8 +68,7 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
             node->bytes4 = 0;
             node->bytes6 = nbytes;
         }
-        bucket->last = bucket->size;
-        bucket->nodes[bucket->last] = node;
+        bucket->nodes[bucket->size] = node;
         bucket->size++;
     }
 
@@ -87,11 +82,11 @@ bucket_node_t *bucket_remove(bucket_t *bucket) {
         pthread_mutex_unlock(&bucket->mutex);
         return NULL;
     }
-    bucket_node_t *node = bucket->nodes[bucket->last];
-    bucket->nodes[bucket->last] = NULL;
-    bucket->last--;
     bucket->size--;
+    bucket_node_t *node = bucket->nodes[bucket->size];
+    bucket->nodes[bucket->size] = NULL;
 
     pthread_mutex_unlock(&bucket->mutex);
+
     return node;
 }

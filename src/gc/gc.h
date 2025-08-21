@@ -5,7 +5,7 @@
 #ifndef GC_H
 #define GC_H
 
-#define MAX_GC_DATA 128
+#define MAX_GC_DATA 1024
 
 
 typedef struct gc {

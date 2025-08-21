@@ -25,7 +25,6 @@ typedef struct bucket_dump {
 
 typedef struct bucket {
     pthread_mutex_t mutex;
-    int last;
     int size;
     bucket_node_t* nodes[MAX_BUCKET];
 } bucket_t;
