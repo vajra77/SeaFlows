@@ -56,6 +56,7 @@ def get_out_data(schedule, proto, src):
 
     search_term = SRC_DIR + f"*/flow_*_to_{src}.rrd"
     targets = glob.glob(search_term)
+    pprint(targets)
 
     for tgt_f in targets:
         if os.path.isfile(tgt_f):
