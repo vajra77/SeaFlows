@@ -26,7 +26,6 @@ def get_in_data(schedule, proto, src):
     avg_in = np.array([])
     max_in = np.array([])
 
-    print(f"SRC: {src}")
     rrd_files = os.listdir(SRC_DIR + '/' + src)
     for rrd_f in rrd_files:
         path = f"{SRC_DIR}/{src}/{rrd_f}"
@@ -82,7 +81,7 @@ if __name__ == '__main__':
         elif opt in ("-s", "--schedule"):
             my_schedule = arg
 
-    sources = [os.path.basename(x[0]) for x in os.walk(SRC_DIR)]
+    sources = [os.path.basename(x[0]) for x in os.walk(SRC_DIR)].pop(0)
 
     for source in sources:
         src_avg_in, src_max_in, dates_in = get_in_data(my_schedule, my_proto, source)
