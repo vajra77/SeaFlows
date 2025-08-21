@@ -17,7 +17,7 @@ def get_flow():
 
     rrd = RRDBackend('/data/rrd', 1)
 
-    res, data = rrd.get_flow_data(schedule, proto, src, dst)
+    res, data = rrd.render_flow(schedule, src, dst)
 
     if res:
         return make_response(jsonify(data)), 200

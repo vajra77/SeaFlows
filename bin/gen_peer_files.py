@@ -1,0 +1,100 @@
+import glob
+import os
+import getopt
+import sys
+import json
+import numpy as np
+from seaflows.middleware import RRDBackend
+
+
+RRD_DIR = '/data/rrd'
+SRC_DIR = f"{RRD_DIR}/flows"
+TGT_DIR = '/data/json'
+
+
+def usage():
+    print("Command arguments:")
+    print(" -h, --help : print this message")
+    print(" -p, --proto : IP protocol [4|6]")
+    print(" -s, --schedule : schedule [d|w|m|y]")
+
+def get_in_data(schedule, proto, src):
+
+    rrdb = RRDBackend(RRD_DIR)
+
+    avg_in = np.array([])
+    max_in = np.array([])
+
+    rrd_files = os.listdir(SRC_DIR + '/' + src)
+    for rrd_f in rrd_files:
+        tmp_avg, tmp_max = rrdb.get_flow_data(schedule, proto, rrd_f)
+        avg_in = np.add(avg_in, tmp_avg)
+        max_in = np.add(max_in, tmp_max)
+
+    ts = rrdb.get_timestamps(schedule, avg_in)
+    return avg_in, max_in, ts
+
+
+def get_out_data(schedule, proto, src):
+
+    rrdb = RRDBackend(RRD_DIR)
+
+    avg_out = np.array([])
+    max_out = np.array([])
+
+    search_term = SRC_DIR + f"/flow_*_to_{src}.rrd"
+    targets = glob.glob(search_term)
+
+    for tgt_f in targets:
+        tmp_avg, tmp_max = rrdb.get_flow_data(schedule, proto, tgt_f)
+        avg_out = np.add(avg_out, tmp_avg)
+        max_out = np.add(max_out, tmp_max)
+
+    ts = rrdb.get_timestamps(schedule, avg_out)
+    return avg_out, max_out, ts
+
+
+if __name__ == '__main__':
+
+    my_proto = 4
+    my_schedule = 'd'
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hp:s:", ["help", "proto=", "schedule="])
+
+    except getopt.GetoptError as err:
+        print(f"error: {err}")
+        usage()
+        sys.exit(1)
+
+    for opt, arg in opts:
+        if opt in ("-h", "--help"):
+            usage()
+            sys.exit(0)
+        elif opt in ("-p", "--proto"):
+            my_proto = arg
+        elif opt in ("-s", "--schedule"):
+            my_schedule = arg
+
+    sources = [x[0] for x in os.walk(SRC_DIR)]
+    for source in sources:
+        src_avg_in, src_max_in, dates_in = get_in_data(my_schedule, my_proto, source)
+        src_avg_out, src_max_out, dates_out = get_out_data(my_schedule, my_proto, source)
+
+        data = {
+            'avg_in': src_avg_in,
+            'avg_out': src_avg_out,
+            'max_in': src_max_in,
+            'max_out': src_max_out,
+            'time': dates_in
+        }
+
+        tgt_file = TGT_DIR + f"/peer_{source}_v{my_proto}.json"
+
+        json_str = json.dumps(data, indent=4)
+        with open(tgt_file, "w") as f:
+            f.write(json_str)
+
+
+    sys.exit(0)
+
