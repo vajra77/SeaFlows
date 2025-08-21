@@ -121,7 +121,7 @@ if __name__ == '__main__':
 
         tgt_file = TGT_DIR + f"/peer_{source}_v{my_proto}.json"
 
-        json_str = json.dumps(data, indent=4)
+        json_str = json.dumps(data, indent=4, default=str)
         with open(tgt_file, "w") as f:
             f.write(json_str)
 
