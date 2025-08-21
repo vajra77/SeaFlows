@@ -12,9 +12,7 @@
 void bucket_init(bucket_t *bucket) {
 
     bucket->size = 0;
-    for(int k = 0; k < MAX_BUCKET; k++) {
-        bucket->nodes[k] = NULL;
-    }
+    memset(bucket->nodes, 0, sizeof(bucket_node_t*) * MAX_BUCKET);
     pthread_mutex_init(&bucket->mutex, NULL);
 }
 
