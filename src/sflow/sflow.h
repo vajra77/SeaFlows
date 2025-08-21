@@ -14,8 +14,6 @@
 #define SFLOW_RAW_PACKET_HEADER_FORMAT            0x00000001
 #define SFLOW_RAW_PACKET_HEADER_PROTO_ETHERNET    0x00000001
 
-#define SFLOW_DEBUG
-
 #ifdef SFLOW_DEBUG
 #define MEMGUARD(ptr, start, len) if (ptr > start + len) { syslog(LOG_ERR, "memory overflow"); gc_cleanup(&gc); return NULL; }
 #else
