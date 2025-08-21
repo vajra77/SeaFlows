@@ -43,10 +43,11 @@ def get_in_data(schedule, proto, src):
             else:
                 max_in = np.add(max_in, tmp_max)
 
-    if avg_in is not None:
+    if avg_in is not None and max_in is not None:
         ts = rrdb.get_timestamps(schedule, avg_in)
-
-    return list(avg_in), list(max_in), ts
+        return list(avg_in), list(max_in), ts
+    else:
+        return [], [], []
 
 
 def get_out_data(schedule, proto, src):
@@ -74,10 +75,11 @@ def get_out_data(schedule, proto, src):
             else:
                 max_out = np.add(max_out, tmp_max)
 
-    if avg_out is not None:
+    if avg_out is not None and max_out is not None:
         ts = rrdb.get_timestamps(schedule, avg_out)
-
-    return list(avg_out), list(max_out), ts
+        return list(avg_out), list(max_out), ts
+    else:
+        return [], [],[]
 
 
 if __name__ == '__main__':
