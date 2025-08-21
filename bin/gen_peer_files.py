@@ -4,6 +4,7 @@ import getopt
 import sys
 import json
 import numpy as np
+from pprint import pprint
 from seaflows.middleware import RRDBackend
 
 
@@ -77,6 +78,8 @@ if __name__ == '__main__':
             my_schedule = arg
 
     sources = [x[0] for x in os.walk(SRC_DIR)]
+    pprint(sources)
+    sys.exit(0)
     for source in sources:
         src_avg_in, src_max_in, dates_in = get_in_data(my_schedule, my_proto, source)
         src_avg_out, src_max_out, dates_out = get_out_data(my_schedule, my_proto, source)
