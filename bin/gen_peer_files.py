@@ -23,16 +23,24 @@ def get_in_data(schedule, proto, src):
 
     rrdb = RRDBackend(RRD_DIR)
 
-    avg_in = np.array([])
-    max_in = np.array([])
+    avg_in = None
+    max_in = None
 
     rrd_files = os.listdir(SRC_DIR + '/' + src)
     for rrd_f in rrd_files:
         path = f"{SRC_DIR}/{src}/{rrd_f}"
         if os.path.isfile(path):
             tmp_avg, tmp_max = rrdb.get_flow_data(schedule, proto, path)
-            avg_in = np.add(avg_in, tmp_avg)
-            max_in = np.add(max_in, tmp_max)
+
+            if avg_in is None:
+                avg_in = np.array(tmp_avg)
+            else:
+                avg_in = np.add(avg_in, tmp_avg)
+
+            if max_in is None:
+                max_in = np.array(tmp_max)
+            else:
+                max_in = np.add(max_in, tmp_max)
 
     ts = rrdb.get_timestamps(schedule, avg_in)
 
@@ -43,8 +51,8 @@ def get_out_data(schedule, proto, src):
 
     rrdb = RRDBackend(RRD_DIR)
 
-    avg_out = np.array([])
-    max_out = np.array([])
+    avg_out = None
+    max_out = None
 
     search_term = SRC_DIR + f"*/flow_*_to_{src}.rrd"
     targets = glob.glob(search_term)
@@ -52,8 +60,16 @@ def get_out_data(schedule, proto, src):
     for tgt_f in targets:
         if os.path.isfile(tgt_f):
             tmp_avg, tmp_max = rrdb.get_flow_data(schedule, proto, tgt_f)
-            avg_out = np.add(avg_out, tmp_avg)
-            max_out = np.add(max_out, tmp_max)
+
+            if avg_out is None:
+                avg_out = np.array(tmp_avg)
+            else:
+                avg_out = np.add(avg_out, tmp_avg)
+
+            if max_out is None:
+                max_out = np.array(tmp_max)
+            else:
+                max_out = np.add(max_out, tmp_max)
 
     ts = rrdb.get_timestamps(schedule, avg_out)
     return avg_out, max_out, ts
