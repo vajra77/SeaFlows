@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import os
 import rrdtool # noqa
+import glob
 import numpy as np
 
 
@@ -47,6 +48,70 @@ class RRDBackend:
 
         else:
             return False, { 'error': 'unable to find RRD file' }
+
+
+    def render_peer(self, schedule, proto, macs):
+
+        avg_in = None
+        max_in = None
+        avg_out = None
+        max_out = None
+        ts = None
+
+        for mac in macs:
+            rrd_files = os.listdir(self._base_path + f"/flows/{mac}")
+            for rrd_f in rrd_files:
+                path = self._base_path + f"/flows/{mac}/{rrd_f}"
+                if os.path.isfile(path):
+                    tmp_avg, tmp_max = self.get_flow_data(schedule, proto, path)
+
+                    if avg_in is None:
+                        avg_in = np.array(tmp_avg)
+                    else:
+                        avg_in = np.add(avg_in, tmp_avg)
+
+                    if max_in is None:
+                        max_in = np.array(tmp_max)
+                    else:
+                        max_in = np.add(max_in, tmp_max)
+
+            search_term = self._base_path + f"*/flow_*_to_{mac}.rrd"
+            targets = glob.glob(search_term)
+
+            for tgt_f in targets:
+                if os.path.isfile(tgt_f):
+                    tmp_avg, tmp_max = self.get_flow_data(schedule, proto, tgt_f)
+
+                    if avg_out is None:
+                        avg_out = np.array(tmp_avg)
+                    else:
+                        avg_out = np.add(avg_out, tmp_avg)
+
+                    if max_out is None:
+                        max_out = np.array(tmp_max)
+                    else:
+                        max_out = np.add(max_out, tmp_max)
+            # end mac loop
+
+        if avg_in is not None and \
+            avg_out is not None and \
+            max_in is not None and \
+            max_out is not None:
+
+            ts = self.get_timestamps(schedule, avg_in)
+
+            data = {
+                'avg_in': avg_in,
+                'avg_out': avg_out,
+                'max_in': max_in,
+                'max_out': max_out,
+                'time': ts
+            }
+
+            return True, data
+
+        else:
+            return False, { 'error': 'unable to recover all data' }
 
 
     def get_flow_data(self, schedule, proto, filename):

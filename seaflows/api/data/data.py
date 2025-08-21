@@ -13,7 +13,6 @@ def get_flow():
     src = request.args.get('src')
     dst = request.args.get('dst')
     schedule = request.args.get('period') or 'daily'
-    proto = request.args.get('proto') or 4
 
     rrd = RRDBackend('/data/rrd', 1)
 
@@ -26,14 +25,14 @@ def get_flow():
 
 
 @api.route('/data/peer', methods=['GET'])
-def get_flow():
+def get_peer():
     macs = request.args.get('macs').split(',')
     schedule = request.args.get('period') or 'daily'
     proto = request.args.get('proto') or 4
 
     rrd = RRDBackend('/data/rrd', 1)
 
-    res, data = rrd.get_peer_data(schedule, proto, macs)
+    res, data = rrd.render_peer(schedule, proto, macs)
 
     if res:
         return make_response(jsonify(data)), 200
