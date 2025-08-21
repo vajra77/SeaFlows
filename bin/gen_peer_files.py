@@ -26,9 +26,9 @@ def get_in_data(schedule, proto, src):
     avg_in = np.array([])
     max_in = np.array([])
 
+    print(f"SRC: {src}")
     rrd_files = os.listdir(SRC_DIR + '/' + src)
     for rrd_f in rrd_files:
-        print(f"SRC: {src}")
         path = f"{SRC_DIR}/{src}/{rrd_f}"
         if os.path.isfile(path):
             tmp_avg, tmp_max = rrdb.get_flow_data(schedule, proto, path)
