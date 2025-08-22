@@ -144,6 +144,14 @@ int main(const int argc, char **argv) {
 
 	sleep(10);
 
+	for (;;) {
+		sleep(60);
+		for (int i = 0; i < num_threads; i++) {
+			double occupied = double(bucket[i]->size) / MAX_BUCKET;
+			syslog(LOG_INFO, "Bucket[%d], occupation: %.2f", i, occupied);
+		}
+	}
+
 	for(int i = 0; i < num_threads; i++) {
 		pthread_join(collector[i], NULL);
 		pthread_join(broker[i], NULL);
