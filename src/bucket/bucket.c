@@ -11,7 +11,7 @@
 #include <sys/syslog.h>
 
 
-void bucket_init(bucket_t *bucket, int id) {
+void bucket_init(bucket_t *bucket, const int id) {
 
     bucket->size = 0;
     bucket->id = id;
@@ -74,7 +74,7 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
             bucket->size++;
         }
         else {
-            syslog(LOG_WARNING, "Bucket[%d]: full, discarding flow %s => %s", bucket->id, src_mac, dst_mac);
+            syslog(LOG_WARNING, "Bucket[%d]: full, discarding flow", bucket->id);
         }
     }
 

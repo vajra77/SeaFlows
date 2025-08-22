@@ -31,7 +31,7 @@ typedef struct bucket {
 } bucket_t;
 
 void bucket_init(bucket_t *, int);
-void bucket_add(bucket_t *, const char *, const char *, const uint32_t, const uint32_t);
+void bucket_add(bucket_t *, const char *, const char *, uint32_t, uint32_t);
 bucket_node_t *bucket_remove(bucket_t *);
 bucket_dump_t *bucket_flush(bucket_t *);
 float bucket_occupation(bucket_t *);
