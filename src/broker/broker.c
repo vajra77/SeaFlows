@@ -24,7 +24,8 @@ void* broker_thread(void *arg) {
 	for (;;) {
 		sleep(60);
 
-		syslog(LOG_INFO, "Bucket[%d], occupation: %.2f", broker->id, bucket_occupation(broker->bucket));
+		syslog(LOG_INFO, "Bucket[%d]: size=&d, occupation=%.2f", broker->id,
+			broker->bucket->size, bucket_occupation(broker->bucket));
 
 		bucket_dump_t *dump = bucket_flush(broker->bucket);
 		for (int k = 0; k < dump->size; k++) {
