@@ -88,3 +88,11 @@ bucket_node_t *bucket_remove(bucket_t *bucket) {
 
     return node;
 }
+
+float bucket_occupation(bucket_t *bucket) {
+
+    pthread_mutex_lock(&bucket->mutex);
+    const float result = (float)bucket->size / MAX_BUCKET;
+    pthread_mutex_unlock(&bucket->mutex);
+    return result;
+}
