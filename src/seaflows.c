@@ -147,7 +147,7 @@ int main(const int argc, char **argv) {
 	for (;;) {
 		sleep(60);
 		for (int i = 0; i < num_threads; i++) {
-			double occupied = double(bucket[i]->size) / MAX_BUCKET;
+			const float occupied = float(bucket[i]->size) / MAX_BUCKET;
 			syslog(LOG_INFO, "Bucket[%d], occupation: %.2f", i, occupied);
 		}
 	}
