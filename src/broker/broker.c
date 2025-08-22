@@ -26,7 +26,7 @@ void* broker_thread(void *arg) {
 
 		/* logs every 2 hrs */
 		if (t >= 120) {
-			syslog(LOG_INFO, "Bucket[%d]: occupation=%.2f\%", broker->bucket->id,
+			syslog(LOG_INFO, "Bucket[%d]: occupation=%.2f%%", broker->bucket->id,
 				100 * bucket_occupation(broker->bucket));
 			t = 0;
 		}
