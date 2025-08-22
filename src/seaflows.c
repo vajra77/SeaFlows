@@ -128,7 +128,7 @@ int main(const int argc, char **argv) {
 	for(int i = 0; i < num_threads; i++) {
 
 		bucket[i] = malloc(sizeof(bucket_t));
-		bucket_init(bucket[i]);
+		bucket_init(bucket[i], i);
 
 		collector_data[i].id = i;
 		collector_data[i].port = SEAFLOWS_LISTENER_PORT + i;

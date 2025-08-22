@@ -8,10 +8,13 @@
 
 #include "bucket.h"
 
+#include <sys/syslog.h>
 
-void bucket_init(bucket_t *bucket) {
+
+void bucket_init(bucket_t *bucket, int id) {
 
     bucket->size = 0;
+    bucket->id = id;
     memset(bucket->nodes, 0, sizeof(bucket_node_t*) * MAX_BUCKET);
     pthread_mutex_init(&bucket->mutex, NULL);
 }
@@ -54,20 +57,25 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
         }
     }
 
-    if (!found && (bucket->size < MAX_BUCKET)) {
-        bucket_node_t *node = malloc(sizeof(bucket_node_t));
-        strncpy(node->src, src_mac, MAC_ADDRESS_LEN);
-        strncpy(node->dst, dst_mac, MAC_ADDRESS_LEN);
-        if (proto == 4) {
-            node->bytes4 = nbytes;
-            node->bytes6 = 0;
+    if (!found) {
+        if (bucket->size < MAX_BUCKET) {
+            bucket_node_t *node = malloc(sizeof(bucket_node_t));
+            strncpy(node->src, src_mac, MAC_ADDRESS_LEN);
+            strncpy(node->dst, dst_mac, MAC_ADDRESS_LEN);
+            if (proto == 4) {
+                node->bytes4 = nbytes;
+                node->bytes6 = 0;
+            }
+            else {
+                node->bytes4 = 0;
+                node->bytes6 = nbytes;
+            }
+            bucket->nodes[bucket->size] = node;
+            bucket->size++;
         }
         else {
-            node->bytes4 = 0;
-            node->bytes6 = nbytes;
+            syslog(LOG_WARNING, "Bucket[%d]: full, discarding flow %s => %s", bucket->id, src_mac, dst_mac);
         }
-        bucket->nodes[bucket->size] = node;
-        bucket->size++;
     }
 
     pthread_mutex_unlock(&bucket->mutex);

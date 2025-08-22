@@ -4,7 +4,7 @@
 
 #ifndef BUCKET_H
 #define BUCKET_H
-#define MAX_BUCKET 65536
+#define MAX_BUCKET 2048
 #define MAC_ADDRESS_LEN 13
 
 #include <stdint.h>
@@ -25,11 +25,12 @@ typedef struct bucket_dump {
 
 typedef struct bucket {
     pthread_mutex_t mutex;
+    int id;
     int size;
     bucket_node_t* nodes[MAX_BUCKET];
 } bucket_t;
 
-void bucket_init(bucket_t *);
+void bucket_init(bucket_t *, int);
 void bucket_add(bucket_t *, const char *, const char *, const uint32_t, const uint32_t);
 bucket_node_t *bucket_remove(bucket_t *);
 bucket_dump_t *bucket_flush(bucket_t *);
