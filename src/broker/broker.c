@@ -21,11 +21,15 @@ void* broker_thread(void *arg) {
 
 	syslog(LOG_INFO, "Starting broker[%d]", broker->id);
 
-	for (;;) {
+	for (int t = 0;; t++) {
 		sleep(60);
 
-		syslog(LOG_INFO, "Bucket[%d]: size=%d, occupation=%.2f", broker->id,
-			broker->bucket->size, bucket_occupation(broker->bucket));
+		/* logs every 2 hrs */
+		if (t >= 120) {
+			syslog(LOG_INFO, "Bucket[%d]: size=%d, occupation=%.2f", broker->bucket->id,
+				broker->bucket->size, bucket_occupation(broker->bucket));
+			t = 0;
+		}
 
 		bucket_dump_t *dump = bucket_flush(broker->bucket);
 		for (int k = 0; k < dump->size; k++) {
