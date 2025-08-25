@@ -20,5 +20,6 @@ AC_DEFINE_UNQUOTED([RRD_DIR], ["$rrd_dir_path"], [Path to the RRD data directory
 AC_DEFINE_UNQUOTED([RRDCACHED_ADDRES], [ "$rrdcached_address"], [RRD cache daemon address])
 
 AC_CONFIG_HEADERS([include/config.h])
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile include/Makefile])
+AC_CONFIG_FILES([src/Makefile])
 AC_OUTPUT
