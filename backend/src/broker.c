@@ -7,9 +7,8 @@
 #include <stdlib.h>
 
 #include "broker.h"
-
-#include "rrdtool/rrdtool.h"
-#include "bucket/bucket.h"
+#include "rrdtool.h"
+#include "bucket.h"
 
 
 void* broker_thread(void *arg) {

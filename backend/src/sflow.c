@@ -10,7 +10,7 @@
 #include <time.h>
 #include <sys/syslog.h>
 
-#include "gc/gc.h"
+#include "gc.h"
 #include "sflow.h"
 #include "net.h"
 

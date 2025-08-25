@@ -14,10 +14,10 @@
 #include <gc.h>
 
 #include "seaflows.h"
-#include "collector/collector.h"
-#include "broker/broker.h"
-#include "bucket/bucket.h"
-#include "rrdtool/rrdtool.h"
+#include "collector.h"
+#include "broker.h"
+#include "bucket.h"
+#include "rrdtool.h"
 
 
 #define MAX_THREADS 24

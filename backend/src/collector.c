@@ -10,10 +10,10 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#include "rrdtool/rrdtool.h"
-#include "sflow/sflow.h"
-#include "collector/collector.h"
-#include "bucket/bucket.h"
+#include "rrdtool.h"
+#include "sflow.h"
+#include "collector.h"
+#include "bucket.h"
 
 
 void* collector_thread(void *arg) {

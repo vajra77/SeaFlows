@@ -4,8 +4,7 @@ import getopt
 import sys
 import json
 import numpy as np
-from pprint import pprint
-from seaflows.middleware import RRDBackend
+from frontend.seaflows.middleware import RRDBackend
 
 
 RRD_DIR = '/data/rrd'
