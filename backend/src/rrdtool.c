@@ -11,6 +11,7 @@
 #include <time.h>
 #include <sys/stat.h>
 
+#include "config.h"
 #include "rrdtool.h"
 
 

@@ -5,9 +5,6 @@
 #ifndef RRDTOOL_H
 #define RRDTOOL_H
 
-#define RRDCACHED_ADDRESS "127.0.0.1:42217"
-#define RRD_DIRECTORY "/data/rrd"
-
 #include <stdint.h>
 
 
