@@ -1,5 +1,5 @@
 AC_INIT([seaflows], [1.1], [f.ferreri@namex.it])
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE(subdir-objects)
 AC_PROG_CC
 
 AC_ARG_WITH([rrd-dir],
