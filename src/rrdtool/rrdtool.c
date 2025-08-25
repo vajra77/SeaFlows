@@ -14,10 +14,6 @@
 #include "rrdtool.h"
 
 
-extern char *datadir;
-extern char *rrdcached_address;
-
-
 int create_rrd(const char *filename) {
 
 	const char *argv[] = {

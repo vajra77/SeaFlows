@@ -9,6 +9,10 @@
 
 #include <stdint.h>
 
+extern char datadir[64];
+extern char rrdcached_address[64];
+
+
 int rrdtool_prepare(const char*, const char*);
 int rrdtool_store(const char*, const char*, const uint32_t, const uint32_t);
 #endif //RRDTOOL_H

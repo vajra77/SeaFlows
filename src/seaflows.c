@@ -17,14 +17,12 @@
 #include "collector/collector.h"
 #include "broker/broker.h"
 #include "bucket/bucket.h"
+#include "rrdtool/rrdtool.h"
 
 
 #define MAX_THREADS 24
 #define MAX_FLOWS 1024
 
-/* program data */
-char datadir[255];
-char rrdcached_address[255];
 
 /* thread share/control variables */
 static pthread_t			collector[MAX_THREADS];
@@ -69,7 +67,9 @@ void signal_handler(const int sig) {
 
 int main(const int argc, char **argv) {
 
-	 char listen_address[1024];
+	 char listen_address[64];
+	 char datadir[64];
+	 char rrdcached_address[64];
 	 int c;
 
 	 if(argc < 2){
