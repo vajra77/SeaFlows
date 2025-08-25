@@ -6,6 +6,10 @@ AC_CHECK_LIB([rrd], [rrdc_create],
     [LDFLAGS="$LDFLAGS -lrrd"],
     [AC_MSG_ERROR([RRD library not found. Please install the library and try again.])])
 
+AC_CHECK_LIB([rrd_th], [rrdc_connect],
+    [LDFLAGS="$LDFLAGS -lrrd_th"],
+    [AC_MSG_ERROR([RRD thread-safe library. Please install the library and try again.])])
+
 AC_ARG_WITH([rrd-dir],
     AS_HELP_STRING([--with-rrd-dir=DIR], [Specify the RRD data directory]),
     [rrd_dir_path=$with_rrd_dir],
