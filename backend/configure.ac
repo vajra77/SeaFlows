@@ -2,7 +2,7 @@ AC_INIT([seaflows], [1.1], [f.ferreri@namex.it])
 AM_INIT_AUTOMAKE(subdir-objects)
 AC_PROG_CC
 
-AC_CHECK_LIB([rrd], [rrd_create],
+AC_CHECK_LIB([rrd], [rrdc_create],
     [LDFLAGS="$LDFLAGS -lrrd"],
     [AC_MSG_ERROR([RRD library not found. Please install the library and try again.])])
 

@@ -31,7 +31,7 @@ int create_rrd(const char *filename) {
 	};
 
     char address[64];
-    snprintf(address, 64, "%s:%d", RRD_ADDRESS, RRD_PORT);
+    snprintf(address, 64, "%s:%s", RRD_ADDRESS, RRD_PORT);
 	int err = rrdc_connect(address);
 
 	if (err) {
@@ -63,7 +63,7 @@ int update_rrd(const char *filename, const uint32_t bytes4, const uint32_t bytes
 		frmtstr,
 	};
 
-    snprintf(address, 64, "%s:%d", RRD_ADDRESS, RRD_PORT);
+    snprintf(address, 64, "%s:%s", RRD_ADDRESS, RRD_PORT);
 	int err = rrdc_connect(address);
 
 	if (err) {
