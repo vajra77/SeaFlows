@@ -67,9 +67,9 @@ void signal_handler(const int sig) {
 
 int main(const int argc, char **argv) {
 
-	 char listen_address[64];
-	 char datadir[64];
-	 char rrdcached_address[64];
+	 char listen_address[30];
+	 char datadir[30];
+	 char rrdcached_address[30];
 	 int c;
 
 	 if(argc < 2){
