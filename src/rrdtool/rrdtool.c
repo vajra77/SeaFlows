@@ -29,7 +29,7 @@ int create_rrd(const char *filename) {
 		"RRA:MAX:0.5:444:797",
 	};
 
-	int err = rrdc_connect(rrdcached_address);
+	int err = rrdc_connect(RRDCACHED_ADDRESS);
 	if (err) {
 		syslog(LOG_ERR, "unable to connect to rrdcached: %s (error=%d)", rrd_get_error(), err);
 		rrd_clear_error();
@@ -58,7 +58,7 @@ int update_rrd(const char *filename, const uint32_t bytes4, const uint32_t bytes
 		frmtstr,
 	};
 
-	int err = rrdc_connect(rrdcached_address);
+	int err = rrdc_connect(RRDCACHED_ADDRESS);
 
 	if (err) {
 #ifdef DEBUG
@@ -90,7 +90,7 @@ int rrdtool_prepare(const char *src, const char *dst) {
 	int err = 0;
 
 	/* direct flow file */
-	sprintf(basename, "%s/flows/%s", datadir, src);
+	sprintf(basename, "%s/flows/%s", RRD_DIRECTORY, src);
 	sprintf(pathname, "%s/flow_%s_to_%s.rrd", basename, src, dst);
 	sprintf(filename, "flows/%s/flow_%s_to_%s.rrd", src, src, dst);
 
@@ -120,7 +120,7 @@ int rrdtool_store(const char *src, const char *dst, const uint32_t bytes4, const
 	int err = 0;
 
 	/* direct flow file */
-	sprintf(basename, "%s/flows/%s", datadir, src);
+	sprintf(basename, "%s/flows/%s", RRD_DIRECTORY, src);
 	sprintf(pathname, "%s/flow_%s_to_%s.rrd", basename, src, dst);
 	sprintf(filename, "flows/%s/flow_%s_to_%s.rrd", src, src, dst);
 

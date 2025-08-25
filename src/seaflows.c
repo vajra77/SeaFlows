@@ -83,12 +83,6 @@ int main(const int argc, char **argv) {
 		 	case 't':
 				num_threads = atoi(optarg);
 				break;
-		 	case 'd':
-		 		strcpy(datadir, optarg);
-		 		break;
-		 	case 'r':
-		 		strcpy(rrdcached_address, optarg);
-		 		break;
 			case 'h':
 				usage();
 				exit(EXIT_SUCCESS);

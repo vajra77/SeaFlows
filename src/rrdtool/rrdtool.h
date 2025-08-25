@@ -6,11 +6,9 @@
 #define RRDTOOL_H
 
 #define RRDCACHED_ADDRESS "127.0.0.1:42217"
+#define RRD_DIRECTORY "/data/rrd"
 
 #include <stdint.h>
-
-extern char datadir[30];
-extern char rrdcached_address[30];
 
 
 int rrdtool_prepare(const char*, const char*);
