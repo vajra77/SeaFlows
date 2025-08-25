@@ -1,3 +1,4 @@
+#!/usr/bin/env sh
 aclocal
 autoconf
 autoheader
