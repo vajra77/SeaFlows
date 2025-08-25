@@ -13,6 +13,7 @@
 #include <syslog.h>
 #include <gc.h>
 
+#include "config.h"
 #include "seaflows.h"
 #include "collector.h"
 #include "broker.h"
@@ -123,7 +124,7 @@ int main(const int argc, char **argv) {
 
 	umask(0);
 
-	chdir("/data/rrd");
+	chdir(RRD_DIR);
 
 	openlog("seaflows", LOG_PID, LOG_DAEMON);
 

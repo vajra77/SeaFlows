@@ -91,7 +91,7 @@ int rrdtool_prepare(const char *src, const char *dst) {
 	int err = 0;
 
 	/* direct flow file */
-	sprintf(basename, "%s/flows/%s", RRD_DIRECTORY, src);
+	sprintf(basename, "%s/flows/%s", RRD_DIR, src);
 	sprintf(pathname, "%s/flow_%s_to_%s.rrd", basename, src, dst);
 	sprintf(filename, "flows/%s/flow_%s_to_%s.rrd", src, src, dst);
 
@@ -121,7 +121,7 @@ int rrdtool_store(const char *src, const char *dst, const uint32_t bytes4, const
 	int err = 0;
 
 	/* direct flow file */
-	sprintf(basename, "%s/flows/%s", RRD_DIRECTORY, src);
+	sprintf(basename, "%s/flows/%s", RRD_DIR, src);
 	sprintf(pathname, "%s/flow_%s_to_%s.rrd", basename, src, dst);
 	sprintf(filename, "flows/%s/flow_%s_to_%s.rrd", src, src, dst);
 
