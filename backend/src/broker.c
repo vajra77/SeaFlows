@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+#include "config.h"
 #include "broker.h"
 #include "rrdtool.h"
 #include "bucket.h"
@@ -18,7 +19,7 @@ void* broker_thread(void *arg) {
 
 	broker_data_t *broker = arg;
 
-	syslog(LOG_INFO, "starting broker[%d]", broker->id);
+	syslog(LOG_INFO, "starting broker[%d], saving RRD files to %s", broker->id, RRD_DIR);
 
 	for (int t = 0;; t++) {
 		sleep(60);
