@@ -30,7 +30,10 @@ int create_rrd(const char *filename) {
 		"RRA:MAX:0.5:444:797",
 	};
 
-	int err = rrdc_connect(RRDCACHED_ADDRESS);
+    char address[64];
+    snprintf(address, 64, "%s:%d", RRD_ADDRESS, RRD_PORT);
+	int err = rrdc_connect(address);
+
 	if (err) {
 		syslog(LOG_ERR, "unable to connect to rrdcached: %s (error=%d)", rrd_get_error(), err);
 		rrd_clear_error();
@@ -52,6 +55,7 @@ int create_rrd(const char *filename) {
 int update_rrd(const char *filename, const uint32_t bytes4, const uint32_t bytes6) {
 
 	char frmtstr[256];
+    char address[64];
 
 	snprintf(frmtstr, 256, "N:%u:%u", bytes4, bytes6);
 
@@ -59,7 +63,8 @@ int update_rrd(const char *filename, const uint32_t bytes4, const uint32_t bytes
 		frmtstr,
 	};
 
-	int err = rrdc_connect(RRDCACHED_ADDRESS);
+    snprintf(address, 64, "%s:%d", RRD_ADDRESS, RRD_PORT);
+	int err = rrdc_connect(address);
 
 	if (err) {
 #ifdef DEBUG

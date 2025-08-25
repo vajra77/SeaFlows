@@ -16,12 +16,18 @@ if test -z "$rrd_dir_path"; then
 fi
 
 AC_ARG_WITH([rrd-addr],
-    AS_HELP_STRING([--with-rrd-addr-str=ADDR], [Specify the rrdcached address string]),
-    [rrd-addr-str=$with_rrd_addr_str],
-    [rrd-addr-str="127.0.0.1:42217"])
+    AS_HELP_STRING([--with-rrd-addr=ADDR], [Specify the rrdcached address]),
+    [rrd_addr=$with_rrd_addr],
+    [rrd_addr="127.0.0.1"])
+
+AC_ARG_WITH([rrd-port],
+    AS_HELP_STRING([--with-rrd-port=PORT], [Specify the rrdcached port]),
+    [rrd_port=$with_rrd_port],
+    [rrd_port="42217"])
 
 AC_DEFINE_UNQUOTED([RRD_DIR], ["$rrd_dir_path"], [Path to the RRD data directory])
-AC_DEFINE_UNQUOTED([RRDCACHED_ADDRESS], [ "$rrd_addr_str"], [RRD cache daemon address])
+AC_DEFINE_UNQUOTED([RRD_ADDRESS], ["$rrd_addr"], [RRD cache daemon address])
+AC_DEFINE_UNQUOTED([RRD_PORT], ["$rrd_port"], [RRD cache daemon port])
 
 AC_CONFIG_HEADERS([include/config.h])
 AC_CONFIG_FILES([Makefile include/Makefile])
