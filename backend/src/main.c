@@ -124,7 +124,12 @@ int main(const int argc, char **argv) {
 
 	umask(0);
 
-	chdir(RRD_DIR);
+	int dir = chdir(RRD_DIR);
+
+    if(dir < 0) {
+          syslog(LOG_ERR, "chdir failed");
+          exit(EXIT_FAILURE);
+    }
 
 	openlog("seaflows", LOG_PID, LOG_DAEMON);
 
