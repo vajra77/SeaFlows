@@ -5,10 +5,10 @@
 #include <string.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <syslog.h>
 
 #include "bucket.h"
 
-#include <sys/syslog.h>
 
 
 void bucket_init(bucket_t *bucket, const int id) {
@@ -74,7 +74,7 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
             bucket->size++;
         }
         else {
-            syslog(LOG_WARNING, "Bucket[%d]: full, discarding flow", bucket->id);
+            syslog(LOG_WARNING, "bucket[%d]: full, discarding flow", bucket->id);
         }
     }
 

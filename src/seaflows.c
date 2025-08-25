@@ -22,6 +22,10 @@
 #define MAX_THREADS 24
 #define MAX_FLOWS 1024
 
+/* program data */
+char datadir[255];
+char rrdcached_address[255];
+
 /* thread share/control variables */
 static pthread_t			collector[MAX_THREADS];
 static pthread_t			broker[MAX_THREADS];
@@ -39,10 +43,12 @@ void usage(){
 	printf("\t-h\t\t\tShow this help and exit\n");
 	printf("\t-l <ip_address>\t\tListen address\n");
 	printf("\t-t <n_threads>\t\tNumber of listener threads\n");
+	printf("\t-d <datadir>\t\tLocation of stored RRD flow files\n");
+	printf("\t-r <rrdcached_address>\t\tAddress of rrdcached daemon (ip:port)\n");
 }
 
 void signal_handler(const int sig) {
-	syslog(LOG_INFO, "Received signal %d", sig);
+	syslog(LOG_INFO, "received signal %d", sig);
 	for(int i = 0; i < num_threads; i++) {
 		pthread_cancel(collector[i]);
 		pthread_cancel(broker[i]);
@@ -71,7 +77,7 @@ int main(const int argc, char **argv) {
 		 exit(EXIT_FAILURE);
 	 }
 
-	 while((c = getopt(argc, argv, "l:t:h")) != -1) {
+	 while((c = getopt(argc, argv, "l:t:d:r:h")) != -1) {
 		 switch(c) {
 			case 'l':
 				strcpy(listen_address, optarg);
@@ -79,6 +85,12 @@ int main(const int argc, char **argv) {
 		 	case 't':
 				num_threads = atoi(optarg);
 				break;
+		 	case 'd':
+		 		strcpy(datadir, optarg);
+		 		break;
+		 	case 'r':
+		 		strcpy(rrdcached_address, optarg);
+		 		break;
 			case 'h':
 				usage();
 				exit(EXIT_SUCCESS);

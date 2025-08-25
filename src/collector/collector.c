@@ -34,7 +34,7 @@ void* collector_thread(void *arg) {
 	inet_pton(AF_INET, collector->address, &address.sin_addr);
 	address.sin_port = htons(collector->port);
 
-	syslog(LOG_INFO, "Starting collector[%d] on %s:%d", collector->id, collector->address, collector->port );
+	syslog(LOG_INFO, "starting collector[%d] on %s:%d", collector->id, collector->address, collector->port );
 	if (bind(sock, (struct sockaddr *)&address, sizeof(address)) < 0 )
 		  return NULL;
 

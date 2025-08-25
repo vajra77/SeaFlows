@@ -19,14 +19,14 @@ void* broker_thread(void *arg) {
 
 	broker_data_t *broker = arg;
 
-	syslog(LOG_INFO, "Starting broker[%d]", broker->id);
+	syslog(LOG_INFO, "starting broker[%d]", broker->id);
 
 	for (int t = 0;; t++) {
 		sleep(60);
 
 		/* logs every 2 hrs */
 		if (t >= 120) {
-			syslog(LOG_INFO, "Bucket[%d]: occupation=%.2f%%", broker->bucket->id,
+			syslog(LOG_INFO, "bucket[%d]: occupation=%.2f%%", broker->bucket->id,
 				100 * bucket_occupation(broker->bucket));
 			t = 0;
 		}

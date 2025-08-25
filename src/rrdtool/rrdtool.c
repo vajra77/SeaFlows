@@ -8,11 +8,14 @@
 #include <stdlib.h>
 #include <syslog.h>
 #include <unistd.h>
-#include <stdint.h>
 #include <time.h>
 #include <sys/stat.h>
 
 #include "rrdtool.h"
+
+
+extern char *datadir;
+extern char *rrdcached_address;
 
 
 int create_rrd(const char *filename) {
@@ -30,9 +33,9 @@ int create_rrd(const char *filename) {
 		"RRA:MAX:0.5:444:797",
 	};
 
-	int err = rrdc_connect(RRDCACHED_ADDRESS);
+	int err = rrdc_connect(rrdcached_address);
 	if (err) {
-		syslog(LOG_ERR, "Unable to connect to rrdcached: %s (error=%d)", rrd_get_error(), err);
+		syslog(LOG_ERR, "unable to connect to rrdcached: %s (error=%d)", rrd_get_error(), err);
 		rrd_clear_error();
 		return -1;
 	}
@@ -40,7 +43,7 @@ int create_rrd(const char *filename) {
 	err = rrdc_create(filename, 300, time(NULL), 1, 10, argv);
 	if (err) 	{
 #ifdef DEBUG
-		syslog(LOG_DEBUG, "Unable to create RRD file: %s (error=%d)", filename, err);
+		syslog(LOG_DEBUG, "unable to create RRD file: %s (error=%d)", filename, err);
 #endif
 		rrd_clear_error();
 	}
@@ -59,11 +62,11 @@ int update_rrd(const char *filename, const uint32_t bytes4, const uint32_t bytes
 		frmtstr,
 	};
 
-	int err = rrdc_connect(RRDCACHED_ADDRESS);
+	int err = rrdc_connect(rrdcached_address);
 
 	if (err) {
 #ifdef DEBUG
-		syslog(LOG_DEBUG, "Unable to connect to rrdcached: %s (error=%d)", rrd_get_error(), err);
+		syslog(LOG_DEBUG, "unable to connect to rrdcached: %s (error=%d)", rrd_get_error(), err);
 #endif
 		rrd_clear_error();
 		return -1;
@@ -73,7 +76,7 @@ int update_rrd(const char *filename, const uint32_t bytes4, const uint32_t bytes
 
 	if (err) {
 #ifdef DEBUG
-		syslog(LOG_DEBUG, "Unable to update RRD file %s: %s (error=%d)", filename, rrd_get_error(), err);
+		syslog(LOG_DEBUG, "unable to update RRD file %s: %s (error=%d)", filename, rrd_get_error(), err);
 #endif
 		rrd_clear_error();
 	}
@@ -91,13 +94,13 @@ int rrdtool_prepare(const char *src, const char *dst) {
 	int err = 0;
 
 	/* direct flow file */
-	sprintf(basename, "/data/rrd/flows/%s", src);
+	sprintf(basename, "%s/flows/%s", datadir, src);
 	sprintf(pathname, "%s/flow_%s_to_%s.rrd", basename, src, dst);
 	sprintf(filename, "flows/%s/flow_%s_to_%s.rrd", src, src, dst);
 
 	if (access(basename, F_OK) != 0) {
 		if (mkdir(basename, 0755)) {
-			syslog(LOG_ERR, "Unable to create directory: %s", basename);
+			syslog(LOG_ERR, "unable to create directory: %s", basename);
 			return err;
 		}
 		err = create_rrd(filename);
@@ -121,13 +124,13 @@ int rrdtool_store(const char *src, const char *dst, const uint32_t bytes4, const
 	int err = 0;
 
 	/* direct flow file */
-	sprintf(basename, "/data/rrd/flows/%s", src);
+	sprintf(basename, "%s/flows/%s", datadir, src);
 	sprintf(pathname, "%s/flow_%s_to_%s.rrd", basename, src, dst);
 	sprintf(filename, "flows/%s/flow_%s_to_%s.rrd", src, src, dst);
 
 	if (access(basename, F_OK) != 0) {
 		if (mkdir(basename, 0755)) {
-			syslog(LOG_ERR, "Unable to create directory: %s", basename);
+			syslog(LOG_ERR, "unable to create directory: %s", basename);
 			return err;
 		}
 		err = create_rrd(filename);
