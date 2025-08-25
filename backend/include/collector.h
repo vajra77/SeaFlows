@@ -5,7 +5,7 @@
 #ifndef COLLECTOR_H
 #define COLLECTOR_H
 
-#include <bucket/bucket.h>
+#include "bucket.h"
 
 
 typedef struct collector_data {
