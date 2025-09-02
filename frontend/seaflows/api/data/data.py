@@ -1,6 +1,6 @@
-from seaflows import APP_CONFIG
-from seaflows.api import api     # noqa
-from seaflows.middleware import RRDBackend # noqa
+from seaflows.config import APP_CONFIG
+from seaflows.api import api
+from seaflows.middleware import RRDBackend
 from flask import Flask, request, make_response, render_template, jsonify # noqa
 
 
