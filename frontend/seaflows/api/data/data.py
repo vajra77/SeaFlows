@@ -1,4 +1,4 @@
-from frontend.seaflows.api import api    # noqa
+from frontend.seaflows.api import api, API_CONFIG    # noqa
 from frontend.seaflows.middleware import RRDBackend # noqa
 from flask import Flask, request, make_response, render_template, jsonify # noqa
 
@@ -14,7 +14,7 @@ def get_flow():
     dst = request.args.get('dst')
     schedule = request.args.get('period') or 'daily'
 
-    rrd = RRDBackend('/data/rrd', 1)
+    rrd = RRDBackend(API_CONFIG['rrd_dir'], 1)
 
     res, data = rrd.render_flow(schedule, src, dst)
 
@@ -30,7 +30,7 @@ def get_peer():
     schedule = request.args.get('period') or 'daily'
     proto = request.args.get('proto') or 4
 
-    rrd = RRDBackend('/data/rrd', 1)
+    rrd = RRDBackend(API_CONFIG['rrd_dir'], 1)
 
     res, data = rrd.render_peer(schedule, proto, macs)
 
