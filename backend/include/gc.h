@@ -15,6 +15,5 @@ typedef struct gc {
 
 void gc_init(gc_t *gc);
 void *gc_alloc(gc_t *, size_t);
-void gc_free(gc_t *, void *);
 void gc_cleanup(gc_t *);
 #endif //GC_H

@@ -24,17 +24,6 @@ void *gc_alloc(gc_t *gc, size_t size) {
     return ptr;
 }
 
-void gc_free(gc_t *gc, void *ptr) {
-
-    for (int k = 0; k < gc->size; k++) {
-        if (ptr == gc->data[k]) {
-          	gc->data[k] = NULL;
-      		break;
-    	}
-  	}
-	free(ptr);
-}
-
 void gc_cleanup(gc_t *gc) {
 
 	for (int k = 0; k < gc->size; k++) {
