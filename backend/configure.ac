@@ -9,7 +9,7 @@ AC_CHECK_LIB([rrd], [rrdc_connect],
 AC_ARG_WITH([rrd-dir],
     AS_HELP_STRING([--with-rrd-dir=DIR], [Specify the RRD data directory]),
     [rrd_dir_path=$with_rrd_dir],
-    [rrd_dir_path="/data/rrd"])
+    [rrd_dir_path="/srv/rrd"])
 
 if test -z "$rrd_dir_path"; then
     AC_MSG_ERROR([--with-rrd-dir must specify a directory])
