@@ -1,5 +1,5 @@
 # SeaFlows
-A simple sFlow suite which maps L2 flows accounting for IPv4/IPv6 bytes.
+A simple suite to capture, store and retrieve sFlow data from network devices.
 
 ## Operations
 The suite is composed of backend which provides collection and parsing of
