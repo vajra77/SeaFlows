@@ -76,7 +76,7 @@ int main(const int argc, char **argv) {
 		 exit(EXIT_FAILURE);
 	 }
 
-	 while((c = getopt(argc, argv, "l:t:d:r:h")) != -1) {
+	 while((c = getopt(argc, argv, "l:t:h")) != -1) {
 		 switch(c) {
 			case 'l':
 				strcpy(listen_address, optarg);
