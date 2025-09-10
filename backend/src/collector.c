@@ -38,8 +38,9 @@ void* collector_thread(void *arg) {
 	if (bind(sock, (struct sockaddr *)&address, sizeof(address)) < 0 )
 		  return NULL;
 
-	for (;;) {
-		char raw_data[MAX_SFLOW_DATA];
+	char raw_data[MAX_SFLOW_DATA];
+
+    for (;;) {
 		bzero(raw_data, MAX_SFLOW_DATA);
 
 		const ssize_t raw_data_len = recvfrom(sock, raw_data, MAX_SFLOW_DATA, 0, NULL, NULL);
