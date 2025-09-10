@@ -7,9 +7,9 @@ import numpy as np
 from frontend.seaflows.middleware import RRDBackend
 
 
-RRD_DIR = '/data/rrd'
+RRD_DIR = '/srv/rrd'
 SRC_DIR = f"{RRD_DIR}/flows"
-TGT_DIR = '/data/json/peers'
+TGT_DIR = '/srv/json/peers'
 
 
 def usage():
