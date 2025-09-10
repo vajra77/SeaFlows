@@ -10,7 +10,6 @@
 #include "bucket.h"
 
 
-
 void bucket_init(bucket_t *bucket, const int id) {
 
     bucket->size = 0;
