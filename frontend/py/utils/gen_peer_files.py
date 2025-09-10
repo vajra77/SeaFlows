@@ -4,7 +4,7 @@ import getopt
 import sys
 import json
 import numpy as np
-from frontend.seaflows.middleware import RRDBackend
+from frontend.py.seaflows import RRDBackend
 
 
 RRD_DIR = '/srv/rrd'
