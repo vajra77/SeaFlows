@@ -43,12 +43,11 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
     if (datagram->header.ip_version == 1) {
         inet_ntop(AF_INET, data_ptr, datagram->header.agent_address, 255);
         data_ptr += sizeof(uint32_t);
-        MEMGUARD(data_ptr, raw_data, raw_data_len);
     } else {
         inet_ntop(AF_INET6, data_ptr, datagram->header.agent_address, 255);
         data_ptr += sizeof(uint32_t) * 4;
-        MEMGUARD(data_ptr, raw_data, raw_data_len);
     }
+    MEMGUARD(data_ptr, raw_data, raw_data_len);
 
     /* sub agent id */
     memcpy(&buffer, data_ptr, sizeof(uint32_t));
@@ -328,6 +327,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
                 /* align pointer for next record */
                 if (data_ptr < record_data_start + record->header.length) {
                     data_ptr = record_data_start + record->header.length;
+                    MEMGUARD(data_ptr, raw_data, raw_data_len);
                 }
             } /* end of records loop */
 
@@ -350,6 +350,7 @@ sflow_datagram_t *sflow_decode_datagram(const char *raw_data, const ssize_t raw_
         /* align pointer for next sample */
         if (data_ptr < sample_data_start + sample->header.length) {
             data_ptr = sample_data_start + sample->header.length;
+            MEMGUARD(data_ptr, raw_data, raw_data_len);
         }
     } /* end of samples loop */
 
