@@ -1,4 +1,4 @@
-module main
+module go-seaflows-api
 
 go 1.25.1
 
