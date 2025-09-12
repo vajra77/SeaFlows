@@ -14,7 +14,7 @@ type Datagram struct {
 	seqNumber    uint32
 	switchUptime uint32
 	numSamples   uint32
-	samples      [16]FlowSample
+	samples      []*FlowSample
 }
 
 func Decode(buf []byte) (*Datagram, error) {
@@ -22,6 +22,7 @@ func Decode(buf []byte) (*Datagram, error) {
 	bufLen := len(buf)
 
 	var data = new(Datagram)
+	data.samples = make([]*FlowSample, 8)
 
 	data.version = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
 	ptr += 4
@@ -75,6 +76,7 @@ func Decode(buf []byte) (*Datagram, error) {
 	// Samples loop
 	for s := 0; s < int(data.numSamples); s++ {
 		var sample = new(FlowSample)
+		sample.records = make([]*FlowRecord, 8)
 
 		sample.dataFormat = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
 		ptr += 4
@@ -199,25 +201,87 @@ func Decode(buf []byte) (*Datagram, error) {
 							return nil, errors.New("not enough data")
 						}
 
-						if record.packet.datalinkHeader.ethernetHeader.ethType == 0x8100 {
-							// vlan header
-						} else {
-							// plain ethernet type
+						typeLen := binary.NativeEndian.Uint16(buf[ptr : ptr+2])
+						ptr += 2
+						if ptr >= bufLen {
+							return nil, errors.New("not enough data")
 						}
 
+						if typeLen == 0x8100 {
+							// vlan header
+							record.packet.datalinkHeader.vlanHeader.id = binary.NativeEndian.Uint16(buf[ptr : ptr+2])
+							ptr += 2
+							if ptr >= bufLen {
+								return nil, errors.New("not enough data")
+							}
+							record.packet.datalinkHeader.vlanHeader.len = 0
+
+							// re-read shifted type
+							typeLen = binary.NativeEndian.Uint16(buf[ptr : ptr+2])
+							ptr += 2
+							if ptr >= bufLen {
+								return nil, errors.New("not enough data")
+							}
+						}
+
+						if typeLen == 0x0800 {
+							record.packet.datalinkHeader.ethernetHeader.ethType = 0x0800
+							record.packet.datalinkHeader.vlanHeader.id = 0
+							record.packet.datalinkHeader.vlanHeader.len = 0
+
+							var ipv4Header = new(IPv4Header)
+
+							pLen := binary.NativeEndian.Uint32(buf[ptr : ptr+4])
+							ptr += 4
+							if ptr >= bufLen {
+								return nil, errors.New("not enough data")
+							}
+							ipv4Header.preamble = uint16((pLen & 0xffff0000) >> 4)
+							ipv4Header.length = uint16((pLen & 0x0000ffff))
+
+							ttlP := binary.NativeEndian.Uint32(buf[ptr : ptr+4])
+							ptr += 4
+							if ptr >= bufLen {
+								return nil, errors.New("not enough data")
+							}
+
+							ipv4Header.ttl = uint8((ttlP & 0xff000000) >> 6)
+							ipv4Header.protocol = uint8((ttlP & 0x00ff0000) >> 4)
+
+							ipv4Header.srcIPAddress = buf[ptr : ptr+4]
+							ptr += 4
+							if ptr >= bufLen {
+								return nil, errors.New("not enough data")
+							}
+
+							ipv4Header.dstIPAddress = buf[ptr : ptr+4]
+							ptr += 4
+							if ptr >= bufLen {
+								return nil, errors.New("not enough data")
+							}
+
+							record.packet.ipv4Header = ipv4Header
+							record.packet.ipv6Header = nil
+
+						} else if typeLen == 0x86dd {
+
+						} else {
+							record.packet.ipv4Header = nil
+							record.packet.ipv6Header = nil
+						}
 					} else {
 						return nil, errors.New("not an ethernet frame")
 					}
 				} else {
 					return nil, errors.New("not a raw packet")
 				}
-
+				sample.records = append(sample.records, record)
 			}
 			// end of Records loop
 		} else {
 			return nil, errors.New("not a flow sample")
 		}
-
+		data.samples = append(data.samples, sample)
 	}
 	// end of Samples loop
 

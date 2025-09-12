@@ -11,6 +11,5 @@ type FlowSample struct {
 	inputIf      uint32
 	outputIf     uint32
 	numRecords   uint32
-	records      []FlowRecord
-	nextSample   *FlowSample
+	records      []*FlowRecord
 }
