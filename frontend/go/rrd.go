@@ -28,7 +28,7 @@ func (e *RRDExporter) GetGamma() float64 {
 
 func (e *RRDExporter) GetFlow(schedule string, src string, dst string) []float64 {
 
-	rrdFile := e.rootDir + "/" + src + "/" + "flow_" + src + "_to_" + dst + ".rrd"
+	rrdFile := e.rootDir + "/flows/" + src + "/" + "flow_" + src + "_to_" + dst + ".rrd"
 	result, err := RRDTool.Fetch(rrdFile, "AVG", time.Now(), time.Now(), 300)
 	if err != nil {
 		return result.Values()
