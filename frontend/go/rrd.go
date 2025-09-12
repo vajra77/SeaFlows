@@ -3,7 +3,7 @@ package seaflows_exporter
 import (
 	"time"
 
-	rrdtool "github.com/ziutek/rrd"
+	RRDTool "github.com/ziutek/rrd"
 )
 
 type RRDExporter struct {
@@ -29,7 +29,7 @@ func (e *RRDExporter) GetGamma() float64 {
 func (e *RRDExporter) GetFlow(schedule string, src string, dst string) []float64 {
 
 	rrdFile := e.rootDir + "/" + src + "/" + "flow_" + src + "_to_" + dst + ".rrd"
-	result, err := rrdtool.Fetch(rrdFile, "AVG", time.Now(), time.Now(), 300)
+	result, err := RRDTool.Fetch(rrdFile, "AVG", time.Now(), time.Now(), 300)
 	if err != nil {
 		return result.Values()
 	}
