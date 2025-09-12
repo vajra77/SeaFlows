@@ -1,4 +1,4 @@
-package seaflows_exporter
+package main
 
 import (
 	"time"
