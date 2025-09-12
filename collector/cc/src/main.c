@@ -15,7 +15,7 @@
 
 #include "config.h"
 #include "seaflows.h"
-#include "collector.h"
+#include "listener.h"
 #include "broker.h"
 #include "bucket.h"
 #include "rrdtool.h"
@@ -26,11 +26,11 @@
 
 
 /* thread share/control variables */
-static pthread_t			collector[MAX_THREADS];
+static pthread_t			listener[MAX_THREADS];
 static pthread_t			broker[MAX_THREADS];
 static int num_threads = 0;
 
-collector_data_t	collector_data[MAX_THREADS];
+listener_data_t	listener_data[MAX_THREADS];
 broker_data_t		broker_data[MAX_THREADS];
 bucket_t*			bucket[MAX_THREADS];
 
@@ -42,19 +42,17 @@ void usage(){
 	printf("\t-h\t\t\tShow this help and exit\n");
 	printf("\t-l <ip_address>\t\tListen address\n");
 	printf("\t-t <n_threads>\t\tNumber of listener threads\n");
-	printf("\t-d <datadir>\t\tLocation of stored RRD flow files\n");
-	printf("\t-r <rrdcached_address>\t\tAddress of rrdcached daemon (ip:port)\n");
 }
 
 void signal_handler(const int sig) {
 	syslog(LOG_INFO, "received signal %d", sig);
 	for(int i = 0; i < num_threads; i++) {
-		pthread_cancel(collector[i]);
+		pthread_cancel(listener[i]);
 		pthread_cancel(broker[i]);
 	}
 
 	for(int i = 0; i < num_threads; i++) {
-		pthread_join(collector[i], NULL);
+		pthread_join(listener[i], NULL);
 		pthread_join(broker[i], NULL);
 	}
 
@@ -140,22 +138,22 @@ int main(const int argc, char **argv) {
 		bucket[i] = malloc(sizeof(bucket_t));
 		bucket_init(bucket[i], i);
 
-		collector_data[i].id = i;
-		collector_data[i].port = SEAFLOWS_LISTENER_PORT + i;
-		collector_data[i].address = listen_address;
-		collector_data[i].bucket = bucket[i];
+		listener_data[i].id = i;
+		listener_data[i].port = SEAFLOWS_LISTENER_PORT + i;
+		listener_data[i].address = listen_address;
+		listener_data[i].bucket = bucket[i];
 
 		broker_data[i].id = i;
 		broker_data[i].bucket = bucket[i];
 
-		pthread_create(&collector[i], NULL, collector_thread, &collector_data[i]);
+		pthread_create(&listener[i], NULL, listener_thread, &listener_data[i]);
 		pthread_create(&broker[i], NULL, broker_thread, &broker_data[i]);
 	}
 
 	sleep(10);
 
 	for(int i = 0; i < num_threads; i++) {
-		pthread_join(collector[i], NULL);
+		pthread_join(listener[i], NULL);
 		pthread_join(broker[i], NULL);
 	}
 

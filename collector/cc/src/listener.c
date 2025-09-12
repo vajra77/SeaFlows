@@ -12,16 +12,16 @@
 
 #include "rrdtool.h"
 #include "sflow.h"
-#include "collector.h"
+#include "listener.h"
 #include "bucket.h"
 
 
-void* collector_thread(void *arg) {
+void* listener_thread(void *arg) {
 
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
 
-	collector_data_t *collector = arg;
+	listener_data_t *listener = arg;
 	const int sock = socket(AF_INET, SOCK_DGRAM, 0);
 
 	if (sock < 0)
@@ -31,10 +31,10 @@ void* collector_thread(void *arg) {
 	bzero(&address, sizeof(address));
 
 	address.sin_family = AF_INET;
-	inet_pton(AF_INET, collector->address, &address.sin_addr);
-	address.sin_port = htons(collector->port);
+	inet_pton(AF_INET, listener->address, &address.sin_addr);
+	address.sin_port = htons(listener->port);
 
-	syslog(LOG_INFO, "starting collector[%d] on %s:%d", collector->id, collector->address, collector->port );
+	syslog(LOG_INFO, "starting listener[%d] on %s:%d", listener->id, listener->address, listener->port );
 	if (bind(sock, (struct sockaddr *)&address, sizeof(address)) < 0 )
 		  return NULL;
 
@@ -53,7 +53,7 @@ void* collector_thread(void *arg) {
 					storable_flow_t	*flow = sflow_encode_flow_record(record, sample->header.sampling_rate);
 					if (flow != NULL) {
 						rrdtool_prepare(flow->src_mac, flow->dst_mac);
-						bucket_add(collector->bucket, flow->src_mac, flow->dst_mac, flow->proto, flow->computed_size);
+						bucket_add(listener->bucket, flow->src_mac, flow->dst_mac, flow->proto, flow->computed_size);
 						free(flow);
 					}
 				}
