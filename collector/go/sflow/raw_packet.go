@@ -3,43 +3,43 @@ package sflow
 import "net"
 
 type RawPacket struct {
-	protocol       uint32
-	length         uint32
-	stripped       uint32
-	size           uint32
-	datalinkHeader DatalinkHeader
-	ipv4Header     *IPv4Header
-	ipv6Header     *IPv6Header
+	Protocol       uint32
+	Length         uint32
+	Stripped       uint32
+	Size           uint32
+	DatalinkHeader DatalinkHeader
+	Ipv4Header     *IPv4Header
+	Ipv6Header     *IPv6Header
 }
 
 type EthernetHeader struct {
-	srcMacAddress net.HardwareAddr
-	dstMacAddress net.HardwareAddr
-	ethType       uint16
+	SrcMacAddress net.HardwareAddr
+	DstMacAddress net.HardwareAddr
+	EthType       uint16
 }
 
 type VlanHeader struct {
-	id  uint16
-	len uint16
+	Id  uint16
+	Len uint16
 }
 
 type DatalinkHeader struct {
-	ethernetHeader EthernetHeader
-	vlanHeader     VlanHeader
+	EthernetHeader EthernetHeader
+	VlanHeader     VlanHeader
 }
 
 type IPv4Header struct {
-	preamble     uint16
-	length       uint16
-	ttl          uint8
-	protocol     uint8
-	srcIPAddress net.IP
-	dstIPAddress net.IP
+	Preamble     uint16
+	Length       uint16
+	Ttl          uint8
+	Protocol     uint8
+	SrcIPAddress net.IP
+	DstIPAddress net.IP
 }
 
 type IPv6Header struct {
-	preamble     uint16
-	length       uint16
-	srcIPAddress net.IP
-	dstIPAddress net.IP
+	Preamble     uint16
+	Length       uint16
+	SrcIPAddress net.IP
+	DstIPAddress net.IP
 }

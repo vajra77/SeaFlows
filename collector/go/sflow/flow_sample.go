@@ -1,15 +1,15 @@
 package sflow
 
 type FlowSample struct {
-	dataFormat   uint32
-	length       uint32
-	seqNumber    uint32
-	sourceId     uint32
-	samplingRate uint32
-	samplePool   uint32
-	drops        uint32
-	inputIf      uint32
-	outputIf     uint32
-	numRecords   uint32
-	records      []*FlowRecord
+	DataFormat   uint32
+	Length       uint32
+	SeqNumber    uint32
+	SourceId     uint32
+	SamplingRate uint32
+	SamplePool   uint32
+	Drops        uint32
+	InputIf      uint32
+	OutputIf     uint32
+	NumRecords   uint32
+	Records      []*FlowRecord
 }

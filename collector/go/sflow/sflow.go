@@ -7,14 +7,14 @@ import (
 )
 
 type Datagram struct {
-	version      uint32
-	ipVersion    uint32
-	agentAddress string
-	subAgentId   uint32
-	seqNumber    uint32
-	switchUptime uint32
-	numSamples   uint32
-	samples      []*FlowSample
+	Version      uint32
+	IpVersion    uint32
+	AgentAddress string
+	SubAgentId   uint32
+	SeqNumber    uint32
+	SwitchUptime uint32
+	NumSamples   uint32
+	Samples      []*FlowSample
 }
 
 func Decode(buf []byte) (*Datagram, error) {
@@ -22,180 +22,180 @@ func Decode(buf []byte) (*Datagram, error) {
 	bufLen := len(buf)
 
 	var data = new(Datagram)
-	data.samples = make([]*FlowSample, 8)
+	data.Samples = make([]*FlowSample, 8)
 
-	data.version = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
+	data.Version = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
 	ptr += 4
 	if ptr >= bufLen {
 		return nil, errors.New("not enough data")
 	}
 
-	data.ipVersion = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
+	data.IpVersion = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
 	ptr += 4
 	if ptr >= bufLen {
 		return nil, errors.New("not enough data")
 	}
 
-	if data.ipVersion == 1 {
+	if data.IpVersion == 1 {
 		var addr net.IP = buf[ptr : ptr+4]
-		data.agentAddress = addr.String()
+		data.AgentAddress = addr.String()
 		ptr += 4
 	} else {
 		var addr net.IP = buf[ptr : ptr+16]
-		data.agentAddress = addr.String()
+		data.AgentAddress = addr.String()
 		ptr += 16
 	}
 	if ptr >= bufLen {
 		return nil, errors.New("not enough data")
 	}
 
-	data.subAgentId = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
+	data.SubAgentId = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
 	ptr += 4
 	if ptr >= bufLen {
 		return nil, errors.New("not enough data")
 	}
 
-	data.seqNumber = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
+	data.SeqNumber = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
 	ptr += 4
 	if ptr >= bufLen {
 		return nil, errors.New("not enough data")
 	}
 
-	data.switchUptime = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
+	data.SwitchUptime = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
 	ptr += 4
 	if ptr >= bufLen {
 		return nil, errors.New("not enough data")
 	}
 
-	data.numSamples = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
+	data.NumSamples = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
 	ptr += 4
 	if ptr >= bufLen {
 		return nil, errors.New("not enough data")
 	}
 
 	// Samples loop
-	for s := 0; s < int(data.numSamples); s++ {
+	for s := 0; s < int(data.NumSamples); s++ {
 		var sample = new(FlowSample)
-		sample.records = make([]*FlowRecord, 8)
+		sample.Records = make([]*FlowRecord, 8)
 
-		sample.dataFormat = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
+		sample.DataFormat = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
 		ptr += 4
 		if ptr >= bufLen {
 			return nil, errors.New("not enough data")
 		}
 
-		sample.length = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
+		sample.Length = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
 		ptr += 4
 		if ptr >= bufLen {
 			return nil, errors.New("not enough data")
 		}
 
-		if sample.dataFormat == 1 {
+		if sample.DataFormat == 1 {
 
-			sample.seqNumber = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
+			sample.SeqNumber = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
 			ptr += 4
 			if ptr >= bufLen {
 				return nil, errors.New("not enough data")
 			}
 
-			sample.sourceId = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
+			sample.SourceId = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
 			ptr += 4
 			if ptr >= bufLen {
 				return nil, errors.New("not enough data")
 			}
 
-			sample.samplingRate = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
+			sample.SamplingRate = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
 			ptr += 4
 			if ptr >= bufLen {
 				return nil, errors.New("not enough data")
 			}
 
-			sample.samplePool = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
+			sample.SamplePool = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
 			ptr += 4
 			if ptr >= bufLen {
 				return nil, errors.New("not enough data")
 			}
 
-			sample.drops = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
+			sample.Drops = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
 			ptr += 4
 			if ptr >= bufLen {
 				return nil, errors.New("not enough data")
 			}
 
-			sample.inputIf = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
+			sample.InputIf = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
 			ptr += 4
 			if ptr >= bufLen {
 				return nil, errors.New("not enough data")
 			}
 
-			sample.outputIf = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
+			sample.OutputIf = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
 			ptr += 4
 			if ptr >= bufLen {
 				return nil, errors.New("not enough data")
 			}
 
-			sample.numRecords = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
+			sample.NumRecords = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
 			ptr += 4
 			if ptr >= bufLen {
 				return nil, errors.New("not enough data")
 			}
 
 			// Records loop
-			for k := 0; k < int(sample.numRecords); k++ {
+			for k := 0; k < int(sample.NumRecords); k++ {
 				var record = new(FlowRecord)
 
-				record.dataFormat = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
+				record.DataFormat = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
 				ptr += 4
 				if ptr >= bufLen {
 					return nil, errors.New("not enough data")
 				}
 
-				record.length = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
+				record.Length = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
 				ptr += 4
 				if ptr >= bufLen {
 					return nil, errors.New("not enough data")
 				}
 
-				if record.dataFormat == 1 {
+				if record.DataFormat == 1 {
 
-					record.packet.protocol = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
+					record.Packet.Protocol = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
 					ptr += 4
 					if ptr >= bufLen {
 						return nil, errors.New("not enough data")
 					}
 
-					record.packet.length = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
+					record.Packet.Length = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
 					ptr += 4
 					if ptr >= bufLen {
 						return nil, errors.New("not enough data")
 					}
 
-					record.packet.stripped = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
+					record.Packet.Stripped = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
 					ptr += 4
 					if ptr >= bufLen {
 						return nil, errors.New("not enough data")
 					}
 
-					record.packet.size = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
+					record.Packet.Size = binary.NativeEndian.Uint32(buf[ptr : ptr+4])
 					ptr += 4
 					if ptr >= bufLen {
 						return nil, errors.New("not enough data")
 					}
 
-					if record.packet.protocol == 1 {
-						record.packet.datalinkHeader.ethernetHeader.srcMacAddress = buf[ptr : ptr+6]
+					if record.Packet.Protocol == 1 {
+						record.Packet.DatalinkHeader.EthernetHeader.SrcMacAddress = buf[ptr : ptr+6]
 						ptr += 6
 						if ptr >= bufLen {
 							return nil, errors.New("not enough data")
 						}
 
-						record.packet.datalinkHeader.ethernetHeader.dstMacAddress = buf[ptr : ptr+6]
+						record.Packet.DatalinkHeader.EthernetHeader.DstMacAddress = buf[ptr : ptr+6]
 						ptr += 6
 						if ptr >= bufLen {
 							return nil, errors.New("not enough data")
 						}
 
-						record.packet.datalinkHeader.ethernetHeader.ethType = binary.NativeEndian.Uint16(buf[ptr : ptr+2])
+						record.Packet.DatalinkHeader.EthernetHeader.EthType = binary.NativeEndian.Uint16(buf[ptr : ptr+2])
 						ptr += 2
 						if ptr >= bufLen {
 							return nil, errors.New("not enough data")
@@ -209,12 +209,12 @@ func Decode(buf []byte) (*Datagram, error) {
 
 						if typeLen == 0x8100 {
 							// vlan header
-							record.packet.datalinkHeader.vlanHeader.id = binary.NativeEndian.Uint16(buf[ptr : ptr+2])
+							record.Packet.DatalinkHeader.VlanHeader.Id = binary.NativeEndian.Uint16(buf[ptr : ptr+2])
 							ptr += 2
 							if ptr >= bufLen {
 								return nil, errors.New("not enough data")
 							}
-							record.packet.datalinkHeader.vlanHeader.len = 0
+							record.Packet.DatalinkHeader.VlanHeader.Len = 0
 
 							// re-read shifted type
 							typeLen = binary.NativeEndian.Uint16(buf[ptr : ptr+2])
@@ -225,9 +225,9 @@ func Decode(buf []byte) (*Datagram, error) {
 						}
 
 						if typeLen == 0x0800 {
-							record.packet.datalinkHeader.ethernetHeader.ethType = 0x0800
-							record.packet.datalinkHeader.vlanHeader.id = 0
-							record.packet.datalinkHeader.vlanHeader.len = 0
+							record.Packet.DatalinkHeader.EthernetHeader.EthType = 0x0800
+							record.Packet.DatalinkHeader.VlanHeader.Id = 0
+							record.Packet.DatalinkHeader.VlanHeader.Len = 0
 
 							var ipv4Header = new(IPv4Header)
 
@@ -236,8 +236,8 @@ func Decode(buf []byte) (*Datagram, error) {
 							if ptr >= bufLen {
 								return nil, errors.New("not enough data")
 							}
-							ipv4Header.preamble = uint16((pLen & 0xffff0000) >> 4)
-							ipv4Header.length = uint16((pLen & 0x0000ffff))
+							ipv4Header.Preamble = uint16((pLen & 0xffff0000) >> 4)
+							ipv4Header.Length = uint16((pLen & 0x0000ffff))
 
 							ttlP := binary.NativeEndian.Uint32(buf[ptr : ptr+4])
 							ptr += 4
@@ -245,29 +245,29 @@ func Decode(buf []byte) (*Datagram, error) {
 								return nil, errors.New("not enough data")
 							}
 
-							ipv4Header.ttl = uint8((ttlP & 0xff000000) >> 6)
-							ipv4Header.protocol = uint8((ttlP & 0x00ff0000) >> 4)
+							ipv4Header.Ttl = uint8((ttlP & 0xff000000) >> 6)
+							ipv4Header.Protocol = uint8((ttlP & 0x00ff0000) >> 4)
 
-							ipv4Header.srcIPAddress = buf[ptr : ptr+4]
+							ipv4Header.SrcIPAddress = buf[ptr : ptr+4]
 							ptr += 4
 							if ptr >= bufLen {
 								return nil, errors.New("not enough data")
 							}
 
-							ipv4Header.dstIPAddress = buf[ptr : ptr+4]
+							ipv4Header.DstIPAddress = buf[ptr : ptr+4]
 							ptr += 4
 							if ptr >= bufLen {
 								return nil, errors.New("not enough data")
 							}
 
-							record.packet.ipv4Header = ipv4Header
-							record.packet.ipv6Header = nil
+							record.Packet.Ipv4Header = ipv4Header
+							record.Packet.Ipv6Header = nil
 
 						} else if typeLen == 0x86dd {
 
 						} else {
-							record.packet.ipv4Header = nil
-							record.packet.ipv6Header = nil
+							record.Packet.Ipv4Header = nil
+							record.Packet.Ipv6Header = nil
 						}
 					} else {
 						return nil, errors.New("not an ethernet frame")
@@ -275,13 +275,13 @@ func Decode(buf []byte) (*Datagram, error) {
 				} else {
 					return nil, errors.New("not a raw packet")
 				}
-				sample.records = append(sample.records, record)
+				sample.Records = append(sample.Records, record)
 			}
 			// end of Records loop
 		} else {
 			return nil, errors.New("not a flow sample")
 		}
-		data.samples = append(data.samples, sample)
+		data.Samples = append(data.Samples, sample)
 	}
 	// end of Samples loop
 

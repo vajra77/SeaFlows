@@ -1,13 +1,13 @@
 package sflow
 
 type StorableFlow struct {
-	timestamp     uint32
-	srcMacAddress string
-	dstMacAddress string
-	proto         uint32
-	srcIPAddress  string
-	dstIPAddress  string
-	samplingRate  uint32
-	computedRate  uint32
-	size          uint32
+	Timestamp     uint32
+	SrcMacAddress string
+	DstMacAddress string
+	Proto         uint32
+	SrcIPAddress  string
+	DstIPAddress  string
+	SamplingRate  uint32
+	ComputedSize  uint32
+	Size          uint32
 }
