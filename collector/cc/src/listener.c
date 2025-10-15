@@ -51,8 +51,8 @@ void* listener_thread(void *arg) {
 		if(!sflow_decode_datagram(raw_data, raw_data_len, &datagram)) {
 			for (int s = 0; s < datagram.header.num_samples; s++) {
                 flow_sample_t sample = datagram.samples[s];
-				for (int r = 0; r < sample.num_records; r++) {
-                    flow_record_t record = sample.header.records[r];
+				for (int r = 0; r < sample.header.num_records; r++) {
+                    flow_record_t record = sample.records[r];
 					sflow_encode_flow_record(&record, sample.header.sampling_rate, &flow);
 					rrdtool_prepare(flow.src_mac, flow.dst_mac);
 					bucket_add(listener->bucket, flow.src_mac, flow.dst_mac, flow.proto, flow.computed_size);
