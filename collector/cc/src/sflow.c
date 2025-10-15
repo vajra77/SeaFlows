@@ -10,7 +10,6 @@
 #include <time.h>
 #include <sys/syslog.h>
 
-#include "gc.h"
 #include "sflow.h"
 #include "net.h"
 
@@ -71,6 +70,7 @@ int sflow_decode_datagram(const char *raw_data, const ssize_t raw_data_len, sflo
 
     /* samples loop */
     int max_samples = datagram->header.num_samples;
+
     if (max_samples > MAX_SAMPLES) {
         max_samples = MAX_SAMPLES;
     }
