@@ -20,14 +20,14 @@ typedef struct bucket_node {
 
 typedef struct bucket_dump {
     int size;
-    bucket_node_t* nodes[MAX_BUCKET];
+    bucket_node_t nodes[MAX_BUCKET];
 } bucket_dump_t;
 
 typedef struct bucket {
     pthread_mutex_t mutex;
     int id;
     int size;
-    bucket_node_t* nodes[MAX_BUCKET];
+    bucket_node_t nodes[MAX_BUCKET];
 } bucket_t;
 
 void bucket_init(bucket_t *, int);

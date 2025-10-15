@@ -39,24 +39,25 @@ void* listener_thread(void *arg) {
 		  return NULL;
 
 	char raw_data[MAX_SFLOW_DATA];
+
 	storable_flow_t flow;
+	sflow_datagram_t datagram;
 
     for (;;) {
-		bzero(raw_data, MAX_SFLOW_DATA);
+		memset(raw_data, 0, MAX_SFLOW_DATA);
 
 		const ssize_t raw_data_len = recvfrom(sock, raw_data, MAX_SFLOW_DATA, 0, NULL, NULL);
 
-		sflow_datagram_t *datagram = sflow_decode_datagram(raw_data, raw_data_len);
-
-		if (datagram) {
-			for (const flow_sample_t* sample = datagram->samples; sample != NULL; sample = sample->next) {
-				for (const flow_record_t* record = sample->records; record != NULL; record = record->next) {
-					sflow_encode_flow_record(record, sample->header.sampling_rate, &flow);
+		if(!sflow_decode_datagram(raw_data, raw_data_len, &datagram)) {
+			for (int s = 0; s < datagram.num_samples; s++) {
+                sflow_sample_t sample = datagram.samples[s];
+				for (int r = 0; r < sample.num_records; r++) {
+                    sflow_record_t record = sample.records[r];
+					sflow_encode_flow_record(&record, sample.header.sampling_rate, &flow);
 					rrdtool_prepare(flow.src_mac, flow.dst_mac);
 					bucket_add(listener->bucket, flow.src_mac, flow.dst_mac, flow.proto, flow.computed_size);
 				}
 			}
-			sflow_free_datagram(datagram);
 		}
 		pthread_testcancel();
 	}

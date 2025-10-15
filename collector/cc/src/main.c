@@ -32,7 +32,7 @@ static int num_threads = 0;
 
 listener_data_t	listener_data[MAX_THREADS];
 broker_data_t		broker_data[MAX_THREADS];
-bucket_t*			bucket[MAX_THREADS];
+bucket_t			bucket[MAX_THREADS];
 
 
 void usage(){
@@ -135,16 +135,15 @@ int main(const int argc, char **argv) {
 	/* create threads */
 	for(int i = 0; i < num_threads; i++) {
 
-		bucket[i] = malloc(sizeof(bucket_t));
-		bucket_init(bucket[i], i);
+		bucket_init(&bucket[i], i);
 
 		listener_data[i].id = i;
 		listener_data[i].port = SEAFLOWS_LISTENER_PORT + i;
 		listener_data[i].address = listen_address;
-		listener_data[i].bucket = bucket[i];
+		listener_data[i].bucket = &bucket[i];
 
 		broker_data[i].id = i;
-		broker_data[i].bucket = bucket[i];
+		broker_data[i].bucket = &bucket[i];
 
 		pthread_create(&listener[i], NULL, listener_thread, &listener_data[i]);
 		pthread_create(&broker[i], NULL, broker_thread, &broker_data[i]);

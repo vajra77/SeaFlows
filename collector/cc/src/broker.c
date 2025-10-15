@@ -34,11 +34,12 @@ void* broker_thread(void *arg) {
 		}
 
     	bucket_flush(broker->bucket, &dump);
+
 		for (int k = 0; k < dump.size; k++) {
 			bucket_node_t *node = dump.nodes[k];
 			rrdtool_store(node->src, node->dst, node->bytes4, node->bytes6);
-			free(node);
 		}
+
 		pthread_testcancel();
 	}
 	return NULL;

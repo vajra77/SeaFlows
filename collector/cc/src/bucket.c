@@ -24,8 +24,8 @@ void bucket_flush(bucket_t *bucket, bucket_dump_t *dump) {
     memset(dump, 0, sizeof(bucket_dump_t));
 
     for (int k = 0; k < bucket->size; k++) {
-      dump->nodes[k] = bucket->nodes[k];
-      bucket->nodes[k] = NULL;
+      memcpy(&dump->nodes[k], &bucket->nodes[k], sizeof(bucket_node_t));
+      memset(&bucket->nodes[k], 0, sizeof(bucket_node_t));
     }
 
     dump->size = bucket->size;
@@ -57,7 +57,7 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
 
     if (!found) {
         if (bucket->size < MAX_BUCKET) {
-            bucket_node_t *node = malloc(sizeof(bucket_node_t));
+            bucket_node_t *node = bucket->nodes[bucket->size];
             strncpy(node->src, src_mac, MAC_ADDRESS_LEN);
             strncpy(node->dst, dst_mac, MAC_ADDRESS_LEN);
             if (proto == 4) {
@@ -68,31 +68,13 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
                 node->bytes4 = 0;
                 node->bytes6 = nbytes;
             }
-            bucket->nodes[bucket->size] = node;
             bucket->size++;
         }
         else {
             syslog(LOG_WARNING, "bucket[%d]: full, discarding flow", bucket->id);
         }
     }
-
     pthread_mutex_unlock(&bucket->mutex);
-}
-
-bucket_node_t *bucket_remove(bucket_t *bucket) {
-
-    pthread_mutex_lock(&bucket->mutex);
-    if (bucket->size == 0) {
-        pthread_mutex_unlock(&bucket->mutex);
-        return NULL;
-    }
-    bucket->size--;
-    bucket_node_t *node = bucket->nodes[bucket->size];
-    bucket->nodes[bucket->size] = NULL;
-
-    pthread_mutex_unlock(&bucket->mutex);
-
-    return node;
 }
 
 float bucket_occupation(bucket_t *bucket) {

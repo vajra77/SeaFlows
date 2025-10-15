@@ -9,12 +9,14 @@
 #include "net.h"
 
 #define MAX_SFLOW_DATA 16384
+#define MAX_SAMPLES 8
+#define MAX_RECORDS 16
 
 #define SFLOW_FLOW_SAMPLE_FORMAT                  0x00000001
 #define SFLOW_RAW_PACKET_HEADER_FORMAT            0x00000001
 #define SFLOW_RAW_PACKET_HEADER_PROTO_ETHERNET    0x00000001
 
-#define MEMGUARD(ptr, start, len) if (ptr > start + len) { syslog(LOG_ERR, "memory overflow"); gc_cleanup(&gc); return NULL; }
+#define MEMGUARD(ptr, start, len) if (ptr > start + len) { syslog(LOG_ERR, "memory overflow"); return -1; }
 
 #define MAC_ADDR_SIZE 13
 #define IP_ADDR_SIZE 256
@@ -44,9 +46,9 @@ struct raw_packet_header {
 
 typedef struct raw_packet {
   struct raw_packet_header header;
-  datalink_header_t		    *datalink;
-  ipv4_header_t			      *ipv4;
-  ipv6_header_t			      *ipv6;
+  datalink_header_t		    datalink;
+  ipv4_header_t			      ipv4;
+  ipv6_header_t			      ipv6;
 } raw_packet_t;
 
 
@@ -59,8 +61,7 @@ struct flow_record_header {
 
 typedef struct flow_record {
   struct flow_record_header header;
-  struct raw_packet *packet;
-  struct flow_record *next;
+  struct raw_packet packet;
 } flow_record_t;
 
 
@@ -81,8 +82,7 @@ struct flow_sample_header {
 
 typedef struct flow_sample {
   struct flow_sample_header header;
-  struct flow_sample *next;
-  flow_record_t *records;
+  flow_record_t records[MAX_RECORDS];
 } flow_sample_t;
 
 
@@ -100,11 +100,11 @@ struct sflow_datagram_header {
 
 typedef struct sflow_datagram {
   struct sflow_datagram_header header;
-  flow_sample_t *samples;
+  flow_sample_t samples[MAX_SAMPLES];
 } sflow_datagram_t;
 
-sflow_datagram_t* 	  sflow_decode_datagram(const char *, ssize_t);
-void                  sflow_encode_flow_record(const flow_record_t*, uint32_t, storable_flow_t*);
-void                  sflow_free_datagram(sflow_datagram_t*);
+int  sflow_decode_datagram(const char *, ssize_t, sflow_datagram_t *);
+void sflow_encode_flow_record(const flow_record_t*, uint32_t, storable_flow_t*);
+void sflow_free_datagram(sflow_datagram_t*);
 
 #endif //SFLOW_H
