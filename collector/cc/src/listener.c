@@ -50,7 +50,7 @@ void* listener_thread(void *arg) {
 
 		if(!sflow_decode_datagram(raw_data, raw_data_len, &datagram)) {
 			for (int s = 0; s < datagram.header.num_samples; s++) {
-                sflow_sample_t sample = datagram.samples[s];
+                flow_sample_t sample = datagram.samples[s];
 				for (int r = 0; r < sample.num_records; r++) {
                     sflow_record_t record = sample.header.records[r];
 					sflow_encode_flow_record(&record, sample.header.sampling_rate, &flow);
