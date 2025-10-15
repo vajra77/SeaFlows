@@ -341,7 +341,7 @@ void sflow_encode_flow_record(const flow_record_t *record, const uint32_t sampli
     flow->proto = record->packet.datalink.ethernet.ethertype;
 
     if (flow->proto == ETHERTYPE_IPV4) {
-        flow->proto = 4s
+        flow->proto = 4;
         inet_ntop(AF_INET, record->packet.ipv4.source_address, flow->src_ip, IP_ADDR_SIZE);
         inet_ntop(AF_INET, record->packet.ipv4.destination_address, flow->dst_ip, IP_ADDR_SIZE);
         flow->size = record->packet.ipv4.length + 34;
