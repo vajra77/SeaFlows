@@ -9,8 +9,8 @@
 #include "net.h"
 
 #define MAX_SFLOW_DATA 16384
-#define MAX_SAMPLES 8
-#define MAX_RECORDS 16
+#define MAX_SAMPLES 32
+#define MAX_RECORDS 32
 
 #define SFLOW_FLOW_SAMPLE_FORMAT                  0x00000001
 #define SFLOW_RAW_PACKET_HEADER_FORMAT            0x00000001
