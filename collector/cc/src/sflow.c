@@ -170,7 +170,7 @@ int sflow_decode_datagram(const char *raw_data, const ssize_t raw_data_len, sflo
                 /* raw packet parser */
                 if (record->header.data_format & SFLOW_RAW_PACKET_HEADER_FORMAT) {
                     /* raw packet header */
-                    raw_packet_t *packet = record->packet;
+                    raw_packet_t *packet = &record->packet;
                     memset(packet, 0, sizeof(raw_packet_t));
 
                     /* header protocol */
@@ -318,7 +318,7 @@ int sflow_decode_datagram(const char *raw_data, const ssize_t raw_data_len, sflo
 
 void sflow_encode_flow_record(const flow_record_t *record, const uint32_t sampling_rate, storable_flow_t *flow) {
 
-    const raw_packet_t *pkt = record->packet;
+    const raw_packet_t *pkt = &record->packet;
     memset(flow, 0, sizeof(storable_flow_t));
 
     flow->timestamp = time(NULL);
