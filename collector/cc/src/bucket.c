@@ -57,7 +57,7 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
 
     if (!found) {
         if (bucket->size < MAX_BUCKET) {
-            bucket_node_t node = &bucket->nodes[bucket->size];
+            bucket_node_t *node = &bucket->nodes[bucket->size];
             strncpy(node->src, src_mac, MAC_ADDRESS_LEN);
             strncpy(node->dst, dst_mac, MAC_ADDRESS_LEN);
             if (proto == 4) {
