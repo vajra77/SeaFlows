@@ -49,12 +49,9 @@ void* listener_thread(void *arg) {
 		const ssize_t raw_data_len = recvfrom(sock, raw_data, MAX_SFLOW_DATA, 0, NULL, NULL);
 
 		if(!sflow_decode_datagram(raw_data, raw_data_len, &datagram)) {
-            syslog(LOG_DEBUG, "here 1");
 			for (int s = 0; s < datagram.header.num_samples; s++) {
-            	syslog(LOG_DEBUG, "here 2");
                 flow_sample_t *sample = &datagram.samples[s];
 				for (int r = 0; r < sample->header.num_records; r++) {
-            		syslog(LOG_DEBUG, "here 3");
 					sflow_encode_flow_record(&sample->records[r], sample->header.sampling_rate, &flow);
 					rrdtool_prepare(flow.src_mac, flow.dst_mac);
 					bucket_add(listener->bucket, flow.src_mac, flow.dst_mac, flow.proto, flow.computed_size);

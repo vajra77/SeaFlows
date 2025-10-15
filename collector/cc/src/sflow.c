@@ -318,42 +318,41 @@ int sflow_decode_datagram(const char *raw_data, const ssize_t raw_data_len, sflo
 
 void sflow_encode_flow_record(const flow_record_t *record, const uint32_t sampling_rate, storable_flow_t *flow) {
 
-    const raw_packet_t *pkt = &record->packet;
     memset(flow, 0, sizeof(storable_flow_t));
 
     flow->timestamp = time(NULL);
 
     snprintf(flow->dst_mac, MAC_ADDR_SIZE, "%02x%02x%02x%02x%02x%02x",
-             pkt->datalink.ethernet.destination_mac[0],
-             pkt->datalink.ethernet.destination_mac[1],
-             pkt->datalink.ethernet.destination_mac[2],
-             pkt->datalink.ethernet.destination_mac[3],
-             pkt->datalink.ethernet.destination_mac[4],
-             pkt->datalink.ethernet.destination_mac[5]);
+             record->packet.datalink.ethernet.destination_mac[0],
+             record->packet.datalink.ethernet.destination_mac[1],
+             record->packet.datalink.ethernet.destination_mac[2],
+             record->packet.datalink.ethernet.destination_mac[3],
+             record->packet.datalink.ethernet.destination_mac[4],
+             record->packet.datalink.ethernet.destination_mac[5]);
 
     snprintf(flow->src_mac, MAC_ADDR_SIZE, "%02x%02x%02x%02x%02x%02x",
-             pkt->datalink.ethernet.source_mac[0],
-             pkt->datalink.ethernet.source_mac[1],
-             pkt->datalink.ethernet.source_mac[2],
-             pkt->datalink.ethernet.source_mac[3],
-             pkt->datalink.ethernet.source_mac[4],
-             pkt->datalink.ethernet.source_mac[5]);
+             record->packet.datalink.ethernet.source_mac[0],
+             record->packet.datalink.ethernet.source_mac[1],
+             record->packet.datalink.ethernet.source_mac[2],
+             record->packet.datalink.ethernet.source_mac[3],
+             record->packet.datalink.ethernet.source_mac[4],
+             record->packet.datalink.ethernet.source_mac[5]);
 
-    flow->proto = pkt->datalink.ethernet.ethertype;
+    flow->proto = record->packet.datalink.ethernet.ethertype;
 
     if (flow->proto == ETHERTYPE_IPV4) {
-        flow->proto = 4;
-        inet_ntop(AF_INET, &pkt->ipv4.source_address, flow->src_ip, IP_ADDR_SIZE);
-        inet_ntop(AF_INET, &pkt->ipv4.destination_address, flow->dst_ip, IP_ADDR_SIZE);
-        flow->size = pkt->ipv4.length + 34;
+        flow->proto = 4s
+        inet_ntop(AF_INET, record->packet.ipv4.source_address, flow->src_ip, IP_ADDR_SIZE);
+        inet_ntop(AF_INET, record->packet.ipv4.destination_address, flow->dst_ip, IP_ADDR_SIZE);
+        flow->size = record->packet.ipv4.length + 34;
         flow->sampling_rate = sampling_rate;
         flow->computed_size = flow->size * flow->sampling_rate;
     } else if (flow->proto == ETHERTYPE_IPV6) {
         /* IPv6 */
         flow->proto = 6;
-        inet_ntop(AF_INET6, &pkt->ipv6.source_address, flow->src_ip, IP_ADDR_SIZE);
-        inet_ntop(AF_INET6, &pkt->ipv6.destination_address, flow->dst_ip, IP_ADDR_SIZE);
-        flow->size = pkt->ipv6.length + 40;
+        inet_ntop(AF_INET6, record->packet.ipv6.source_address, flow->src_ip, IP_ADDR_SIZE);
+        inet_ntop(AF_INET6, record->packet.ipv6.destination_address, flow->dst_ip, IP_ADDR_SIZE);
+        flow->size = record->packet.ipv6.length + 40;
         flow->sampling_rate = sampling_rate;
         flow->computed_size = flow->size * flow->sampling_rate;
     }
