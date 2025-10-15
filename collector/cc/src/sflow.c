@@ -194,9 +194,6 @@ int sflow_decode_datagram(const char *raw_data, const ssize_t raw_data_len, sflo
 
                     if (datagram->samples[s].records[r].packet.header.protocol &
                         SFLOW_RAW_PACKET_HEADER_PROTO_ETHERNET) {
-                        /* ethernet header follows */
-                        datalink_header_t *datalink = &packet->datalink;
-                        memset(datalink, 0, sizeof(datalink_header_t));
 
                         /* destination MAC address */
                         memcpy(datagram->samples[s].records[r].packet.datalink.ethernet.destination_mac, data_ptr, 6);
@@ -294,7 +291,7 @@ int sflow_decode_datagram(const char *raw_data, const ssize_t raw_data_len, sflo
                     MEMGUARD(data_ptr, raw_data, raw_data_len);
                 }
 
-                datagram->samples[s].len_records++;
+                datagram->samples[s].records_len++;
             } /* end of records loop */
         }
 
@@ -304,7 +301,7 @@ int sflow_decode_datagram(const char *raw_data, const ssize_t raw_data_len, sflo
             MEMGUARD(data_ptr, raw_data, raw_data_len);
         }
 
-        datagram->samples[s].len_samples++;
+        datagram->samples[s].samples_len++;
     } /* end of samples loop */
 
     return 0;
@@ -332,7 +329,7 @@ void sflow_encode_flow_record(const flow_record_t *record, const uint32_t sampli
              record->packet.datalink.ethernet.source_mac[4],
              record->packet.datalink.ethernet.source_mac[5]);
 
-    flow->proto = records->packet.datalink.ethernet.ethertype;
+    flow->proto = record->packet.datalink.ethernet.ethertype;
 
     if (flow->proto == ETHERTYPE_IPV4) {
         flow->proto = 4;
