@@ -394,10 +394,10 @@ void sflow_free_datagram(sflow_datagram_t *sflow_datagram) {
     free(sflow_datagram);
 }
 
-storable_flow_t *sflow_encode_flow_record(const flow_record_t *record, const uint32_t sampling_rate) {
+void sflow_encode_flow_record(const flow_record_t *record, const uint32_t sampling_rate, storable_flow_t *flow) {
 
-    storable_flow_t *flow = malloc(sizeof(storable_flow_t));
     const raw_packet_t *pkt = record->packet;
+    memset(flow, 0, sizeof(storable_flow_t));
 
     flow->timestamp = time(NULL);
 
@@ -435,6 +435,4 @@ storable_flow_t *sflow_encode_flow_record(const flow_record_t *record, const uin
         flow->sampling_rate = sampling_rate;
         flow->computed_size = flow->size * flow->sampling_rate;
     }
-
-    return flow;
 }

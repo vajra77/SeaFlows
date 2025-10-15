@@ -39,6 +39,7 @@ void* listener_thread(void *arg) {
 		  return NULL;
 
 	char raw_data[MAX_SFLOW_DATA];
+	storable_flow_t flow;
 
     for (;;) {
 		bzero(raw_data, MAX_SFLOW_DATA);
@@ -50,12 +51,9 @@ void* listener_thread(void *arg) {
 		if (datagram) {
 			for (const flow_sample_t* sample = datagram->samples; sample != NULL; sample = sample->next) {
 				for (const flow_record_t* record = sample->records; record != NULL; record = record->next) {
-					storable_flow_t	*flow = sflow_encode_flow_record(record, sample->header.sampling_rate);
-					if (flow != NULL) {
-						rrdtool_prepare(flow->src_mac, flow->dst_mac);
-						bucket_add(listener->bucket, flow->src_mac, flow->dst_mac, flow->proto, flow->computed_size);
-						free(flow);
-					}
+					sflow_encode_flow_record(record, sample->header.sampling_rate, &flow);
+					rrdtool_prepare(flow.src_mac, flow.dst_mac);
+					bucket_add(listener->bucket, flow.src_mac, flow.dst_mac, flow.proto, flow.computed_size);
 				}
 			}
 			sflow_free_datagram(datagram);
