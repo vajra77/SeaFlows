@@ -21,7 +21,9 @@ void* broker_thread(void *arg) {
 
 	syslog(LOG_INFO, "starting broker[%d], saving RRD files to %s", broker->id, RRD_DIR);
 
-	for (int t = 0;; t++) {
+	bucket_dump_t dump;
+
+    for (int t = 0;; t++) {
 		sleep(60);
 
 		/* logs every 2 hrs */
@@ -31,13 +33,12 @@ void* broker_thread(void *arg) {
 			t = 0;
 		}
 
-		bucket_dump_t *dump = bucket_flush(broker->bucket);
+    	bucket_flush(broker->bucket, &dump);
 		for (int k = 0; k < dump->size; k++) {
 			bucket_node_t *node = dump->nodes[k];
 			rrdtool_store(node->src, node->dst, node->bytes4, node->bytes6);
 			free(node);
 		}
-		free(dump);
 		pthread_testcancel();
 	}
 	return NULL;

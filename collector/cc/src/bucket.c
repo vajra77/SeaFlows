@@ -18,10 +18,9 @@ void bucket_init(bucket_t *bucket, const int id) {
     pthread_mutex_init(&bucket->mutex, NULL);
 }
 
-bucket_dump_t *bucket_flush(bucket_t *bucket) {
+void bucket_flush(bucket_t *bucket, bucket_dump_t *dump) {
 
     pthread_mutex_lock(&bucket->mutex);
-    bucket_dump_t *dump = malloc(sizeof(bucket_dump_t));
     memset(dump, 0, sizeof(bucket_dump_t));
 
     for (int k = 0; k < bucket->size; k++) {
@@ -33,8 +32,6 @@ bucket_dump_t *bucket_flush(bucket_t *bucket) {
     bucket->size = 0;
 
     pthread_mutex_unlock(&bucket->mutex);
-
-    return dump;
 }
 
 void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,

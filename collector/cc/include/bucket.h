@@ -20,7 +20,7 @@ typedef struct bucket_node {
 
 typedef struct bucket_dump {
     int size;
-    bucket_node_t *nodes[MAX_BUCKET];
+    bucket_node_t* nodes[MAX_BUCKET];
 } bucket_dump_t;
 
 typedef struct bucket {
@@ -33,6 +33,6 @@ typedef struct bucket {
 void bucket_init(bucket_t *, int);
 void bucket_add(bucket_t *, const char *, const char *, uint32_t, uint32_t);
 bucket_node_t *bucket_remove(bucket_t *);
-bucket_dump_t *bucket_flush(bucket_t *);
+void bucket_flush(bucket_t *, bucket_dump_t *);
 float bucket_occupation(bucket_t *);
 #endif //BUCKET_H
