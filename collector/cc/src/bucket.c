@@ -24,8 +24,10 @@ bucket_dump_t *bucket_flush(bucket_t *bucket) {
     bucket_dump_t *dump = malloc(sizeof(bucket_dump_t));
     memset(dump, 0, sizeof(bucket_dump_t));
 
-    memcpy(dump->nodes, bucket->nodes, sizeof(bucket_node_t*) * MAX_BUCKET);
-    memset(bucket->nodes, 0, sizeof(bucket_node_t*) * MAX_BUCKET);
+    for (int k = 0; k < bucket->size; k++) {
+      dump->nodes[k] = bucket->nodes[k];
+      bucket->nodes[k] = NULL;
+    }
 
     dump->size = bucket->size;
     bucket->size = 0;
