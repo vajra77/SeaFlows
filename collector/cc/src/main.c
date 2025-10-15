@@ -56,10 +56,6 @@ void signal_handler(const int sig) {
 		pthread_join(broker[i], NULL);
 	}
 
-	for(int i = 0; i < num_threads; i++) {
-		free(bucket[i]);
-	}
-
 	closelog();
 	exit(EXIT_SUCCESS);
 }
