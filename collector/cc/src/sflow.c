@@ -170,7 +170,7 @@ int sflow_decode_datagram(const char *raw_data, const ssize_t raw_data_len, sflo
                 /* raw packet parser */
                 if (record->header.data_format & SFLOW_RAW_PACKET_HEADER_FORMAT) {
                     /* raw packet header */
-                    raw_packet_t *packet = record->raw_packet;
+                    raw_packet_t *packet = record->packet;
                     memset(packet, 0, sizeof(raw_packet_t));
 
                     /* header protocol */
@@ -199,7 +199,7 @@ int sflow_decode_datagram(const char *raw_data, const ssize_t raw_data_len, sflo
 
                     if (packet->header.protocol & SFLOW_RAW_PACKET_HEADER_PROTO_ETHERNET) {
                         /* ethernet header follows */
-                        datalink_header_t *datalink = packet->datalink;
+                        datalink_header_t *datalink = &packet->datalink;
                         memset(datalink, 0, sizeof(datalink_header_t));
 
                         /* destination MAC address */
@@ -238,7 +238,7 @@ int sflow_decode_datagram(const char *raw_data, const ssize_t raw_data_len, sflo
                             datalink->vlan.id = 0;
                             datalink->vlan.length = 0;
 
-                            ipv4_header_t *ipv4 = packet->ipv4;
+                            ipv4_header_t *ipv4 = &packet->ipv4;
                             memset(ipv4, 0, sizeof(ipv4_header_t));
 
                             /* total length */
@@ -265,14 +265,12 @@ int sflow_decode_datagram(const char *raw_data, const ssize_t raw_data_len, sflo
                             data_ptr += sizeof(uint32_t);
                             MEMGUARD(data_ptr, raw_data, raw_data_len);
 
-                            packet->datalink = datalink;
-                            packet->ipv4 = ipv4;
                         } else if (ntohs(type_len) == ETHERTYPE_IPV6) {
                             datalink->ethernet.ethertype = ETHERTYPE_IPV6;
                             datalink->vlan.id = 0;
                             datalink->vlan.length = 0;
 
-                            ipv6_header_t *ipv6 = packet->ipv6;
+                            ipv6_header_t *ipv6 = &packet->ipv6;
                             memset(ipv6, 0, sizeof(ipv6_header_t));
 
                             /* preamble */
