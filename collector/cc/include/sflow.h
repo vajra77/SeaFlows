@@ -83,6 +83,7 @@ struct flow_sample_header {
 typedef struct flow_sample {
   struct flow_sample_header header;
   flow_record_t records[MAX_RECORDS];
+  int records_len;
 } flow_sample_t;
 
 
@@ -101,6 +102,7 @@ struct sflow_datagram_header {
 typedef struct sflow_datagram {
   struct sflow_datagram_header header;
   flow_sample_t samples[MAX_SAMPLES];
+  int samples_len;
 } sflow_datagram_t;
 
 int  sflow_decode_datagram(const char *, ssize_t, sflow_datagram_t *);

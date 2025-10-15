@@ -72,143 +72,139 @@ int sflow_decode_datagram(const char *raw_data, const ssize_t raw_data_len, sflo
     int max_samples = datagram->header.num_samples;
 
     if (max_samples > MAX_SAMPLES) {
+        syslog(LOG_INFO, "Max samples exceeded for data length: %d", max_samples);
         max_samples = MAX_SAMPLES;
     }
 
-    for (int n = 0; n < max_samples; n++) {
-        flow_sample_t *sample = &datagram->samples[n];
-        memset(sample, 0, sizeof(flow_sample_t));
+    for (int s = 0; s < max_samples; s++) {
 
         /* sample format */
         memcpy(&buffer, data_ptr, sizeof(uint32_t));
         data_ptr += sizeof(uint32_t);
-        sample->header.data_format = ntohl(buffer);
+        datagram->samples[s].header.data_format = ntohl(buffer);
         MEMGUARD(data_ptr, raw_data, raw_data_len);
 
         /* sample length */
         memcpy(&buffer, data_ptr, sizeof(uint32_t));
-        sample->header.length = ntohl(buffer);
+        datagram->samples[s].header.length = ntohl(buffer);
         data_ptr += sizeof(uint32_t);
         MEMGUARD(data_ptr, raw_data, raw_data_len);
 
         const char *sample_data_start = data_ptr;
 
-        if (sample->header.data_format & SFLOW_FLOW_SAMPLE_FORMAT) {
+        if (datagram->samples[s].header.data_format & SFLOW_FLOW_SAMPLE_FORMAT) {
             /* sample sequence number */
             memcpy(&buffer, data_ptr, sizeof(uint32_t));
-            sample->header.sequence_number = ntohl(buffer);
+            datagram->samples[s].header.sequence_number = ntohl(buffer);
             data_ptr += sizeof(uint32_t);
             MEMGUARD(data_ptr, raw_data, raw_data_len);
 
             /* sample source id type/value */
             memcpy(&buffer, data_ptr, sizeof(uint32_t));
-            sample->header.source_id = ntohl(buffer);
+            datagram->samples[s].header.source_id = ntohl(buffer);
             data_ptr += sizeof(uint32_t);
             MEMGUARD(data_ptr, raw_data, raw_data_len);
 
             /* sampling rate */
             memcpy(&buffer, data_ptr, sizeof(uint32_t));
-            sample->header.sampling_rate = ntohl(buffer);
+            datagram->samples[s].header.sampling_rate = ntohl(buffer);
             data_ptr += sizeof(uint32_t);
             MEMGUARD(data_ptr, raw_data, raw_data_len);
 
             /* sample pool */
             memcpy(&buffer, data_ptr, sizeof(uint32_t));
-            sample->header.sample_pool = ntohl(buffer);
+            datagram->samples[s].header.sample_pool = ntohl(buffer);
             data_ptr += sizeof(uint32_t);
             MEMGUARD(data_ptr, raw_data, raw_data_len);
 
             /* drops */
             memcpy(&buffer, data_ptr, sizeof(uint32_t));
-            sample->header.drops = ntohl(buffer);
+            datagram->samples[s].header.drops = ntohl(buffer);
             data_ptr += sizeof(uint32_t);
             MEMGUARD(data_ptr, raw_data, raw_data_len);
 
             /* input interface */
             memcpy(&buffer, data_ptr, sizeof(uint32_t));
-            sample->header.input_interface = ntohl(buffer);
+            datagram->samples[s].header.input_interface = ntohl(buffer);
             data_ptr += sizeof(uint32_t);
             MEMGUARD(data_ptr, raw_data, raw_data_len);
 
             /* output interface */
             memcpy(&buffer, data_ptr, sizeof(uint32_t));
-            sample->header.output_interface = ntohl(buffer);
+            datagram->samples[s].header.output_interface = ntohl(buffer);
             data_ptr += sizeof(uint32_t);
             MEMGUARD(data_ptr, raw_data, raw_data_len);
 
             /* n records */
             memcpy(&buffer, data_ptr, sizeof(uint32_t));
-            sample->header.num_records = ntohl(buffer);
+            datagram->samples[s].header.num_records = ntohl(buffer);
             data_ptr += sizeof(uint32_t);
             MEMGUARD(data_ptr, raw_data, raw_data_len);
 
             /* records loop */
-            int max_records = sample->header.num_records;
+            int max_records = datagram->samples[s].header.num_records;
 
             if (max_records > MAX_RECORDS) {
+              	syslog(LOG_INFO, "Max records exceeded for data length :%d", max_records);
                 max_records = MAX_RECORDS;
             }
 
-            for (int k = 0; k < max_records; k++) {
-                flow_record_t *record = &sample->records[k];
-                memset(record, 0, sizeof(flow_record_t));
+            for (int r = 0; r < max_records; r++) {
 
                 /* data format */
                 memcpy(&buffer, data_ptr, sizeof(uint32_t));
-                record->header.data_format = ntohl(buffer);
+                datagram->samples[s].records[r].header.data_format = ntohl(buffer);
                 data_ptr += sizeof(uint32_t);
                 MEMGUARD(data_ptr, raw_data, raw_data_len);
 
                 /* flow data length */
                 memcpy(&buffer, data_ptr, sizeof(uint32_t));
-                record->header.length = ntohl(buffer);
+                datagram->samples[s].records[r].header.length = ntohl(buffer);
                 data_ptr += sizeof(uint32_t);
                 MEMGUARD(data_ptr, raw_data, raw_data_len);
 
                 const char *record_data_start = data_ptr;
 
                 /* raw packet parser */
-                if (record->header.data_format & SFLOW_RAW_PACKET_HEADER_FORMAT) {
-                    /* raw packet header */
-                    raw_packet_t *packet = &record->packet;
-                    memset(packet, 0, sizeof(raw_packet_t));
+                if (datagram->samples[s].records[r].header.data_format & SFLOW_RAW_PACKET_HEADER_FORMAT) {
 
                     /* header protocol */
                     memcpy(&buffer, data_ptr, sizeof(uint32_t));
-                    packet->header.protocol = ntohl(buffer);
+                    datagram->samples[s].records[r].packet.header.protocol = ntohl(buffer);
                     data_ptr += sizeof(uint32_t);
                     MEMGUARD(data_ptr, raw_data, raw_data_len);
 
                     /* frame length */
                     memcpy(&buffer, data_ptr, sizeof(uint32_t));
-                    packet->header.frame_length = ntohl(buffer);
+                    datagram->samples[s].records[r].packet.header.frame_length = ntohl(buffer);
                     data_ptr += sizeof(uint32_t);
                     MEMGUARD(data_ptr, raw_data, raw_data_len);
 
                     /* stripped */
                     memcpy(&buffer, data_ptr, sizeof(uint32_t));
-                    packet->header.stripped = ntohl(buffer);
+                    datagram->samples[s].records[r].packet.header.stripped = ntohl(buffer);
                     data_ptr += sizeof(uint32_t);
                     MEMGUARD(data_ptr, raw_data, raw_data_len);
 
                     /* size */
                     memcpy(&buffer, data_ptr, sizeof(uint32_t));
-                    packet->header.size = ntohl(buffer);
+                    datagram->samples[s].records[r].packet.header.size = ntohl(buffer);
                     data_ptr += sizeof(uint32_t);
                     MEMGUARD(data_ptr, raw_data, raw_data_len);
 
-                    if (packet->header.protocol & SFLOW_RAW_PACKET_HEADER_PROTO_ETHERNET) {
+                    if (datagram->samples[s].records[r].packet.header.protocol &
+                        SFLOW_RAW_PACKET_HEADER_PROTO_ETHERNET) {
                         /* ethernet header follows */
                         datalink_header_t *datalink = &packet->datalink;
                         memset(datalink, 0, sizeof(datalink_header_t));
 
                         /* destination MAC address */
-                        memcpy(&datalink->ethernet.destination_mac, data_ptr, 6);
+                        memcpy(datagram->samples[s].records[r].packet.datalink.ethernet.destination_mac, data_ptr, 6);
                         data_ptr += 6;
                         MEMGUARD(data_ptr, raw_data, raw_data_len);
 
                         /* source MAC address */
-                        memcpy(&datalink->ethernet.source_mac, data_ptr, 6);
+                        memcpy(datagram->samples[s].records[r].packet.datalink.ethernet.source_mac, data_ptr, 6);
                         data_ptr += 6;
                         MEMGUARD(data_ptr, raw_data, raw_data_len);
 
@@ -222,8 +218,8 @@ int sflow_decode_datagram(const char *raw_data, const ssize_t raw_data_len, sflo
                             /* vlan id */
                             uint16_t vlan;
                             memcpy(&vlan, data_ptr, sizeof(uint16_t));
-                            datalink->vlan.id = ntohs(vlan);
-                            datalink->vlan.length = 0;
+                            datagram->samples[s].records[r].packet.datalink.vlan.id = ntohs(vlan);
+                            datagram->samples[s].records[r].packet.datalink.vlan.length = 0;
                             data_ptr += sizeof(uint16_t);
                             MEMGUARD(data_ptr, raw_data, raw_data_len);
 
@@ -234,64 +230,58 @@ int sflow_decode_datagram(const char *raw_data, const ssize_t raw_data_len, sflo
                         }
 
                         if (ntohs(type_len) == ETHERTYPE_IPV4) {
-                            datalink->ethernet.ethertype = ETHERTYPE_IPV4;
-                            datalink->vlan.id = 0;
-                            datalink->vlan.length = 0;
-
-                            ipv4_header_t *ipv4 = &packet->ipv4;
-                            memset(ipv4, 0, sizeof(ipv4_header_t));
+                            datagram->samples[s].records[r].packet.datalink.ethernet.ethertype = ETHERTYPE_IPV4;
+                            datagram->samples[s].records[r].packet.datalink.vlan.id = 0;
+                            datagram->samples[s].records[r].packet.datalink.vlan.length = 0;
 
                             /* total length */
                             memcpy(&buffer, data_ptr, sizeof(uint32_t));
-                            ipv4->preamble = ntohl(buffer) & 0xffff0000;
-                            ipv4->length = ntohl(buffer) & 0x0000ffff;
+                            datagram->samples[s].records[r].packet.ipv4.preamble = ntohl(buffer) & 0xffff0000;
+                            datagram->samples[s].records[r].packet.ipv4.length = ntohl(buffer) & 0x0000ffff;
                             data_ptr += sizeof(uint32_t);
                             MEMGUARD(data_ptr, raw_data, raw_data_len);
 
                             /* ttl/protocol */
                             memcpy(&buffer, data_ptr, sizeof(uint32_t));
-                            ipv4->ttl = (ntohl(buffer) & 0xff000000) >> 6;
-                            ipv4->protocol = (ntohl(buffer) & 0x00ff0000) >> 4;
+                            datagram->samples[s].records[r].packet.ipv4.ttl = (ntohl(buffer) & 0xff000000) >> 6;
+                            datagram->samples[s].records[r].packet.ipv4.protocol = (ntohl(buffer) & 0x00ff0000) >> 4;
                             data_ptr += sizeof(uint32_t);
                             MEMGUARD(data_ptr, raw_data, raw_data_len);
 
                             /* src address */
-                            memcpy(&ipv4->source_address.s_addr, data_ptr, sizeof(uint32_t));
+                            memcpy(&datagram->samples[s].records[r].packet.ipv4.source_address.s_addr, data_ptr, sizeof(uint32_t));
                             data_ptr += sizeof(uint32_t);
                             MEMGUARD(data_ptr, raw_data, raw_data_len);
 
                             /* dst address */
-                            memcpy(&ipv4->destination_address.s_addr, data_ptr, sizeof(uint32_t));
+                            memcpy(&datagram->samples[s].records[r].packet.ipv4.destination_address.s_addr, data_ptr, sizeof(uint32_t));
                             data_ptr += sizeof(uint32_t);
                             MEMGUARD(data_ptr, raw_data, raw_data_len);
 
                         } else if (ntohs(type_len) == ETHERTYPE_IPV6) {
-                            datalink->ethernet.ethertype = ETHERTYPE_IPV6;
-                            datalink->vlan.id = 0;
-                            datalink->vlan.length = 0;
-
-                            ipv6_header_t *ipv6 = &packet->ipv6;
-                            memset(ipv6, 0, sizeof(ipv6_header_t));
+                            datagram->samples[s].records[r].packet.datalink.ethernet.ethertype = ETHERTYPE_IPV6;
+                            datagram->samples[s].records[r].packet.datalink.vlan.id = 0;
+                            datagram->samples[s].records[r].packet.datalink.vlan.length = 0;
 
                             /* preamble */
                             memcpy(&buffer, data_ptr, sizeof(uint32_t));
-                            ipv6->preamble = ntohl(buffer);
+                            datagram->samples[s].records[r].packet.ipv6.preamble = ntohl(buffer);
                             data_ptr += sizeof(uint32_t);
                             MEMGUARD(data_ptr, raw_data, raw_data_len);
 
                             /* length */
                             memcpy(&buffer, data_ptr, sizeof(uint32_t));
-                            ipv6->length = (ntohl(buffer) & 0xffff0000) >> 4;
+                            datagram->samples[s].records[r].packet.ipv6.length = (ntohl(buffer) & 0xffff0000) >> 4;
                             data_ptr += sizeof(uint32_t);
                             MEMGUARD(data_ptr, raw_data, raw_data_len);
 
                             /* src address */
-                            memcpy(&ipv6->source_address.s6_addr, data_ptr, 16);
+                            memcpy(&datagram->samples[s].records[r].packet.ipv6.source_address.s6_addr, data_ptr, 16);
                             data_ptr += 16;
                             MEMGUARD(data_ptr, raw_data, raw_data_len);
 
                             /* dst address */
-                            memcpy(&ipv6->destination_address.s6_addr, data_ptr, 16);
+                            memcpy(&datagram->samples[s].records[r].packet.ipv6.destination_address.s6_addr, data_ptr, 16);
                             data_ptr += 16;
                             MEMGUARD(data_ptr, raw_data, raw_data_len);
                         }
@@ -299,18 +289,22 @@ int sflow_decode_datagram(const char *raw_data, const ssize_t raw_data_len, sflo
                 } /* end of raw packet parser */
 
                 /* align pointer for next record */
-                if (data_ptr < record_data_start + record->header.length) {
-                    data_ptr = record_data_start + record->header.length;
+                if (data_ptr < record_data_start + datagram->samples[s].records[r].header.length) {
+                    data_ptr = record_data_start + datagram->samples[s].records[r].header.length;
                     MEMGUARD(data_ptr, raw_data, raw_data_len);
                 }
+
+                datagram->samples[s].len_records++;
             } /* end of records loop */
         }
 
         /* align pointer for next sample */
-        if (data_ptr < sample_data_start + sample->header.length) {
-            data_ptr = sample_data_start + sample->header.length;
+        if (data_ptr < sample_data_start + datagram->samples[s].header.length) {
+            data_ptr = sample_data_start + datagram->samples[s].header.length;
             MEMGUARD(data_ptr, raw_data, raw_data_len);
         }
+
+        datagram->samples[s].len_samples++;
     } /* end of samples loop */
 
     return 0;
@@ -338,7 +332,7 @@ void sflow_encode_flow_record(const flow_record_t *record, const uint32_t sampli
              record->packet.datalink.ethernet.source_mac[4],
              record->packet.datalink.ethernet.source_mac[5]);
 
-    flow->proto = record->packet.datalink.ethernet.ethertype;
+    flow->proto = records->packet.datalink.ethernet.ethertype;
 
     if (flow->proto == ETHERTYPE_IPV4) {
         flow->proto = 4;
