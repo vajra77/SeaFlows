@@ -76,8 +76,8 @@ int sflow_decode_datagram(const char *raw_data, const ssize_t raw_data_len, sflo
     }
 
     for (int n = 0; n < max_samples; n++) {
-        memset(datagram->samples[n], 0, sizeof(sflow_sample_t));
         flow_sample_t *sample = &datagram->samples[n];
+        memset(sample, 0, sizeof(flow_sample_t));
 
         /* sample format */
         memcpy(&buffer, data_ptr, sizeof(uint32_t));
@@ -150,8 +150,8 @@ int sflow_decode_datagram(const char *raw_data, const ssize_t raw_data_len, sflo
             }
 
             for (int k = 0; k < max_records; k++) {
-                memset(sample->records[k], 0, sizeof(sflow_record_t));
-                sflow_record_t *record = &sample->records[k];
+                flow_record_t *record = &sample->records[k];
+                memset(record, 0, sizeof(flow_record_t));
 
                 /* data format */
                 memcpy(&buffer, data_ptr, sizeof(uint32_t));
