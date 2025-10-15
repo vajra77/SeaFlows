@@ -12,9 +12,9 @@
 
 void bucket_init(bucket_t *bucket, const int id) {
 
+ 	memset(bucket, 0, sizeof(bucket_t));
     bucket->size = 0;
     bucket->id = id;
-    memset(bucket->nodes, 0, sizeof(bucket_node_t*) * MAX_BUCKET);
     pthread_mutex_init(&bucket->mutex, NULL);
 }
 
@@ -42,31 +42,29 @@ void bucket_add(bucket_t *bucket, const char *src_mac, const char *dst_mac,
     int found = 0;
 
     for (int k = 0; !found && (k < bucket->size); k++) {
-        bucket_node_t *node = &bucket->nodes[k];
-        if (!strncmp(node->src, src_mac, MAC_ADDRESS_LEN) &&
-            !strncmp(node->dst, dst_mac, MAC_ADDRESS_LEN)) {
+        if (!strncmp(bucket->nodes[k].src, src_mac, MAC_ADDRESS_LEN) &&
+            !strncmp(bucket->nodes[k].dst, dst_mac, MAC_ADDRESS_LEN)) {
             found = 1;
             if (proto == 4) {
-                node->bytes4 += nbytes;
+                bucket->nodes[k].bytes4 += nbytes;
             }
             else {
-                node->bytes6 += nbytes;
+                bucket->nodes[k].bytes6 += nbytes;
             }
         }
     }
 
     if (!found) {
         if (bucket->size < MAX_BUCKET) {
-            bucket_node_t *node = &bucket->nodes[bucket->size];
-            strncpy(node->src, src_mac, MAC_ADDRESS_LEN);
-            strncpy(node->dst, dst_mac, MAC_ADDRESS_LEN);
+            strncpy(bucket->nodes[bucket->size].src, src_mac, MAC_ADDRESS_LEN);
+            strncpy(bucket->nodes[bucket->size].dst, dst_mac, MAC_ADDRESS_LEN);
             if (proto == 4) {
-                node->bytes4 = nbytes;
-                node->bytes6 = 0;
+                bucket->nodes[bucket->size].bytes4 = nbytes;
+                bucket->nodes[bucket->size].bytes6 = 0;
             }
             else {
-                node->bytes4 = 0;
-                node->bytes6 = nbytes;
+                bucket->nodes[bucket->size].bytes4 = 0;
+                bucket->nodes[bucket->size].bytes6 = nbytes;
             }
             bucket->size++;
         }

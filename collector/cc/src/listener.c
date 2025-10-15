@@ -52,9 +52,9 @@ void* listener_thread(void *arg) {
 			for (int s = 0; s < datagram.header.num_samples; s++) {
                 flow_sample_t *sample = &datagram.samples[s];
 				for (int r = 0; r < sample->header.num_records; r++) {
-					//sflow_encode_flow_record(&sample->records[r], sample->header.sampling_rate, &flow);
-					//rrdtool_prepare(flow.src_mac, flow.dst_mac);
-					//bucket_add(listener->bucket, flow.src_mac, flow.dst_mac, flow.proto, flow.computed_size);
+					sflow_encode_flow_record(&sample->records[r], sample->header.sampling_rate, &flow);
+					rrdtool_prepare(flow.src_mac, flow.dst_mac);
+					bucket_add(listener->bucket, flow.src_mac, flow.dst_mac, flow.proto, flow.computed_size);
 				}
 			}
 		}
