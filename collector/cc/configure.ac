@@ -1,6 +1,7 @@
 AC_INIT([seaflows], [1.1], [f.ferreri@namex.it])
 AM_INIT_AUTOMAKE(subdir-objects)
 AC_PROG_CC
+AC_PROG_RANLIB
 
 AC_CHECK_LIB([rrd], [rrdc_connect],
     [LDFLAGS="$LDFLAGS -lrrd"],
