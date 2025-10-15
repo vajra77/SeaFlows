@@ -301,7 +301,7 @@ int sflow_decode_datagram(const char *raw_data, const ssize_t raw_data_len, sflo
             MEMGUARD(data_ptr, raw_data, raw_data_len);
         }
 
-        datagram->samples[s].samples_len++;
+        datagram->samples_len++;
     } /* end of samples loop */
 
     return 0;
