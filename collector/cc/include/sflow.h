@@ -104,7 +104,7 @@ typedef struct sflow_datagram {
 } sflow_datagram_t;
 
 sflow_datagram_t* 	  sflow_decode_datagram(const char *, ssize_t);
-storable_flow_t*	    sflow_encode_flow_record(const flow_record_t*, uint32_t);
+void                  sflow_encode_flow_record(const flow_record_t*, uint32_t, storable_flow_t*);
 void                  sflow_free_datagram(sflow_datagram_t*);
 
 #endif //SFLOW_H
