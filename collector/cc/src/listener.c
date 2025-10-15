@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include <pthread.h>
 #include <arpa/inet.h>
-#include <strings.h>
+#include <string.h>
 #include <syslog.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -49,10 +49,10 @@ void* listener_thread(void *arg) {
 		const ssize_t raw_data_len = recvfrom(sock, raw_data, MAX_SFLOW_DATA, 0, NULL, NULL);
 
 		if(!sflow_decode_datagram(raw_data, raw_data_len, &datagram)) {
-			for (int s = 0; s < datagram.num_samples; s++) {
+			for (int s = 0; s < datagram.header.num_samples; s++) {
                 sflow_sample_t sample = datagram.samples[s];
 				for (int r = 0; r < sample.num_records; r++) {
-                    sflow_record_t record = sample.records[r];
+                    sflow_record_t record = sample.header.records[r];
 					sflow_encode_flow_record(&record, sample.header.sampling_rate, &flow);
 					rrdtool_prepare(flow.src_mac, flow.dst_mac);
 					bucket_add(listener->bucket, flow.src_mac, flow.dst_mac, flow.proto, flow.computed_size);
