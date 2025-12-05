@@ -240,8 +240,8 @@ int sflow_decode_datagram(const char *raw_data, const ssize_t raw_data_len, sflo
 
                             /* ttl/protocol */
                             memcpy(&buffer, data_ptr, sizeof(uint32_t));
-                            datagram->samples[s].records[r].packet.ipv4.ttl = (ntohl(buffer) & 0xff000000) >> 6;
-                            datagram->samples[s].records[r].packet.ipv4.protocol = (ntohl(buffer) & 0x00ff0000) >> 4;
+                            datagram->samples[s].records[r].packet.ipv4.ttl = (ntohl(buffer) & 0xff000000) >> 24;
+                            datagram->samples[s].records[r].packet.ipv4.protocol = (ntohl(buffer) & 0x00ff0000) >> 16;
                             data_ptr += sizeof(uint32_t);
                             MEMGUARD(data_ptr, raw_data, raw_data_len);
 
@@ -268,7 +268,7 @@ int sflow_decode_datagram(const char *raw_data, const ssize_t raw_data_len, sflo
 
                             /* length */
                             memcpy(&buffer, data_ptr, sizeof(uint32_t));
-                            datagram->samples[s].records[r].packet.ipv6.length = (ntohl(buffer) & 0xffff0000) >> 4;
+                            datagram->samples[s].records[r].packet.ipv6.length = (ntohl(buffer) & 0xffff0000) >> 16;
                             data_ptr += sizeof(uint32_t);
                             MEMGUARD(data_ptr, raw_data, raw_data_len);
 
