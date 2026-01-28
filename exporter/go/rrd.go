@@ -73,7 +73,7 @@ func (e *RRDExporter) GetFlowData(srcMac string, dstMac string, proto int, sched
 	for i := 0; i < numIntervals; i++ {
 		// Calcola l'indice corretto nell'array piatto
 		val := allValues[i*2+dsIndex]
-		totalValues[i] = val
+		totalValues[i] = e.gamma * val * 8
 	}
 
 	return result.Values(), nil
@@ -134,7 +134,7 @@ func (e *RRDExporter) GetPeerData(peerMac string, proto int, schedule string) ([
 				val := allValues[i*2+dsIndex]
 
 				if !math.IsNaN(val) {
-					totalValues[i] += val
+					totalValues[i] += e.gamma * val * 8
 				}
 			}
 		}
