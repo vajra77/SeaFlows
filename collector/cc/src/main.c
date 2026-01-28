@@ -91,42 +91,20 @@ int main(const int argc, char **argv) {
 		exit(EXIT_FAILURE);
      }
 
-	/* first fork */
-	pid_t pid = fork();
-
-	if (pid < 0)
-		exit(EXIT_FAILURE);
-
-	if (pid > 0)
-		exit(EXIT_SUCCESS);
-
-	if (setsid() < 0)
-		exit(EXIT_FAILURE);
-
 	signal(SIGINT, signal_handler);
 	signal(SIGHUP, signal_handler);
+	signal(SIGTERM, signal_handler);
 	signal(SIGQUIT, signal_handler);
-
-	/* second fork */
-	pid = fork();
-
-	if (pid < 0)
-		exit(EXIT_FAILURE);
-
-	if (pid > 0)
-		exit(EXIT_SUCCESS);
-
-	umask(0);
 
 	int dir = chdir(RRD_DIR);
 
     if(dir < 0) {
-          syslog(LOG_ERR, "chdir failed");
+          perror("chdir failed");
           exit(EXIT_FAILURE);
     }
 
 	openlog("seaflows", LOG_PID, LOG_DAEMON);
-
+	syslog(LOG_INFO, "SeaFlows starting in foreground");
 
 	/* create threads */
 	for(int i = 0; i < num_threads; i++) {
@@ -145,12 +123,11 @@ int main(const int argc, char **argv) {
 		pthread_create(&broker[i], NULL, broker_thread, &broker_data[i]);
 	}
 
-	sleep(10);
-
 	for(int i = 0; i < num_threads; i++) {
 		pthread_join(listener[i], NULL);
 		pthread_join(broker[i], NULL);
 	}
 
-	exit(EXIT_SUCCESS);
+	closelog();
+	return 0;
 }
