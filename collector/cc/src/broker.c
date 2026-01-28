@@ -5,12 +5,14 @@
 #include <syslog.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include "config.h"
 #include "broker.h"
 #include "rrdtool.h"
 #include "bucket.h"
 
+extern volatile bool keep_running;
 
 void* broker_thread(void *arg) {
 

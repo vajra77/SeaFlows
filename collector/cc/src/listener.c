@@ -11,12 +11,14 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <stdbool.h>
 
 #include "rrdtool.h"
 #include "sflow.h"
 #include "listener.h"
 #include "bucket.h"
 
+extern volatile bool keep_running;
 
 void* listener_thread(void *arg) {
 
