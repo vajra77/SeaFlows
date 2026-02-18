@@ -2,18 +2,18 @@ package handlers
 
 import (
 	"net/http"
-	"seaflows/internal/rrd"
+	"seaflows/internal/services"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 type FlowHandler struct {
-	manager *rrd.Manager
+	service services.RRDService
 }
 
-func NewFlowHandler(manager *rrd.Manager) *FlowHandler {
-	return &FlowHandler{manager: manager}
+func NewFlowHandler(rrd services.RRDService) *FlowHandler {
+	return &FlowHandler{service: rrd}
 }
 
 func (h *FlowHandler) Get(ctx *gin.Context) {
@@ -23,7 +23,7 @@ func (h *FlowHandler) Get(ctx *gin.Context) {
 	sched := ctx.Param("schedule")
 	proto, _ := strconv.Atoi(ctx.Param("proto"))
 
-	data, err := h.manager.GetSingleFlow(src, dst, proto, sched)
+	data, err := h.service.GetSingleFlow(src, dst, proto, sched)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return

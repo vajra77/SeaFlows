@@ -5,7 +5,7 @@ import (
 	"os"
 	"seaflows/internal/handlers"
 	"seaflows/internal/middleware"
-	"seaflows/internal/rrd"
+	"seaflows/internal/services"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -23,20 +23,22 @@ func main() {
 	rrdGamma, _ := strconv.ParseFloat(os.Getenv("RRD_GAMMA"), 64)
 	serverPort := os.Getenv("SERVER_PORT")
 
-	rrdManager := rrd.NewManager(rrdRootDir, rrdGamma)
-	flowHandler := handlers.NewFlowHandler(rrdManager)
+	rrdSrv := services.NewRRDService(rrdRootDir, rrdGamma)
+	flowHdr := handlers.NewFlowHandler(rrdSrv)
 
 	// setup Gin
 	gin.DefaultWriter = os.Stdout
 	gin.DefaultErrorWriter = os.Stderr
 	r := gin.Default()
-	r.SetTrustedProxies([]string{"127.0.0.1", "::1"})
+	if err := r.SetTrustedProxies([]string{"127.0.0.1", "::1"}); err != nil {
+		log.Fatalf("[WARN] Unable to set trusted proxies: %s", err)
+	}
 
 	// define routes
 	v1 := r.Group("/api/v1")
 	v1.Use(middleware.APIKeyAuth())
 	{
-		v1.GET("/flow", flowHandler.Get)
+		v1.GET("/flow", flowHdr.Get)
 	}
 
 	// running Gin

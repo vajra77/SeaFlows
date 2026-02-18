@@ -1,4 +1,4 @@
-package rrd
+package models
 
 import (
 	"errors"
@@ -7,7 +7,7 @@ import (
 	RRDTool "github.com/ziutek/rrd"
 )
 
-type Data struct {
+type RRDData struct {
 	Gamma      float64       `json:"gamma"`
 	Proto      int           `json:"proto"`
 	Schedule   string        `json:"schedule"`
@@ -19,7 +19,7 @@ type Data struct {
 	Timestamps []time.Time   `json:"timestamps"`
 }
 
-func NewData(gamma float64, proto int, schedule string, path string) *Data {
+func NewData(gamma float64, proto int, schedule string, path string) *RRDData {
 
 	const D = 300
 	const W = 1800
@@ -48,7 +48,7 @@ func NewData(gamma float64, proto int, schedule string, path string) *Data {
 		stepDuration = D * time.Second
 	}
 
-	data := Data{
+	data := RRDData{
 		Gamma:      gamma,
 		Proto:      proto,
 		Schedule:   schedule,
@@ -86,7 +86,7 @@ func NewData(gamma float64, proto int, schedule string, path string) *Data {
 	return &data
 }
 
-func (d *Data) AddFromFile(path string) error {
+func (d *RRDData) AddFromFile(path string) error {
 
 	if path != "" {
 		rrdData, err := RRDTool.Fetch(path, "AVG", d.Start, d.End, d.Step)
