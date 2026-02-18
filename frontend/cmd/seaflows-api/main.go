@@ -18,7 +18,7 @@ func main() {
 
 		proto, _ := strconv.Atoi(protoStr)
 
-		values, err := exporter.GetFlowData(src, dst, proto, schedule)
+		values, err := exporter.GetFlowDataByMAC(src, dst, proto, schedule)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
 			json.NewEncoder(w).Encode(map[string]string{"error": "Unable to find RRD file"})
@@ -45,7 +45,7 @@ func main() {
 
 		proto, _ := strconv.Atoi(protoStr)
 
-		values, err := exporter.GetPeerData(src, proto, schedule)
+		values, err := exporter.GetPeerDataByMAC(src, proto, schedule)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
 			json.NewEncoder(w).Encode(map[string]string{"error": "Unable to find RRD file"})

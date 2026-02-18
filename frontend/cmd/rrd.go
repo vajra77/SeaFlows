@@ -1,4 +1,4 @@
-package main
+package exporter
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	RRDTool "github.com/ziutek/rrd"
 )
 
-type RRDExporter struct {
+type RRD struct {
 	rootDir string
 	gamma   float64
 }
@@ -30,12 +30,13 @@ func NewRRDExporter(rootDir string, gamma float64) *RRDExporter {
 	}
 }
 
-func (e *RRDExporter) GetFlowData(srcMac string, dstMac string, proto int, schedule string) ([]float64, error) {
+func (e *RRDExporter) GetFlowDataByMAC(srcMac string, dstMac string, proto int, schedule string) ([]float64, error) {
 	rrdFile := e.rootDir + "/flows/" + srcMac + "/" + "flow_" + srcMac + "_to_" + dstMac + ".rrd"
 
 	var start time.Time
 	var stepDuration time.Duration
-	var totalValues []float64
+	var resultValues []float64
+
 	now := time.Now()
 
 	switch schedule {
@@ -55,12 +56,12 @@ func (e *RRDExporter) GetFlowData(srcMac string, dstMac string, proto int, sched
 		stepDuration = 300 * time.Second
 	}
 
-	result, err := RRDTool.Fetch(rrdFile, "AVG", start, now, stepDuration)
+	rrdData, err := RRDTool.Fetch(rrdFile, "AVG", start, now, stepDuration)
 	if err != nil {
 		return nil, err
 	}
 
-	allValues := result.Values()
+	allValues := rrdData.Values()
 
 	dsIndex := 0
 	if proto == 6 {
@@ -68,18 +69,18 @@ func (e *RRDExporter) GetFlowData(srcMac string, dstMac string, proto int, sched
 	}
 
 	numIntervals := len(allValues) / 2
-	totalValues = make([]float64, numIntervals)
+	resultValues = make([]float64, numIntervals)
 
 	for i := 0; i < numIntervals; i++ {
 		// Calcola l'indice corretto nell'array piatto
 		val := allValues[i*2+dsIndex]
-		totalValues[i] = e.gamma * val * 8
+		resultValues[i] = e.gamma * val * 8
 	}
 
-	return result.Values(), nil
+	return resultValues, nil
 }
 
-func (e *RRDExporter) GetPeerData(peerMac string, proto int, schedule string) ([]float64, error) {
+func (e *RRDExporter) GetPeerDataByMAC(peerMac string, proto int, schedule string) ([]float64, error) {
 	peerDir := e.rootDir + "/flows/" + peerMac
 
 	// read all files in directory
@@ -88,9 +89,10 @@ func (e *RRDExporter) GetPeerData(peerMac string, proto int, schedule string) ([
 		return nil, fmt.Errorf("unable to read peer directory: %v", err)
 	}
 
-	var totalValues []float64
+	var resultValues []float64
 	var start time.Time
 	var stepDuration time.Duration
+
 	now := time.Now()
 
 	switch schedule {
@@ -112,12 +114,12 @@ func (e *RRDExporter) GetPeerData(peerMac string, proto int, schedule string) ([
 		if !file.IsDir() && strings.HasSuffix(file.Name(), ".rrd") {
 			rrdPath := peerDir + "/" + file.Name()
 
-			result, err := RRDTool.Fetch(rrdPath, "AVG", start, now, stepDuration)
+			rrdData, err := RRDTool.Fetch(rrdPath, "AVG", start, now, stepDuration)
 			if err != nil {
 				continue // skip corrupted or errored files
 			}
 
-			allValues := result.Values()
+			allValues := rrdData.Values()
 
 			dsIndex := 0
 			if proto == 6 {
@@ -125,8 +127,8 @@ func (e *RRDExporter) GetPeerData(peerMac string, proto int, schedule string) ([
 			}
 
 			numIntervals := len(allValues) / 2
-			if totalValues == nil {
-				totalValues = make([]float64, numIntervals)
+			if resultValues == nil {
+				resultValues = make([]float64, numIntervals)
 			}
 
 			for i := 0; i < numIntervals; i++ {
@@ -134,15 +136,15 @@ func (e *RRDExporter) GetPeerData(peerMac string, proto int, schedule string) ([
 				val := allValues[i*2+dsIndex]
 
 				if !math.IsNaN(val) {
-					totalValues[i] += e.gamma * val * 8
+					resultValues[i] += e.gamma * val * 8
 				}
 			}
 		}
 	}
 
-	if totalValues == nil {
+	if resultValues == nil {
 		return nil, fmt.Errorf("no data for peer %s", peerMac)
 	}
 
-	return totalValues, nil
+	return resultValues, nil
 }
