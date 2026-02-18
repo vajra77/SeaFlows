@@ -44,7 +44,7 @@ func (s *rrdService) GetMultipleFlows(srcMACs []string, dstMACs []string, proto 
 			path := s.root + "/flows/" + srcMAC + "/" + "flow_" + srcMAC + "_to_" + dstMAC + ".services"
 			err := result.AddFromFile(path)
 			if err != nil {
-				log.Printf("[W] unable to add new data from file: %s", path)
+				log.Printf("[WARN] unable to add new data from file: %s", path)
 				continue
 			}
 		}
