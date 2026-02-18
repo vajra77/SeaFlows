@@ -7,18 +7,19 @@ import (
 	RRDTool "github.com/ziutek/rrd"
 )
 
-type ResultData struct {
+type Data struct {
 	Gamma      float64       `json:"gamma"`
 	Proto      int           `json:"proto"`
 	Schedule   string        `json:"schedule"`
 	Start      time.Time     `json:"start"`
 	End        time.Time     `json:"end"`
 	Step       time.Duration `json:"step"`
+	Length     int           `json:"length"`
 	Values     []float64     `json:"values"`
 	Timestamps []time.Time   `json:"timestamps"`
 }
 
-func NewResultData(gamma float64, proto int, schedule string) *ResultData {
+func NewData(gamma float64, proto int, schedule string, path string) *Data {
 
 	const D = 300
 	const W = 1800
@@ -46,62 +47,70 @@ func NewResultData(gamma float64, proto int, schedule string) *ResultData {
 		start = end.AddDate(0, 0, -1) // last 24 hours
 		stepDuration = D * time.Second
 	}
-	return &ResultData{
+
+	data := Data{
 		Gamma:      gamma,
 		Proto:      proto,
+		Schedule:   schedule,
 		Start:      start,
 		End:        end,
 		Step:       stepDuration,
-		Schedule:   schedule,
+		Length:     0,
 		Values:     make([]float64, 0),
 		Timestamps: make([]time.Time, 0),
 	}
+
+	if path != "" {
+		rrdData, err := RRDTool.Fetch(path, "AVG", data.Start, data.End, data.Step)
+		if err != nil {
+			return nil
+		}
+
+		allValues := rrdData.Values()
+
+		dsIndex := 0
+		if data.Proto == 6 {
+			dsIndex = 1
+		}
+
+		numIntervals := len(allValues) / 2
+
+		for i := 0; i < numIntervals; i++ {
+			val := allValues[i*2+dsIndex]
+			data.Values[i] = val * 8 * data.Gamma
+			data.Timestamps[i] = data.Start.Add(time.Duration(i) * data.Step)
+		}
+		data.Length = numIntervals
+	}
+
+	return &data
 }
 
-func (r *ResultData) CanBeAddedTo(or *ResultData) bool {
-	result := r.Schedule == or.Schedule && r.Proto == or.Proto && r.Gamma == or.Gamma
-	result = result && len(r.Values) == len(or.Values) && len(r.Timestamps) == len(or.Timestamps)
-	return result
-}
+func (d *Data) AddFromFile(path string) error {
 
-func (r *ResultData) Fetch(path string) error {
+	if path != "" {
+		rrdData, err := RRDTool.Fetch(path, "AVG", d.Start, d.End, d.Step)
+		if err != nil {
+			return nil
+		}
 
-	rrdData, err := RRDTool.Fetch(path, "AVG", r.Start, r.End, r.Step)
-	if err != nil {
-		return nil
+		allValues := rrdData.Values()
+
+		dsIndex := 0
+		if d.Proto == 6 {
+			dsIndex = 1
+		}
+
+		numIntervals := len(allValues) / 2
+
+		if numIntervals != d.Length {
+			return errors.New("RRD length does not match")
+		}
+
+		for i := 0; i < numIntervals; i++ {
+			val := allValues[i*2+dsIndex]
+			d.Values[i] += val * 8 * d.Gamma
+		}
 	}
-
-	allValues := rrdData.Values()
-
-	dsIndex := 0
-	if r.Proto == 6 {
-		dsIndex = 1
-	}
-
-	numIntervals := len(allValues) / 2
-
-	for i := 0; i < numIntervals; i++ {
-		val := allValues[i*2+dsIndex]
-		r.Values[i] = val * 8 * r.Gamma
-		r.Timestamps[i] = r.Start.Add(time.Duration(i) * r.Step)
-	}
-
-	return nil
-}
-
-func (r *ResultData) Add(or *ResultData) error {
-
-	if !r.CanBeAddedTo(or) {
-		return errors.New("data sets cannot be added")
-	}
-
-	for i, _ := range r.Values {
-		// THIS MIGHT BE TOO RESTRICTIVE!
-		//if r.Timestamps[i] != or.Timestamps[i] {
-		//	return errors.New("data sets cannot be added due to uncompatible timestamps")
-		//}
-		r.Values[i] += or.Values[i]
-	}
-
 	return nil
 }
