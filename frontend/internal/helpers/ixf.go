@@ -15,7 +15,7 @@ type IXFExport struct {
 }
 
 type IXFMember struct {
-	Asn        int       `json:"asnumber"`
+	Asn        int       `json:"asnum"`
 	Connection []IXFConn `json:"connection_list"`
 }
 
@@ -29,8 +29,8 @@ type IXFVlan struct {
 }
 
 type IXFAddr struct {
-	Address string `json:"address"`
-	MAC     string `json:"mac_address"`
+	Address string   `json:"address"`
+	MAC     []string `json:"mac_addresses"`
 }
 
 func PopulateFromIXF(url string) (*models.MapData, error) {
@@ -70,12 +70,12 @@ func PopulateFromIXF(url string) (*models.MapData, error) {
 
 				if vlan.IPv4 != nil {
 					ipv4 = vlan.IPv4.Address
-					mac = vlan.IPv4.MAC
+					mac = vlan.IPv4.MAC[0]
 				}
 				if vlan.IPv6 != nil {
 					ipv6 = vlan.IPv6.Address
 					if mac == "" {
-						mac = vlan.IPv6.MAC
+						mac = vlan.IPv6.MAC[0]
 					}
 				}
 
