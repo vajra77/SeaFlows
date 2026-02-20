@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"math"
 	"time"
 
 	RRDTool "github.com/ziutek/rrd"
@@ -79,6 +80,9 @@ func NewRRDData(gamma float64, proto int, schedule string, path string) (*RRDDat
 
 		for i := 0; i < numIntervals; i++ {
 			val := allValues[i*2+dsIndex]
+			if math.IsNaN(val) {
+				val = 0.0
+			}
 			data.Values[i] = val * 8 * data.Gamma
 			data.Timestamps[i] = data.Start.Add(time.Duration(i) * data.Step)
 		}
@@ -142,6 +146,9 @@ func (d *RRDData) AddFromFile(path string) error {
 
 	for i := 0; i < numIntervals; i++ {
 		val := allValues[i*2+dsIndex]
+		if math.IsNaN(val) {
+			val = 0.0
+		}
 		d.Values[i] += val * 8 * d.Gamma
 	}
 	d.Length = numIntervals
