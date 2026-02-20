@@ -54,6 +54,8 @@ func main() {
 	// setup Gin
 	gin.DefaultWriter = os.Stdout
 	gin.DefaultErrorWriter = os.Stderr
+	gin.SetMode(gin.ReleaseMode)
+
 	r := gin.Default()
 	if err := r.SetTrustedProxies([]string{"127.0.0.1", "::1"}); err != nil {
 		log.Fatalf("[CRIT] Unable to set trusted proxies: %s", err)

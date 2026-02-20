@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"seaflows/internal/models"
 	"time"
@@ -33,6 +34,7 @@ type IXFAddr struct {
 }
 
 func PopulateFromIXF(url string) (*models.MapData, error) {
+
 	client := &http.Client{Timeout: 10 * time.Second}
 
 	resp, err := client.Get(url)
@@ -47,7 +49,7 @@ func PopulateFromIXF(url string) (*models.MapData, error) {
 	}(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("errore API: %s", resp.Status)
+		return nil, fmt.Errorf("API error: %s", resp.Status)
 	}
 
 	var export IXFExport
@@ -59,7 +61,7 @@ func PopulateFromIXF(url string) (*models.MapData, error) {
 
 	for _, member := range export.MemberList {
 		asnStr := fmt.Sprintf("%d", member.Asn)
-
+		log.Printf("[DEBG] adding ASN %s to map ", asnStr)
 		for _, conn := range member.Connection {
 			for _, vlan := range conn.VlanList {
 				ipv4 := ""
