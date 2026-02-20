@@ -61,7 +61,7 @@ func NewRRDData(gamma float64, proto int, schedule string, path string) (*RRDDat
 	}
 
 	if path != "" {
-		rrdData, err := RRDTool.Fetch(path, "AVG", data.Start, data.End, data.Step)
+		rrdData, err := RRDTool.Fetch(path, "AVERAGE", data.Start, data.End, data.Step)
 		if err != nil {
 			return nil, err
 		}
@@ -116,7 +116,7 @@ func (d *RRDData) AddFromFile(path string) error {
 		return errors.New("RRDData.AddFromFile: empty path")
 	}
 
-	rrdData, err := RRDTool.Fetch(path, "AVG", d.Start, d.End, d.Step)
+	rrdData, err := RRDTool.Fetch(path, "AVERAGE", d.Start, d.End, d.Step)
 	if err != nil {
 		return errors.New("RRDData.AddFromFile: " + err.Error())
 	}
