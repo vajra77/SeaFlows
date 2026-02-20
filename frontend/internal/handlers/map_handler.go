@@ -32,7 +32,8 @@ func (h *MapHandler) GetMACs(ctx *gin.Context) {
 }
 
 func (h *MapHandler) GetASNs(ctx *gin.Context) {
-	var data []string
+
+	data := h.service.GetASNs()
 
 	ctx.JSON(http.StatusOK, data)
 }

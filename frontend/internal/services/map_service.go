@@ -10,6 +10,7 @@ import (
 
 type MapService interface {
 	GetMACs(asn string) []string
+	GetASNs() []string
 }
 
 type mapService struct {
