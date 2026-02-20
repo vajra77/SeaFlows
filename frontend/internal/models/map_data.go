@@ -19,44 +19,39 @@ func NewMapData() *MapData {
 }
 
 func (m *MapData) AddAddressMap(asn, ipv4, ipv6, mac string) {
-	m.Maps[asn] = append(m.Maps[asn],
-		&AddressMap{
-			ipv4,
-			ipv6,
-			strings.ToLower(strings.ReplaceAll(mac, ":", "")),
-		})
-}
-
-func (m *MapData) GetAddressMaps(asn string) []*AddressMap {
 
 	_, found := m.Maps[asn]
-	if found {
-		return m.Maps[asn]
-	} else {
-		return nil
+
+	if !found {
+		m.Maps[asn] = append(m.Maps[asn],
+			&AddressMap{
+				IPv4Address: ipv4,
+				IPv6Address: ipv6,
+				MACAddress:  strings.ToLower(strings.ReplaceAll(mac, ":", "")),
+			})
 	}
 }
 
 func (m *MapData) GetAllMACs(asn string) []string {
 
+	data := make([]string, len(m.Maps[asn]))
+
 	_, found := m.Maps[asn]
 	if found {
-		result := make([]string, len(m.Maps[asn]))
 		for i := range m.Maps[asn] {
-			result[i] = m.Maps[asn][i].MACAddress
+			data[i] = m.Maps[asn][i].MACAddress
 		}
-		return result
 	}
-	return make([]string, 0)
+	return data
 }
 
 func (m *MapData) GetAllASNs() []string {
 
-	result := make([]string, len(m.Maps))
+	data := make([]string, len(m.Maps))
 
 	for k := range m.Maps {
-		result = append(result, k)
+		data = append(data, k)
 	}
 
-	return result
+	return data
 }
