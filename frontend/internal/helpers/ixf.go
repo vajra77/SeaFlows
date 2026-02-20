@@ -70,12 +70,16 @@ func PopulateFromIXF(url string) (*models.MapData, error) {
 
 				if vlan.IPv4 != nil {
 					ipv4 = vlan.IPv4.Address
-					mac = vlan.IPv4.MAC[0]
+					if vlan.IPv4.MAC != nil {
+						mac = vlan.IPv4.MAC[0]
+					}
 				}
 				if vlan.IPv6 != nil {
 					ipv6 = vlan.IPv6.Address
 					if mac == "" {
-						mac = vlan.IPv6.MAC[0]
+						if vlan.IPv6.MAC != nil {
+							mac = vlan.IPv6.MAC[0]
+						}
 					}
 				}
 
