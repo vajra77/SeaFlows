@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"os"
 	"seaflows/internal/handlers"
 	"seaflows/internal/middleware"
@@ -58,6 +59,15 @@ func main() {
 	if err := r.SetTrustedProxies([]string{"127.0.0.1", "::1"}); err != nil {
 		log.Fatalf("[CRIT] Unable to set trusted proxies: %s", err)
 	}
+
+	// ping route
+	r.GET("/ping", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "ok",
+			"message": "pong",
+			"version": "1.0.0",
+		})
+	})
 
 	// define routes
 	v1 := r.Group("/api/v1")
