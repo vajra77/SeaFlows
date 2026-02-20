@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"seaflows/internal/models"
 	"strings"
@@ -62,7 +61,6 @@ func PopulateFromIXF(url string) (*models.MapData, error) {
 
 	for _, member := range export.MemberList {
 		asnStr := fmt.Sprintf("%d", member.Asn)
-		log.Printf("[DEBG] adding ASN %s to map ", asnStr)
 		for _, conn := range member.Connection {
 			for _, vlan := range conn.VlanList {
 				ipv4 := ""
