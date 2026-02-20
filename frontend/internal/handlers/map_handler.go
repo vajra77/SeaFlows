@@ -16,7 +16,7 @@ func NewMapHandler(service services.MapService) *MapHandler {
 	return &MapHandler{service: service}
 }
 
-func (h *MapHandler) Get(ctx *gin.Context) {
+func (h *MapHandler) GetMACs(ctx *gin.Context) {
 
 	var data []string
 
@@ -27,6 +27,12 @@ func (h *MapHandler) Get(ctx *gin.Context) {
 		return
 	}
 	data = h.service.GetMACs(asn)
+
+	ctx.JSON(http.StatusOK, data)
+}
+
+func (h *MapHandler) GetASNs(ctx *gin.Context) {
+	var data []string
 
 	ctx.JSON(http.StatusOK, data)
 }

@@ -43,6 +43,14 @@ func (s *mapService) GetMACs(asn string) []string {
 	return s.data.GetAllMACs(asn)
 }
 
+func (s *mapService) GetASNs() []string {
+
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return s.data.GetAllASNs()
+}
+
 func (s *mapService) startPeriodicRefresh(interval time.Duration) {
 
 	ticker := time.NewTicker(interval)

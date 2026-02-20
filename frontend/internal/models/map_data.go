@@ -49,3 +49,14 @@ func (m *MapData) GetAllMACs(asn string) []string {
 	}
 	return make([]string, 0)
 }
+
+func (m *MapData) GetAllASNs() []string {
+
+	result := make([]string, len(m.Maps))
+
+	for k := range m.Maps {
+		result = append(result, k)
+	}
+
+	return result
+}

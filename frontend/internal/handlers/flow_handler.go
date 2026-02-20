@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"seaflows/internal/services"
 	"strconv"
@@ -10,14 +11,18 @@ import (
 )
 
 type FlowHandler struct {
-	service services.RRDService
+	rrdService services.RRDService
+	mapService services.MapService
 }
 
-func NewFlowHandler(service services.RRDService) *FlowHandler {
-	return &FlowHandler{service: service}
+func NewFlowHandler(rrdS services.RRDService, mapS services.MapService) *FlowHandler {
+	return &FlowHandler{
+		rrdService: rrdS,
+		mapService: mapS,
+	}
 }
 
-func (h *FlowHandler) Get(ctx *gin.Context) {
+func (h *FlowHandler) GetSingleFlow(ctx *gin.Context) {
 
 	srcMac := strings.ReplaceAll(ctx.Query("src_mac"), ":", "")
 	dstMac := strings.ReplaceAll(ctx.Query("dst_mac"), ":", "")
@@ -38,7 +43,57 @@ func (h *FlowHandler) Get(ctx *gin.Context) {
 		return
 	}
 
-	data, err := h.service.GetSingleFlow(srcMac, dstMac, proto, sched)
+	data, err := h.rrdService.GetSingleFlow(srcMac, dstMac, proto, sched)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, data)
+}
+
+func (h *FlowHandler) GetP2PFlow(ctx *gin.Context) {
+
+	srcStr := strings.ToUpper(ctx.Query("src_as"))
+	srcAsn := strings.TrimPrefix(srcStr, "AS")
+
+	dstStr := strings.ToUpper(ctx.Query("dst_as"))
+	dstAsn := strings.TrimPrefix(dstStr, "AS")
+
+	sched := ctx.Query("schedule")
+	protoStr := ctx.Query("proto")
+
+	if srcAsn == "" || dstAsn == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "src_as and dst_as are required"})
+		return
+	}
+
+	if sched == "" {
+		sched = "daily"
+	}
+
+	proto, err := strconv.Atoi(protoStr)
+	if err != nil && protoStr != "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid proto value, must be integer"})
+		return
+	}
+
+	srcMACs := h.mapService.GetMACs(srcAsn)
+	dstMACs := h.mapService.GetMACs(dstAsn)
+
+	if len(srcMACs) == 0 {
+		errStr := fmt.Sprintf("no source MACs found for ASN %s ", srcAsn)
+		ctx.JSON(http.StatusNotFound, gin.H{"error": errStr})
+		return
+	}
+
+	if len(dstMACs) == 0 {
+		errStr := fmt.Sprintf("no destination MACs found for ASN %s ", dstAsn)
+		ctx.JSON(http.StatusNotFound, gin.H{"error": errStr})
+		return
+	}
+
+	data, err := h.rrdService.GetMultipleFlows(srcMACs, dstMACs, proto, sched)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
