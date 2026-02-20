@@ -47,5 +47,5 @@ func (m *MapData) GetAllMACs(asn string) []string {
 		}
 		return result
 	}
-	return nil
+	return make([]string, 0)
 }

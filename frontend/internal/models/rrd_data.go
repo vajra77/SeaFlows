@@ -19,7 +19,7 @@ type RRDData struct {
 	Timestamps []time.Time   `json:"timestamps"`
 }
 
-func NewRRDData(gamma float64, proto int, schedule string, path string) *RRDData {
+func NewRRDData(gamma float64, proto int, schedule string, path string) (*RRDData, error) {
 
 	const D = 300
 	const W = 1800
@@ -63,7 +63,7 @@ func NewRRDData(gamma float64, proto int, schedule string, path string) *RRDData
 	if path != "" {
 		rrdData, err := RRDTool.Fetch(path, "AVG", data.Start, data.End, data.Step)
 		if err != nil {
-			return nil
+			return nil, err
 		}
 
 		allValues := rrdData.Values()
@@ -74,6 +74,8 @@ func NewRRDData(gamma float64, proto int, schedule string, path string) *RRDData
 		}
 
 		numIntervals := len(allValues) / 2
+		data.Values = make([]float64, numIntervals)
+		data.Timestamps = make([]time.Time, numIntervals)
 
 		for i := 0; i < numIntervals; i++ {
 			val := allValues[i*2+dsIndex]
@@ -83,46 +85,66 @@ func NewRRDData(gamma float64, proto int, schedule string, path string) *RRDData
 		data.Length = numIntervals
 	}
 
-	return &data
+	return &data, nil
 }
 
 func (d *RRDData) Add(other *RRDData) error {
 
-	if d.Length != other.Length {
-		return errors.New("RRDData.Add: length does not match other.Length")
-	}
+	if d.Length == 0 {
+		// if d is just initialized, copy values
+		d.Values = make([]float64, other.Length)
+		d.Timestamps = make([]time.Time, other.Length)
+		copy(d.Values, other.Values)
+		copy(d.Timestamps, other.Timestamps)
+		d.Length = other.Length
+	} else {
+		if d.Length != other.Length {
+			return errors.New("RRDData.Add: length does not match other.Length")
+		}
 
-	for i := range d.Length {
-		d.Values[i] = d.Values[i] + other.Values[i]
+		for i := range d.Length {
+			d.Values[i] = d.Values[i] + other.Values[i]
+		}
+
 	}
 	return nil
 }
 
 func (d *RRDData) AddFromFile(path string) error {
 
-	if path != "" {
-		rrdData, err := RRDTool.Fetch(path, "AVG", d.Start, d.End, d.Step)
-		if err != nil {
-			return nil
-		}
-
-		allValues := rrdData.Values()
-
-		dsIndex := 0
-		if d.Proto == 6 {
-			dsIndex = 1
-		}
-
-		numIntervals := len(allValues) / 2
-
-		if numIntervals != d.Length {
-			return errors.New("RRD length does not match")
-		}
-
-		for i := 0; i < numIntervals; i++ {
-			val := allValues[i*2+dsIndex]
-			d.Values[i] += val * 8 * d.Gamma
-		}
+	if path == "" {
+		return errors.New("RRDData.AddFromFile: empty path")
 	}
+
+	rrdData, err := RRDTool.Fetch(path, "AVG", d.Start, d.End, d.Step)
+	if err != nil {
+		return errors.New("RRDData.AddFromFile: " + err.Error())
+	}
+
+	allValues := rrdData.Values()
+
+	dsIndex := 0
+	if d.Proto == 6 {
+		dsIndex = 1
+	}
+
+	numIntervals := len(allValues) / 2
+
+	if d.Length == 0 {
+		d.Values = make([]float64, numIntervals)
+		d.Timestamps = make([]time.Time, numIntervals)
+		for i := 0; i < numIntervals; i++ {
+			d.Timestamps[i] = d.Start.Add(time.Duration(i) * d.Step)
+		}
+	} else if numIntervals != d.Length {
+		return errors.New("RRDData.AddFromFile: data length does not match")
+	}
+
+	for i := 0; i < numIntervals; i++ {
+		val := allValues[i*2+dsIndex]
+		d.Values[i] += val * 8 * d.Gamma
+	}
+	d.Length = numIntervals
+
 	return nil
 }

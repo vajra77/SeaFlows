@@ -23,22 +23,37 @@ func NewP2PHandler(mapSrv services.MapService, rrdSrv services.RRDService) *P2PH
 
 func (h *P2PHandler) Get(ctx *gin.Context) {
 
-	srcAsn := ctx.Param("src_as")
-	dstAsn := ctx.Param("dst_as")
-	sched := ctx.Param("schedule")
-	proto, _ := strconv.Atoi(ctx.Param("proto"))
+	srcAsn := ctx.Query("src_as")
+	dstAsn := ctx.Query("dst_as")
+	sched := ctx.Query("schedule")
+	protoStr := ctx.Query("proto")
+
+	if srcAsn == "" || dstAsn == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "src_as and dst_as are required"})
+		return
+	}
+
+	if sched == "" {
+		sched = "daily"
+	}
+
+	proto, err := strconv.Atoi(protoStr)
+	if err != nil && protoStr != "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid proto value, must be integer"})
+		return
+	}
 
 	srcMACs := h.mapService.GetMACs(srcAsn)
 	dstMACs := h.mapService.GetMACs(dstAsn)
 
-	if srcMACs == nil {
-		errStr := fmt.Sprintf("[WARN] no source MACs found for ASN %s ", srcAsn)
+	if len(srcMACs) == 0 {
+		errStr := fmt.Sprintf("no source MACs found for ASN %s ", srcAsn)
 		ctx.JSON(http.StatusNotFound, gin.H{"error": errStr})
 		return
 	}
 
-	if dstMACs == nil {
-		errStr := fmt.Sprintf("[WARN] no destination MACs found for ASN %s ", dstAsn)
+	if len(dstMACs) == 0 {
+		errStr := fmt.Sprintf("no destination MACs found for ASN %s ", dstAsn)
 		ctx.JSON(http.StatusNotFound, gin.H{"error": errStr})
 		return
 	}

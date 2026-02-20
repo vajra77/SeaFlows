@@ -20,9 +20,26 @@ func main() {
 	}
 
 	rrdRootDir := os.Getenv("RRD_ROOT_DIR")
-	rrdGamma, _ := strconv.ParseFloat(os.Getenv("RRD_GAMMA"), 64)
+	if rrdRootDir == "" {
+		rrdRootDir = "/srv/rrd"
+	}
+
+	gammaStr := os.Getenv("RRD_GAMMA")
+	rrdGamma, err := strconv.ParseFloat(gammaStr, 64)
+	if err != nil {
+		log.Printf("[WARN] RRD_GAMMA missing or invalid ('%s'), fallback to 1.0", gammaStr)
+		rrdGamma = 1.0
+	}
+
 	serverPort := os.Getenv("SERVER_PORT")
+	if serverPort == "" {
+		serverPort = "8080"
+	}
+
 	ixfUrl := os.Getenv("IXF_URL")
+	if ixfUrl == "" {
+		log.Fatal("[WARN] IXF_URL missing or invalid")
+	}
 
 	mapSrv, err := services.NewMapService(ixfUrl)
 	if err != nil {

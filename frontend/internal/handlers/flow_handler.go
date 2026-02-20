@@ -19,10 +19,24 @@ func NewFlowHandler(rrd services.RRDService) *FlowHandler {
 
 func (h *FlowHandler) Get(ctx *gin.Context) {
 
-	srcMac := strings.ReplaceAll(ctx.Param("src_mac"), ":", "")
-	dstMac := strings.ReplaceAll(ctx.Param("dst_mac"), ":", "")
-	sched := ctx.Param("schedule")
-	proto, _ := strconv.Atoi(ctx.Param("proto"))
+	srcMac := strings.ReplaceAll(ctx.Query("src_mac"), ":", "")
+	dstMac := strings.ReplaceAll(ctx.Query("dst_mac"), ":", "")
+	sched := ctx.Query("schedule")
+	protoStr := ctx.Query("proto")
+
+	if srcMac == "" || dstMac == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "src_mac and dst_mac are required"})
+		return
+	}
+	if sched == "" {
+		sched = "daily"
+	}
+
+	proto, err := strconv.Atoi(protoStr)
+	if err != nil && protoStr != "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid proto value, must be integer"})
+		return
+	}
 
 	data, err := h.service.GetSingleFlow(srcMac, dstMac, proto, sched)
 	if err != nil {

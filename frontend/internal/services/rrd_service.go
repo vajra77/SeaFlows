@@ -1,7 +1,6 @@
 package services
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"seaflows/internal/models"
@@ -29,9 +28,9 @@ func (s *rrdService) GetSingleFlow(srcMAC string, dstMAC string, proto int, sche
 
 	path := s.root + "/flows/" + srcMAC + "/" + "flow_" + srcMAC + "_to_" + dstMAC + ".rrd"
 
-	data := models.NewRRDData(s.gamma, proto, schedule, path)
-	if data == nil {
-		return nil, errors.New("unable to create new data from file")
+	data, err := models.NewRRDData(s.gamma, proto, schedule, path)
+	if err != nil {
+		return nil, err
 	}
 
 	return data, nil
@@ -45,8 +44,12 @@ func (s *rrdService) GetMultipleFlows(srcMACs []string, dstMACs []string, proto 
 	errChan := make(chan error, len(srcMACs))
 
 	for i, srcMAC := range srcMACs {
+		data, err := models.NewRRDData(s.gamma, proto, schedule, "")
+		if err != nil {
+			return nil, err
+		}
+		dests[i] = data
 		wg.Add(1)
-		dests[i] = models.NewRRDData(s.gamma, proto, schedule, "")
 		go func(idx int, mac string) {
 			defer wg.Done()
 			if err := s.addDestinations(dests[idx], mac, dstMACs); err != nil {
@@ -64,7 +67,11 @@ func (s *rrdService) GetMultipleFlows(srcMACs []string, dstMACs []string, proto 
 		}
 	}
 
-	result := models.NewRRDData(s.gamma, proto, schedule, "")
+	result, err := models.NewRRDData(s.gamma, proto, schedule, "")
+	if err != nil {
+		return nil, err
+	}
+
 	for _, d := range dests {
 		if d == nil {
 			continue
