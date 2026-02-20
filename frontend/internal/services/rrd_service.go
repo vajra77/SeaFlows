@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"log"
+	"path/filepath"
 	"seaflows/internal/models"
 	"sync"
 )
@@ -26,7 +27,7 @@ func NewRRDService(root string, gamma float64) RRDService {
 
 func (s *rrdService) GetSingleFlow(srcMAC string, dstMAC string, proto int, schedule string) (*models.RRDData, error) {
 
-	path := s.root + "/flows/" + srcMAC + "/" + "flow_" + srcMAC + "_to_" + dstMAC + ".rrd"
+	path := filepath.Join(s.root, "flows", srcMAC, fmt.Sprintf("flow_%s_to_%s.rrd", srcMAC, dstMAC))
 
 	data, err := models.NewRRDData(s.gamma, proto, schedule, path)
 	if err != nil {
@@ -86,7 +87,7 @@ func (s *rrdService) GetMultipleFlows(srcMACs []string, dstMACs []string, proto 
 func (s *rrdService) addDestinations(result *models.RRDData, srcMAC string, dstMACs []string) error {
 
 	for _, dstMAC := range dstMACs {
-		path := s.root + "/flows/" + srcMAC + "/" + "flow_" + srcMAC + "_to_" + dstMAC + ".rrd"
+		path := filepath.Join(s.root, "flows", srcMAC, fmt.Sprintf("flow_%s_to_%s.rrd", srcMAC, dstMAC))
 		err := result.AddFromFile(path)
 		if err != nil {
 			return err
