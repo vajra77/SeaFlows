@@ -19,7 +19,7 @@ type RRDData struct {
 	Timestamps []time.Time   `json:"timestamps"`
 }
 
-func NewData(gamma float64, proto int, schedule string, path string) *RRDData {
+func NewRRDData(gamma float64, proto int, schedule string, path string) *RRDData {
 
 	const D = 300
 	const W = 1800
@@ -84,6 +84,18 @@ func NewData(gamma float64, proto int, schedule string, path string) *RRDData {
 	}
 
 	return &data
+}
+
+func (d *RRDData) Add(other *RRDData) error {
+
+	if d.Length != other.Length {
+		return errors.New("RRDData.Add: length does not match other.Length")
+	}
+
+	for i := range d.Length {
+		d.Values[i] = d.Values[i] + other.Values[i]
+	}
+	return nil
 }
 
 func (d *RRDData) AddFromFile(path string) error {
