@@ -13,8 +13,8 @@ type FlowHandler struct {
 	service services.RRDService
 }
 
-func NewFlowHandler(rrd services.RRDService) *FlowHandler {
-	return &FlowHandler{service: rrd}
+func NewFlowHandler(service services.RRDService) *FlowHandler {
+	return &FlowHandler{service: service}
 }
 
 func (h *FlowHandler) Get(ctx *gin.Context) {

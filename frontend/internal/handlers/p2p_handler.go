@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"seaflows/internal/services"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,8 +24,12 @@ func NewP2PHandler(mapSrv services.MapService, rrdSrv services.RRDService) *P2PH
 
 func (h *P2PHandler) Get(ctx *gin.Context) {
 
-	srcAsn := ctx.Query("src_as")
-	dstAsn := ctx.Query("dst_as")
+	srcStr := strings.ToUpper(ctx.Query("src_as"))
+	srcAsn := strings.TrimPrefix(srcStr, "AS")
+
+	dstStr := strings.ToUpper(ctx.Query("dst_as"))
+	dstAsn := strings.TrimPrefix(dstStr, "AS")
+
 	sched := ctx.Query("schedule")
 	protoStr := ctx.Query("proto")
 

@@ -49,6 +49,7 @@ func main() {
 	rrdSrv := services.NewRRDService(rrdRootDir, rrdGamma)
 	flowHdr := handlers.NewFlowHandler(rrdSrv)
 	p2pHdr := handlers.NewP2PHandler(mapSrv, rrdSrv)
+	mapHdr := handlers.NewMapHandler(mapSrv)
 
 	// setup Gin
 	gin.DefaultWriter = os.Stdout
@@ -64,6 +65,7 @@ func main() {
 	{
 		v1.GET("/flow", flowHdr.Get)
 		v1.GET("/p2p", p2pHdr.Get)
+		v1.GET("/map", mapHdr.Get)
 	}
 
 	// running Gin
