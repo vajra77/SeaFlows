@@ -13,8 +13,8 @@ type RawPacket struct {
 }
 
 type EthernetHeader struct {
-	SrcMacAddress net.HardwareAddr
-	DstMacAddress net.HardwareAddr
+	SrcMacAddress string
+	DstMacAddress string
 	EthType       uint16
 }
 
