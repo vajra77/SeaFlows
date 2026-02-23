@@ -97,7 +97,7 @@ func (s *rrdService) GetFlows(srcMACs []string, dstMACs []string, proto int, sch
 
 func (s *rrdService) UpdateFlow(srcMac, dstMac string, ipv int, bytes uint32) error {
 
-	dir := filepath.Join(s.basePath, srcMac)
+	dir := filepath.Join(s.basePath, "flows", srcMac)
 	fileName := fmt.Sprintf("flow_%s_to_%s.rrd", srcMac, dstMac)
 	fullPath := filepath.Join(dir, fileName)
 
