@@ -98,7 +98,7 @@ func (h *sFlowHandler) worker(packetChan <-chan []byte) {
 							SamplingRate: sample.SamplingRate,
 							Size:         record.Packet.Size,
 						}
-					} else { // IPv6
+					} else if record.Packet.DatalinkHeader.EthernetHeader.EthType == 0x86DD { // IPv6
 						flow = &models.SflowData{
 							Timestamp:    now,
 							SrcMAC:       record.Packet.DatalinkHeader.EthernetHeader.SrcMACAddress,
@@ -109,6 +109,8 @@ func (h *sFlowHandler) worker(packetChan <-chan []byte) {
 							SamplingRate: sample.SamplingRate,
 							Size:         record.Packet.Size,
 						}
+					} else {
+						continue
 					}
 					h.processor.Process(flow)
 				}
