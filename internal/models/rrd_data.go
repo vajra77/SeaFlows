@@ -8,6 +8,11 @@ import (
 	RRDTool "github.com/ziutek/rrd"
 )
 
+const (
+	RRDStep          = 300
+	RRDFlushInterval = 60
+)
+
 type RRDData struct {
 	Gamma      float64       `json:"gamma"`
 	Proto      int           `json:"proto"`

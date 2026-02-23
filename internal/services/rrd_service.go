@@ -1,12 +1,15 @@
 package services
 
 import (
+	"bufio"
 	"fmt"
 	"log"
+	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"seaflows/internal/models"
+	"strings"
 	"sync"
 )
 
@@ -16,17 +19,19 @@ type RRDService interface {
 }
 
 type rrdService struct {
-	basePath string
-	step     string
-	gamma    float64
-	mu       sync.Mutex
+	basePath   string
+	socketPath string
+	step       int
+	gamma      float64
+	mu         sync.Mutex
 }
 
-func NewRRDService(path, step string, gamma float64) StorageService {
+func NewRRDService(bPath, sPath string, step int, gamma float64) StorageService {
 	return &rrdService{
-		basePath: path,
-		step:     step,
-		gamma:    gamma,
+		basePath:   bPath,
+		socketPath: sPath,
+		step:       step,
+		gamma:      gamma,
 	}
 }
 
@@ -89,7 +94,7 @@ func (s *rrdService) GetFlows(srcMACs []string, dstMACs []string, proto int, sch
 	return result, nil
 }
 
-func (s *rrdService) UpdateFlow(srcMac, dstMac string, proto int, bytes uint32) error {
+func (s *rrdService) UpdateFlow(srcMac, dstMac string, ipv int, bytes uint32) error {
 
 	dir := filepath.Join(s.basePath, srcMac)
 	fileName := fmt.Sprintf("flow_%s_to_%s.rrd", srcMac, dstMac)
@@ -106,16 +111,44 @@ func (s *rrdService) UpdateFlow(srcMac, dstMac string, proto int, bytes uint32) 
 		s.mu.Unlock()
 	}
 
-	var updateArgs string
+	return s.sendToDaemon(fullPath, ipv, bytes)
+}
 
-	if proto == 4 {
-		updateArgs = fmt.Sprintf("N:%d:0", bytes)
+func (s *rrdService) sendToDaemon(fullPath string, ipv int, bytes uint32) error {
+
+	conn, err := net.Dial("unix", s.socketPath)
+	if err != nil {
+		return fmt.Errorf("unable to connect to rrdcached: %w", err)
+	}
+	defer func(conn net.Conn) {
+		err := conn.Close()
+		if err != nil {
+			log.Printf("[WARN] Failed to close connection to rrdcached: %v", err)
+		}
+	}(conn)
+
+	var command string
+	if ipv == 4 {
+		command = fmt.Sprintf("UPDATE %s N:%d:0\n", fullPath, bytes)
 	} else {
-		updateArgs = fmt.Sprintf("N:0:%d", bytes)
+		command = fmt.Sprintf("UPDATE %s N:0:%d\n", fullPath, bytes)
 	}
 
-	cmd := exec.Command("rrdtool", "update", fullPath, updateArgs)
-	return cmd.Run()
+	if _, err = conn.Write([]byte(command)); err != nil {
+		return fmt.Errorf("error while writing to socket: %w", err)
+	}
+
+	reader := bufio.NewReader(conn)
+	response, err := reader.ReadString('\n')
+	if err != nil {
+		return fmt.Errorf("error while reading response from rrdcached: %w", err)
+	}
+
+	if strings.HasPrefix(response, "-1") {
+		return fmt.Errorf("rrdcached returned an error: %s", strings.TrimSpace(response))
+	}
+
+	return nil
 }
 
 func (s *rrdService) createRRDFile(dir, path string) error {
@@ -127,7 +160,7 @@ func (s *rrdService) createRRDFile(dir, path string) error {
 
 	args := []string{
 		"create", path,
-		"--step", s.step,
+		"--step", fmt.Sprintf("%d", s.step),
 		"DS:bytes4:GAUGE:600:U:U",
 		"DS:bytes6:GAUGE:600:U:U",
 		"RRA:AVERAGE:0.5:1:600",
@@ -139,7 +172,13 @@ func (s *rrdService) createRRDFile(dir, path string) error {
 		"RRA:MAX:0.5:24:775",
 		"RRA:MAX:0.5:444:797",
 	}
-	return exec.Command("rrdtool", args...).Run()
+	cmd := exec.Command("rrdtool", args...)
+
+	if output, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("error in rrdtool create: %s (details: %s)", err, string(output))
+	}
+
+	return nil
 }
 
 func (s *rrdService) addRRDFiles(result *models.RRDData, srcMAC string, dstMACs []string) error {

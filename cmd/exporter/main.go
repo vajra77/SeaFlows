@@ -6,6 +6,7 @@ import (
 	"os"
 	"seaflows/internal/handlers"
 	"seaflows/internal/middleware"
+	"seaflows/internal/models"
 	"seaflows/internal/services"
 	"strconv"
 
@@ -20,14 +21,14 @@ func main() {
 		log.Println("[WARN] Unable to find .env file, using system variables")
 	}
 
-	rrdRootDir := os.Getenv("RRD_ROOT_DIR")
-	if rrdRootDir == "" {
-		rrdRootDir = "/srv/rrd"
+	rrdPath := os.Getenv("RRD_BASE_PATH")
+	if rrdPath == "" {
+		rrdPath = "/srv/rrd"
 	}
 
-	rrdStep := os.Getenv("RRD_STEP")
-	if rrdStep == "" {
-		rrdStep = "300"
+	rrdCache := os.Getenv("RRD_CACHE_SOCKET")
+	if rrdCache == "" {
+		rrdCache = "/var/run/rrdcached.sock"
 	}
 
 	gammaStr := os.Getenv("RRD_GAMMA")
@@ -52,7 +53,7 @@ func main() {
 		log.Fatal("[CRIT] unable to initialize map service")
 	}
 
-	rrdSrv := services.NewRRDService(rrdRootDir, rrdStep, rrdGamma)
+	rrdSrv := services.NewRRDService(rrdPath, rrdCache, models.RRDStep, rrdGamma)
 	mapHdlr := handlers.NewMapHandler(mapSrv)
 	flowHdlr := handlers.NewFlowHandler(rrdSrv, mapSrv)
 

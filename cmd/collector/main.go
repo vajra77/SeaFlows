@@ -5,12 +5,12 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"seaflows/internal/handlers"
+	"seaflows/internal/models"
+	"seaflows/internal/services"
 	"strconv"
 	"syscall"
 	"time"
-
-	"seaflows/internal/handlers"
-	"seaflows/internal/services"
 
 	"github.com/joho/godotenv"
 )
@@ -24,14 +24,14 @@ func main() {
 		log.Println("[WARN] Unable to find .env file, using system variables")
 	}
 
-	rrdPath := os.Getenv("RRD_ROOT_PATH")
+	rrdPath := os.Getenv("RRD_BASE_PATH")
 	if rrdPath == "" {
 		rrdPath = "/srv/rrd"
 	}
 
-	rrdStep := os.Getenv("RRD_STEP")
-	if rrdStep == "" {
-		rrdStep = "300"
+	rrdCache := os.Getenv("RRD_CACHE_SOCKET")
+	if rrdCache == "" {
+		rrdCache = "/var/run/rrdcached.sock"
 	}
 
 	gammaStr := os.Getenv("RRD_GAMMA")
@@ -46,9 +46,9 @@ func main() {
 		listenAddress = ":6343"
 	}
 
-	storage := services.NewRRDService(rrdPath, rrdStep, rrdGamma)
+	storage := services.NewRRDService(rrdPath, rrdCache, models.RRDStep, rrdGamma)
 
-	broker := services.NewBrokerService(60*time.Second, storage)
+	broker := services.NewSflowService(models.RRDFlushInterval*time.Second, storage)
 	go broker.Start()
 
 	handler := handlers.NewSFlowHandler(listenAddress, broker)

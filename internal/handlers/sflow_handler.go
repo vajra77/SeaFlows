@@ -96,7 +96,7 @@ func (h *sFlowHandler) worker(packetChan <-chan []byte) {
 							SrcIP:        record.Packet.Ipv4Header.SrcIPAddress.String(),
 							DstIP:        record.Packet.Ipv4Header.DstIPAddress.String(),
 							SamplingRate: sample.SamplingRate,
-							Size:         record.Packet.Size * sample.SamplingRate,
+							Size:         record.Packet.Size,
 						}
 					} else { // IPv6
 						flow = &models.SflowData{
@@ -107,7 +107,7 @@ func (h *sFlowHandler) worker(packetChan <-chan []byte) {
 							SrcIP:        record.Packet.Ipv6Header.SrcIPAddress.String(),
 							DstIP:        record.Packet.Ipv6Header.DstIPAddress.String(),
 							SamplingRate: sample.SamplingRate,
-							Size:         record.Packet.Size * sample.SamplingRate,
+							Size:         record.Packet.Size,
 						}
 					}
 					h.processor.Process(flow)

@@ -7,22 +7,22 @@ import (
 	"time"
 )
 
-type brokerService struct {
+type sflowService struct {
 	mu            sync.Mutex
 	items         map[string]*models.SflowData
 	flushInterval time.Duration
 	storage       StorageService
 }
 
-func NewBrokerService(interval time.Duration, storage StorageService) FlowProcessorService {
-	return &brokerService{
+func NewSflowService(interval time.Duration, storage StorageService) FlowProcessorService {
+	return &sflowService{
 		items:         make(map[string]*models.SflowData),
 		flushInterval: interval,
 		storage:       storage,
 	}
 }
 
-func (s *brokerService) Process(data *models.SflowData) {
+func (s *sflowService) Process(data *models.SflowData) {
 
 	key := data.SrcMAC + data.DstMAC
 
@@ -38,14 +38,14 @@ func (s *brokerService) Process(data *models.SflowData) {
 	}
 }
 
-func (s *brokerService) Start() {
+func (s *sflowService) Start() {
 	ticker := time.NewTicker(s.flushInterval)
 	for range ticker.C {
 		s.flush()
 	}
 }
 
-func (s *brokerService) flush() {
+func (s *sflowService) flush() {
 	s.mu.Lock()
 
 	snapshot := s.items
