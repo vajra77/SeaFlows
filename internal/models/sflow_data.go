@@ -182,9 +182,9 @@ func (d *Datagram) UnmarshalBinary(data []byte) error {
 					ptr += 4
 
 					if record.Packet.Protocol == 1 {
-						record.Packet.DatalinkHeader.EthernetHeader.SrcMACAddress = CleanMAC(data[ptr : ptr+6])
-						ptr += 6
 						record.Packet.DatalinkHeader.EthernetHeader.DstMACAddress = CleanMAC(data[ptr : ptr+6])
+						ptr += 6
+						record.Packet.DatalinkHeader.EthernetHeader.SrcMACAddress = CleanMAC(data[ptr : ptr+6])
 						ptr += 6
 
 						ethType := binary.BigEndian.Uint16(data[ptr : ptr+2])
@@ -201,6 +201,9 @@ func (d *Datagram) UnmarshalBinary(data []byte) error {
 
 						// IPv4
 						if ethType == 0x0800 {
+							if ptr+20 > len(data) {
+								return errors.New("sample length overflow")
+							}
 							ptr += 12
 							record.Packet.Ipv4Header = &IPv4Header{
 								SrcIPAddress: data[ptr : ptr+4],
@@ -211,6 +214,9 @@ func (d *Datagram) UnmarshalBinary(data []byte) error {
 
 						// IPv6
 						if ethType == 0x86dd {
+							if ptr+40 > len(data) {
+								return errors.New("sample length overflow")
+							}
 							ptr += 8
 							record.Packet.Ipv6Header = &IPv6Header{
 								SrcIPAddress: data[ptr : ptr+16],
