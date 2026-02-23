@@ -93,8 +93,8 @@ func (h *sFlowHandler) worker(packetChan <-chan []byte) {
 							SrcMAC:       record.Packet.DatalinkHeader.EthernetHeader.SrcMACAddress,
 							DstMAC:       record.Packet.DatalinkHeader.EthernetHeader.DstMACAddress,
 							IPv:          4,
-							SrcIP:        record.Packet.Ipv4Header.SrcIPAddress.String(),
-							DstIP:        record.Packet.Ipv4Header.DstIPAddress.String(),
+							SrcIP:        record.Packet.IPHeader.SrcIPAddress,
+							DstIP:        record.Packet.IPHeader.DstIPAddress,
 							SamplingRate: sample.SamplingRate,
 							Size:         record.Packet.Size,
 						}
@@ -104,8 +104,8 @@ func (h *sFlowHandler) worker(packetChan <-chan []byte) {
 							SrcMAC:       record.Packet.DatalinkHeader.EthernetHeader.SrcMACAddress,
 							DstMAC:       record.Packet.DatalinkHeader.EthernetHeader.DstMACAddress,
 							IPv:          6,
-							SrcIP:        record.Packet.Ipv6Header.SrcIPAddress.String(),
-							DstIP:        record.Packet.Ipv6Header.DstIPAddress.String(),
+							SrcIP:        record.Packet.IPHeader.SrcIPAddress,
+							DstIP:        record.Packet.IPHeader.DstIPAddress,
 							SamplingRate: sample.SamplingRate,
 							Size:         record.Packet.Size,
 						}

@@ -56,8 +56,7 @@ type RawPacket struct {
 	Stripped       uint32
 	Size           uint32
 	DatalinkHeader DatalinkHeader
-	Ipv4Header     *IPv4Header
-	Ipv6Header     *IPv6Header
+	IPHeader       IPHeader
 }
 
 type EthernetHeader struct {
@@ -67,7 +66,7 @@ type EthernetHeader struct {
 }
 
 type VlanHeader struct {
-	Id  uint16
+	ID  uint16
 	Len uint16
 }
 
@@ -76,20 +75,9 @@ type DatalinkHeader struct {
 	VlanHeader     VlanHeader
 }
 
-type IPv4Header struct {
-	Preamble     uint16
-	Length       uint16
-	Ttl          uint8
-	Protocol     uint8
-	SrcIPAddress net.IP
-	DstIPAddress net.IP
-}
-
-type IPv6Header struct {
-	Preamble     uint16
-	Length       uint16
-	SrcIPAddress net.IP
-	DstIPAddress net.IP
+type IPHeader struct {
+	SrcIPAddress string
+	DstIPAddress string
 }
 
 func CleanMAC(hw net.HardwareAddr) string {
@@ -191,7 +179,7 @@ func (d *Datagram) UnmarshalBinary(data []byte) error {
 						ptr += 2
 
 						if ethType == 0x8100 {
-							record.Packet.DatalinkHeader.VlanHeader.Id = binary.BigEndian.Uint16(data[ptr : ptr+2])
+							record.Packet.DatalinkHeader.VlanHeader.ID = binary.BigEndian.Uint16(data[ptr : ptr+2])
 							ptr += 2
 							ethType = binary.BigEndian.Uint16(data[ptr : ptr+2])
 							ptr += 2
@@ -205,10 +193,8 @@ func (d *Datagram) UnmarshalBinary(data []byte) error {
 								return errors.New("sample length overflow")
 							}
 							ptr += 12
-							record.Packet.Ipv4Header = &IPv4Header{
-								SrcIPAddress: data[ptr : ptr+4],
-								DstIPAddress: data[ptr+4 : ptr+8],
-							}
+							record.Packet.IPHeader.SrcIPAddress = net.IP(data[ptr : ptr+4]).String()
+							record.Packet.IPHeader.DstIPAddress = net.IP(data[ptr+4 : ptr+8]).String()
 							ptr += 8
 						}
 
@@ -218,10 +204,8 @@ func (d *Datagram) UnmarshalBinary(data []byte) error {
 								return errors.New("sample length overflow")
 							}
 							ptr += 8
-							record.Packet.Ipv6Header = &IPv6Header{
-								SrcIPAddress: data[ptr : ptr+16],
-								DstIPAddress: data[ptr+16 : ptr+32],
-							}
+							record.Packet.IPHeader.SrcIPAddress = net.IP(data[ptr : ptr+16]).String()
+							record.Packet.IPHeader.DstIPAddress = net.IP(data[ptr+16 : ptr+32]).String()
 							ptr += 32
 						}
 					}

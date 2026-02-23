@@ -14,11 +14,6 @@ import (
 	"time"
 )
 
-type RRDService interface {
-	GetSingleFlow(srcMAC string, dstMAC string, proto int, schedule string) (*models.RRDData, error)
-	GetMultipleFlows(srcMACs []string, dstMACs []string, proto int, schedule string) (*models.RRDData, error)
-}
-
 type rrdService struct {
 	basePath   string
 	socketPath string
