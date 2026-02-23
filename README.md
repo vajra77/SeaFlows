@@ -73,7 +73,21 @@ go build -o seaflows-exporter ./cmd/exporter
 ### 4. Run the Services
 **Prepare the .env configuration file:**
 Copy the `.env.example` file to the project root directory and rename it to `.env`. Fill in the requested configuration
-variables that suits your environment. 
+variables that suits your environment. This is an example configuration:
+
+```text
+# NETWORK
+EXPORTER_ADDRESS="127.0.0.1:8080"
+COLLECTOR_ADDRESS="192.168.201.193:6343"
+
+# RRD
+RRD_CACHE_SOCKET="/var/run/rrdcached.sock"
+RRD_BASE_PATH="/srv/rrd"
+RRD_GAMMA=1.0
+
+# IX-F MAP=
+IXF_URL="https://my.namex.it/api/v4/member-export/ixf/1.0"
+```
 
 **Start the Collector:**
 Ensure the user has write permissions to the `/srv/rrd/flows` directory and the `rrdcached.sock`.
