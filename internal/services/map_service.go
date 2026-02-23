@@ -8,18 +8,13 @@ import (
 	"time"
 )
 
-type MapService interface {
-	GetMACs(asn string) []string
-	GetASNs() []string
-}
-
 type mapService struct {
 	url  string
 	data *models.MapData
 	mu   sync.RWMutex
 }
 
-func NewMapService(url string) (MapService, error) {
+func NewMapService(url string) (AddressMapperService, error) {
 
 	initialData, err := helpers.PopulateFromIXF(url)
 	if err != nil {

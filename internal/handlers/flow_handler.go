@@ -10,19 +10,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type FlowHandler struct {
-	rrdService services.RRDService
-	mapService services.MapService
+type flowHandler struct {
+	storage services.StorageService
+	mapper  services.AddressMapperService
 }
 
-func NewFlowHandler(rrdS services.RRDService, mapS services.MapService) *FlowHandler {
-	return &FlowHandler{
-		rrdService: rrdS,
-		mapService: mapS,
+func NewFlowHandler(rrdS services.StorageService, mapS services.AddressMapperService) FlowHandler {
+	return &flowHandler{
+		storage: rrdS,
+		mapper:  mapS,
 	}
 }
 
-func (h *FlowHandler) GetSingleFlow(ctx *gin.Context) {
+func (h *flowHandler) GetSingleFlow(ctx *gin.Context) {
 
 	srcMac := strings.ReplaceAll(ctx.Query("src_mac"), ":", "")
 	dstMac := strings.ReplaceAll(ctx.Query("dst_mac"), ":", "")
@@ -43,7 +43,7 @@ func (h *FlowHandler) GetSingleFlow(ctx *gin.Context) {
 		return
 	}
 
-	data, err := h.rrdService.GetSingleFlow(srcMac, dstMac, proto, sched)
+	data, err := h.storage.GetFlow(srcMac, dstMac, proto, sched)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -52,7 +52,7 @@ func (h *FlowHandler) GetSingleFlow(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, data)
 }
 
-func (h *FlowHandler) GetP2PFlow(ctx *gin.Context) {
+func (h *flowHandler) GetP2PFlow(ctx *gin.Context) {
 
 	srcStr := strings.ToUpper(ctx.Query("src_as"))
 	srcAsn := strings.TrimPrefix(srcStr, "AS")
@@ -78,8 +78,8 @@ func (h *FlowHandler) GetP2PFlow(ctx *gin.Context) {
 		return
 	}
 
-	srcMACs := h.mapService.GetMACs(srcAsn)
-	dstMACs := h.mapService.GetMACs(dstAsn)
+	srcMACs := h.mapper.GetMACs(srcAsn)
+	dstMACs := h.mapper.GetMACs(dstAsn)
 
 	if len(srcMACs) == 0 {
 		errStr := fmt.Sprintf("no source MACs found for ASN %s ", srcAsn)
@@ -93,7 +93,7 @@ func (h *FlowHandler) GetP2PFlow(ctx *gin.Context) {
 		return
 	}
 
-	data, err := h.rrdService.GetMultipleFlows(srcMACs, dstMACs, proto, sched)
+	data, err := h.storage.GetFlows(srcMACs, dstMACs, proto, sched)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return

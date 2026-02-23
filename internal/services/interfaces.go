@@ -1,0 +1,19 @@
+package services
+
+import "seaflows/internal/models"
+
+type FlowProcessorService interface {
+	Process(data *models.SflowData)
+	Start()
+}
+
+type StorageService interface {
+	UpdateFlow(srcMac, dstMac string, proto int, bytes uint32) error
+	GetFlow(srcMAC string, dstMAC string, proto int, schedule string) (*models.RRDData, error)
+	GetFlows(srcMACs []string, dstMACs []string, proto int, schedule string) (*models.RRDData, error)
+}
+
+type AddressMapperService interface {
+	GetMACs(asn string) []string
+	GetASNs() []string
+}

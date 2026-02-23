@@ -8,15 +8,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type MapHandler struct {
-	service services.MapService
+type mapHandler struct {
+	mapper services.AddressMapperService
 }
 
-func NewMapHandler(service services.MapService) *MapHandler {
-	return &MapHandler{service: service}
+func NewMapHandler(service services.AddressMapperService) MapHandler {
+	return &mapHandler{mapper: service}
 }
 
-func (h *MapHandler) GetMACs(ctx *gin.Context) {
+func (h *mapHandler) GetMACs(ctx *gin.Context) {
 
 	var data []string
 
@@ -26,14 +26,14 @@ func (h *MapHandler) GetMACs(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "parameter `as' is required"})
 		return
 	}
-	data = h.service.GetMACs(asn)
+	data = h.mapper.GetMACs(asn)
 
 	ctx.JSON(http.StatusOK, data)
 }
 
-func (h *MapHandler) GetASNs(ctx *gin.Context) {
+func (h *mapHandler) GetASNs(ctx *gin.Context) {
 
-	data := h.service.GetASNs()
+	data := h.mapper.GetASNs()
 
 	ctx.JSON(http.StatusOK, data)
 }

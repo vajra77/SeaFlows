@@ -25,6 +25,11 @@ func main() {
 		rrdRootDir = "/srv/rrd"
 	}
 
+	rrdStep := os.Getenv("RRD_STEP")
+	if rrdStep == "" {
+		rrdStep = "300"
+	}
+
 	gammaStr := os.Getenv("RRD_GAMMA")
 	rrdGamma, err := strconv.ParseFloat(gammaStr, 64)
 	if err != nil {
@@ -32,9 +37,9 @@ func main() {
 		rrdGamma = 1.0
 	}
 
-	serverPort := os.Getenv("SERVER_PORT")
-	if serverPort == "" {
-		serverPort = "8080"
+	listenAddr := os.Getenv("EXPORTER_LISTEN_ADDRESS")
+	if listenAddr == "" {
+		listenAddr = ":8080"
 	}
 
 	ixfUrl := os.Getenv("IXF_URL")
@@ -47,7 +52,7 @@ func main() {
 		log.Fatal("[CRIT] unable to initialize map service")
 	}
 
-	rrdSrv := services.NewRRDService(rrdRootDir, rrdGamma)
+	rrdSrv := services.NewRRDService(rrdRootDir, rrdStep, rrdGamma)
 	mapHdlr := handlers.NewMapHandler(mapSrv)
 	flowHdlr := handlers.NewFlowHandler(rrdSrv, mapSrv)
 
@@ -81,8 +86,8 @@ func main() {
 	}
 
 	// running Gin
-	log.Printf("[INFO] API Server listening on port :%s", serverPort)
-	err = r.Run(":" + serverPort)
+	log.Printf("[INFO] API Server listening on: %s", listenAddr)
+	err = r.Run(listenAddr)
 	if err != nil {
 		log.Printf("[WARN] Unable to start server")
 		log.Fatalf("[CRIT] Shutdown due to error: %s", err)
