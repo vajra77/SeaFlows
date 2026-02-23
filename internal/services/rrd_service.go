@@ -190,7 +190,8 @@ func (s *rrdService) addRRDFiles(result *models.RRDData, srcMAC string, dstMACs 
 		path := filepath.Join(s.basePath, "flows", srcMAC, fmt.Sprintf("flow_%s_to_%s.rrd", srcMAC, dstMAC))
 		err := result.AddFromFile(path)
 		if err != nil {
-			return err
+			log.Printf("[WARN] Failed to add RRD file: %v", err)
+			continue
 		}
 	}
 	return nil
