@@ -54,8 +54,7 @@ func main() {
 	}
 
 	rrdSrv := services.NewRRDService(rrdPath, rrdCache, models.RRDStep, rrdGamma)
-	mapHdlr := handlers.NewMapHandler(mapSrv)
-	flowHdlr := handlers.NewFlowHandler(rrdSrv, mapSrv)
+	api := handlers.NewAPIHandler(rrdSrv, mapSrv)
 
 	// setup Gin
 	gin.DefaultWriter = os.Stdout
@@ -80,10 +79,10 @@ func main() {
 	v1 := r.Group("/api/v1")
 	v1.Use(middleware.APIKeyAuth())
 	{
-		v1.GET("/flow/mac", flowHdlr.GetSingleFlow)
-		v1.GET("/flow/p2p", flowHdlr.GetP2PFlow)
-		v1.GET("/map/macs", mapHdlr.GetMACs)
-		v1.GET("/map/asns", mapHdlr.GetASNs)
+		v1.GET("/flow/mac", api.GetSingleFlow)
+		v1.GET("/flow/p2p", api.GetP2PFlow)
+		v1.GET("/map/macs", api.GetMACs)
+		v1.GET("/map/asns", api.GetASNs)
 	}
 
 	// running Gin

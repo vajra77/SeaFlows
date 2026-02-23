@@ -6,12 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type FlowHandler interface {
+type APIHandler interface {
 	GetSingleFlow(ctx *gin.Context)
 	GetP2PFlow(ctx *gin.Context)
-}
-
-type MapHandler interface {
 	GetMACs(ctx *gin.Context)
 	GetASNs(ctx *gin.Context)
 }

@@ -10,19 +10,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type flowHandler struct {
+type apiHandler struct {
 	storage services.StorageService
 	mapper  services.AddressMapperService
 }
 
-func NewFlowHandler(rrdS services.StorageService, mapS services.AddressMapperService) FlowHandler {
-	return &flowHandler{
+func NewAPIHandler(rrdS services.StorageService, mapS services.AddressMapperService) APIHandler {
+	return &apiHandler{
 		storage: rrdS,
 		mapper:  mapS,
 	}
 }
 
-func (h *flowHandler) GetSingleFlow(ctx *gin.Context) {
+func (h *apiHandler) GetSingleFlow(ctx *gin.Context) {
 
 	srcMac := strings.ReplaceAll(ctx.Query("src_mac"), ":", "")
 	dstMac := strings.ReplaceAll(ctx.Query("dst_mac"), ":", "")
@@ -52,7 +52,7 @@ func (h *flowHandler) GetSingleFlow(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, data)
 }
 
-func (h *flowHandler) GetP2PFlow(ctx *gin.Context) {
+func (h *apiHandler) GetP2PFlow(ctx *gin.Context) {
 
 	srcStr := strings.ToUpper(ctx.Query("src_as"))
 	srcAsn := strings.TrimPrefix(srcStr, "AS")
@@ -98,6 +98,28 @@ func (h *flowHandler) GetP2PFlow(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
+
+	ctx.JSON(http.StatusOK, data)
+}
+
+func (h *apiHandler) GetMACs(ctx *gin.Context) {
+
+	var data []string
+
+	asnStr := strings.ToUpper(ctx.Query("as"))
+	asn := strings.TrimPrefix(asnStr, "AS")
+	if asn == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "parameter `as' is required"})
+		return
+	}
+	data = h.mapper.GetMACs(asn)
+
+	ctx.JSON(http.StatusOK, data)
+}
+
+func (h *apiHandler) GetASNs(ctx *gin.Context) {
+
+	data := h.mapper.GetASNs()
 
 	ctx.JSON(http.StatusOK, data)
 }
