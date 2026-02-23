@@ -66,8 +66,14 @@ cd SeaFlows
 SeaFlows provides two distinct binaries. You can build them both from the root directory:
 ```bash
 go mod tidy
-go build -o seaflows-collector ./cmd/collector
-go build -o seaflows-exporter ./cmd/exporter
+go build -o bin/seaflows-collector ./cmd/collector
+go build -o bin/seaflows-exporter ./cmd/exporter
+```
+or use the sample Makefile shipping with the code:
+
+```bash
+make collector
+make exporter
 ```
 
 ### 4. Run the Services

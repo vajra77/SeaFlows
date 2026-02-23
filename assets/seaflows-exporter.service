@@ -6,8 +6,8 @@ After=network.target
 Type=simple
 User=root
 Group=root
-WorkingDirectory=/opt/SeaFlows
-ExecStart=/opt/SeaFlows/seaflows-exporter
+WorkingDirectory=/opt/SeaFlows/bin
+ExecStart=/opt/SeaFlows/bin/seaflows-exporter
 Restart=always
 RestartSec=5s
 
