@@ -1,0 +1,20 @@
+[Unit]
+Description=SeaFlows Export Server
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/SeaFlows
+ExecStart=/opt/SeaFlows/seaflows-exporter
+Restart=always
+RestartSec=5s
+
+StandardOutput=append:/var/log/seaflows-exporter.log
+StandardError=append:/var/log/seaflows-exporter.log
+
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

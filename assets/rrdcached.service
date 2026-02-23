@@ -1,0 +1,14 @@
+[Unit]
+Description=Data caching daemon for rrdtool
+Documentation=man:rrdcached(1)
+
+[Service]
+# If you enable socket-activable rrdcached.socket,
+# command line socket declarations will be ignored
+ExecStart=/usr/bin/rrdcached -l unix:/var/run/rrdcached.sock -b /srv/rrd/flows -j /var/lib/rrdcached/journal -F -w 300 -z 300
+#WorkingDirectory=
+#User=
+#Group=
+
+[Install]
+WantedBy=multi-user.target
