@@ -11,6 +11,7 @@ import (
 	"seaflows/internal/models"
 	"strings"
 	"sync"
+	"time"
 )
 
 type RRDService interface {
@@ -127,11 +128,13 @@ func (s *rrdService) sendToDaemon(fullPath string, ipv int, bytes uint32) error 
 		}
 	}(conn)
 
+	now := time.Now().Unix()
+
 	var command string
 	if ipv == 4 {
-		command = fmt.Sprintf("UPDATE %s N:%d:0\n", fullPath, bytes)
+		command = fmt.Sprintf("UPDATE %s %d:%d:0\n", fullPath, now, bytes)
 	} else {
-		command = fmt.Sprintf("UPDATE %s N:0:%d\n", fullPath, bytes)
+		command = fmt.Sprintf("UPDATE %s %d:0:%d\n", fullPath, now, bytes)
 	}
 
 	if _, err = conn.Write([]byte(command)); err != nil {
