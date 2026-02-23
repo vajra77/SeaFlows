@@ -96,7 +96,7 @@ Once the Exporter is running, you can query flow data using standard HTTP GET re
 
 **Example Request:**
 ```bash
-curl "http://localhost:8080/api/flow?src=001122334455&dst=AABBCCDDEEFF&schedule=daily"
+curl "http://localhost:8080/api/flow?src=001122334455&dst=AABBCCDDEEFF&schedule=daily&proto=4"
 ```
 
 **Supported Schedules:**
