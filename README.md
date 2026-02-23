@@ -78,7 +78,7 @@ make exporter
 
 ### 4. Run the Services
 **Prepare the .env configuration file:**
-Copy the `.env.example` file to the project root directory and rename it to `.env`. Fill in the requested configuration
+Copy the `.env.example` file to the project ``bin`` directory (create it if not present) and rename it to `.env`. Fill in the requested configuration
 variables that suits your environment. This is an example configuration:
 
 ```text
