@@ -48,10 +48,10 @@ func main() {
 
 	storage := services.NewRRDService(rrdPath, rrdCache, models.RRDStep, rrdGamma)
 
-	broker := services.NewSflowService(models.RRDFlushInterval*time.Second, storage)
-	go broker.Start()
+	processor := services.NewSflowService(models.RRDFlushInterval*time.Second, storage)
+	go processor.Start()
 
-	handler := handlers.NewSFlowHandler(listenAddress, broker)
+	handler := handlers.NewSFlowHandler(listenAddress, processor)
 
 	if err := handler.Listen(ctx); err != nil {
 		panic(err)

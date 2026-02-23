@@ -109,7 +109,7 @@ func (h *sFlowHandler) worker(packetChan <-chan []byte) {
 							SamplingRate: sample.SamplingRate,
 							Size:         record.Packet.Size,
 						}
-					} else {
+					} else { // ignore non-IP packets
 						continue
 					}
 					h.processor.Process(flow)
