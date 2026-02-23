@@ -1,6 +1,6 @@
 # SeaFlows 🌊
 
-**SeaFlows** is a high-performance, concurrent **sFlow (v5) collector and traffic analyzer** written in Go. Designed for speed, reliability, and low resource footprint, it ingests network samples, aggregates flow data in memory, and persists it to disk using `rrdcached` for lightning-fast, I/O-optimized time-series storage. It also includes a lightning-fast **Exporter API** to serve this data to your frontend dashboards.
+**SeaFlows** is a high-performance, concurrent **sFlow (v5) collector and exporter** written in Go. Designed for speed, reliability, and low resource footprint, it ingests network samples, aggregates flow data in memory, and persists it to disk using `rrdcached` for lightning-fast, I/O-optimized time-series storage. It also includes a lightning-fast **Exporter API** to serve this data to your frontend dashboards.
 
 
 
