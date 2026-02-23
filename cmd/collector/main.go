@@ -41,7 +41,7 @@ func main() {
 		rrdGamma = 1.0
 	}
 
-	listenAddress := os.Getenv("SFLOW_LISTEN_ADDRESS")
+	listenAddress := os.Getenv("COLLECTOR_ADDRESS")
 	if listenAddress == "" {
 		listenAddress = ":6343"
 	}

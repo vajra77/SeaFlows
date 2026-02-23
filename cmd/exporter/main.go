@@ -37,7 +37,7 @@ func main() {
 		rrdGamma = 1.0
 	}
 
-	listenAddr := os.Getenv("EXPORTER_LISTEN_ADDRESS")
+	listenAddr := os.Getenv("EXPORTER_ADDRESS")
 	if listenAddr == "" {
 		listenAddr = ":8080"
 	}
