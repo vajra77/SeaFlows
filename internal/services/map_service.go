@@ -31,12 +31,25 @@ func NewMapService(url string) (AddressMapperService, error) {
 	return srv, nil
 }
 
-func (s *mapService) GetMACs(asn string) []string {
+func (s *mapService) GetMACsFromAS(asn string) []string {
 
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	return s.data.GetAllMACs(asn)
+}
+
+func (s *mapService) GetMACsFromASSet(asList []string) []string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	result := make([]string, 0)
+
+	for _, asn := range asList {
+		result = append(result, s.data.GetAllMACs(asn)...)
+	}
+
+	return result
 }
 
 func (s *mapService) GetASNs() []string {

@@ -14,6 +14,7 @@ type StorageService interface {
 }
 
 type AddressMapperService interface {
-	GetMACs(asn string) []string
+	GetMACsFromAS(asn string) []string
+	GetMACsFromASSet(asList []string) []string
 	GetASNs() []string
 }

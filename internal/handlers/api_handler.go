@@ -78,8 +78,8 @@ func (h *apiHandler) GetP2PFlow(ctx *gin.Context) {
 		return
 	}
 
-	srcMACs := h.mapper.GetMACs(srcAsn)
-	dstMACs := h.mapper.GetMACs(dstAsn)
+	srcMACs := h.mapper.GetMACsFromAS(srcAsn)
+	dstMACs := h.mapper.GetMACsFromAS(dstAsn)
 
 	if len(srcMACs) == 0 {
 		errStr := fmt.Sprintf("no source MACs found for ASN %s ", srcAsn)
@@ -102,6 +102,46 @@ func (h *apiHandler) GetP2PFlow(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, data)
 }
 
+func (h *apiHandler) GetAggregateFlow(ctx *gin.Context) {
+	srcStr := strings.ToUpper(ctx.Query("src_as_set"))
+	srcSet := strings.ReplaceAll(srcStr, "AS", "")
+
+	dstStr := strings.ToUpper(ctx.Query("dst_as_set"))
+	dstSet := strings.ReplaceAll(dstStr, "AS", "")
+
+	sched := ctx.Query("schedule")
+	protoStr := ctx.Query("proto")
+
+	if srcSet == "" || dstSet == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "src_as and dst_as are required"})
+		return
+	}
+
+	if sched == "" {
+		sched = "daily"
+	}
+
+	proto, err := strconv.Atoi(protoStr)
+	if err != nil && protoStr != "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid proto value, must be integer"})
+		return
+	}
+
+	srcASList := strings.Split(srcSet, ",")
+	dstASList := strings.Split(dstSet, ",")
+
+	srcMACs := h.mapper.GetMACsFromASSet(srcASList)
+	dstMACs := h.mapper.GetMACsFromASSet(dstASList)
+
+	data, err := h.storage.GetFlows(srcMACs, dstMACs, proto, sched)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, data)
+}
+
 func (h *apiHandler) GetMACs(ctx *gin.Context) {
 
 	var data []string
@@ -112,7 +152,7 @@ func (h *apiHandler) GetMACs(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "parameter `as' is required"})
 		return
 	}
-	data = h.mapper.GetMACs(asn)
+	data = h.mapper.GetMACsFromAS(asn)
 
 	ctx.JSON(http.StatusOK, data)
 }

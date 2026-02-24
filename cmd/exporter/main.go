@@ -81,6 +81,7 @@ func main() {
 	{
 		v1.GET("/flow/mac", api.GetSingleFlow)
 		v1.GET("/flow/p2p", api.GetP2PFlow)
+		v1.GET("/flow/sum", api.GetAggregateFlow)
 		v1.GET("/map/macs", api.GetMACs)
 		v1.GET("/map/asns", api.GetASNs)
 	}

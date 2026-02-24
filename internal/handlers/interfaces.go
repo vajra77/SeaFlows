@@ -9,6 +9,7 @@ import (
 type APIHandler interface {
 	GetSingleFlow(ctx *gin.Context)
 	GetP2PFlow(ctx *gin.Context)
+	GetAggregateFlow(ctx *gin.Context)
 	GetMACs(ctx *gin.Context)
 	GetASNs(ctx *gin.Context)
 }
