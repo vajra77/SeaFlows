@@ -13,6 +13,7 @@ type sflowService struct {
 	items         map[string]*models.SflowData
 	flushInterval time.Duration
 	storage       StorageService
+	done          chan struct{}
 }
 
 func NewSflowService(interval time.Duration, storage StorageService) FlowProcessorService {
@@ -21,6 +22,7 @@ func NewSflowService(interval time.Duration, storage StorageService) FlowProcess
 		flushInterval: interval,
 		ticker:        time.NewTicker(interval),
 		storage:       storage,
+		done:          make(chan struct{}),
 	}
 }
 
@@ -47,14 +49,22 @@ func (s *sflowService) Process(data *models.SflowData) {
 // Start starts a ticker process that trigger data flushing every
 // flushInterval seconds (60)
 func (s *sflowService) Start() {
-	for range s.ticker.C {
-		s.flush()
+	for {
+		select {
+		case <-s.ticker.C:
+			s.flush()
+		case <-s.done:
+			return
+		}
 	}
 }
 
 // Stop stops the processor service
 func (s *sflowService) Stop() {
 	s.ticker.Stop()
+
+	close(s.done)
+
 	log.Println("[INFO] flushing last data")
 	s.flush()
 }
