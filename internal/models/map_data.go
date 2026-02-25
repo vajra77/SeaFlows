@@ -20,16 +20,24 @@ func NewMapData() *MapData {
 
 func (m *MapData) AddAddressMap(asn, ipv4, ipv6, mac string) {
 
-	_, found := m.Maps[asn]
-
-	if !found {
-		m.Maps[asn] = append(m.Maps[asn],
-			&AddressMap{
-				IPv4Address: ipv4,
-				IPv6Address: ipv6,
-				MACAddress:  strings.ToLower(strings.ReplaceAll(mac, ":", "")),
-			})
+	if mac == "" {
+		return // Ignoriamo entry senza MAC
 	}
+
+	cleanMAC := strings.ToLower(strings.ReplaceAll(mac, ":", ""))
+
+	for _, existing := range m.Maps[asn] {
+		if existing.MACAddress == cleanMAC {
+			return
+		}
+	}
+
+	m.Maps[asn] = append(m.Maps[asn],
+		&AddressMap{
+			IPv4Address: ipv4,
+			IPv6Address: ipv6,
+			MACAddress:  cleanMAC,
+		})
 }
 
 func (m *MapData) GetAllMACs(asn string) []string {

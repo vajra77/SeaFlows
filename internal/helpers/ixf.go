@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"seaflows/internal/models"
-	"strings"
 	"time"
 )
 
@@ -65,25 +64,19 @@ func PopulateFromIXF(url string) (*models.MapData, error) {
 			for _, vlan := range conn.VlanList {
 				ipv4 := ""
 				ipv6 := ""
-				mac := ""
 
 				if vlan.IPv4 != nil {
 					ipv4 = vlan.IPv4.Address
-					if vlan.IPv4.MAC != nil && len(vlan.IPv4.MAC) > 0 {
-						mac = strings.Replace(vlan.IPv4.MAC[0], ":", "", 5)
-					}
-				}
-				if vlan.IPv6 != nil {
-					ipv6 = vlan.IPv6.Address
-					if mac == "" {
-						if vlan.IPv6.MAC != nil && len(vlan.IPv6.MAC) > 0 {
-							mac = strings.Replace(vlan.IPv6.MAC[0], ":", "", 5)
-						}
+					for _, mac := range vlan.IPv4.MAC {
+						mapData.AddAddressMap(asnStr, ipv4, ipv6, mac)
 					}
 				}
 
-				if ipv4 != "" || ipv6 != "" {
-					mapData.AddAddressMap(asnStr, ipv4, ipv6, mac)
+				if vlan.IPv6 != nil {
+					ipv6 = vlan.IPv6.Address
+					for _, mac := range vlan.IPv6.MAC {
+						mapData.AddAddressMap(asnStr, ipv4, ipv6, mac)
+					}
 				}
 			}
 		}
