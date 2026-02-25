@@ -8,7 +8,7 @@ type FlowProcessorService interface {
 }
 
 type StorageService interface {
-	UpdateRRDFiles(flows map[string]*models.AggregatedFlow) error
+	UpdateFlows(flows map[string]*models.AggregatedFlow) error
 	GetFlow(srcMAC string, dstMAC string, proto int, schedule string) (*models.RRDData, error)
 	GetFlows(srcMACs []string, dstMACs []string, proto int, schedule string) (*models.RRDData, error)
 }

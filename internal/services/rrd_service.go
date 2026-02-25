@@ -116,9 +116,9 @@ func (s *rrdService) GetFlows(srcMACs []string, dstMACs []string, proto int, sch
 	return result, nil
 }
 
-// UpdateRRDFiles updates a batch of RRD files with data from aggregated flow
+// UpdateFlows updates a batch of RRD files with data from aggregated flow
 // Returns error
-func (s *rrdService) UpdateRRDFiles(flows map[string]*models.AggregatedFlow) error {
+func (s *rrdService) UpdateFlows(flows map[string]*models.AggregatedFlow) error {
 	if len(flows) == 0 {
 		return nil
 	}
