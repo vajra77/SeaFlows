@@ -112,7 +112,7 @@ func (s *rrdService) UpdateFlow(srcMac, dstMac string, bytes4 uint32, bytes6 uin
 	return s.sendToDaemon(fullPath, bytes4, bytes6)
 }
 
-func (s *rrdService) UpdateFlowsBatch(flows map[string]*models.AggregatedFlowData) error {
+func (s *rrdService) UpdateFlowsBatch(flows map[string]*models.AggregatedFlow) error {
 	if len(flows) == 0 {
 		return nil
 	}

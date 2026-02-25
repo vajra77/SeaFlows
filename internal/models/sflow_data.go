@@ -19,6 +19,13 @@ type SflowData struct {
 	Size         uint32
 }
 
+type AggregatedFlow struct {
+	SrcMAC string
+	DstMAC string
+	Bytes4 uint32
+	Bytes6 uint32
+}
+
 type Datagram struct {
 	Version      uint32
 	IpVersion    uint32

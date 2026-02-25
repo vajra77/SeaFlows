@@ -55,12 +55,12 @@ func (s *sflowService) flush() {
 		return
 	}
 
-	grouped := make(map[string]*models.AggregatedFlowData)
+	grouped := make(map[string]*models.AggregatedFlow)
 
 	for _, data := range snapshot {
 		key := data.SrcMAC + "-" + data.DstMAC
 		if _, exists := grouped[key]; !exists {
-			grouped[key] = &models.AggregatedFlowData{
+			grouped[key] = &models.AggregatedFlow{
 				SrcMAC: data.SrcMAC,
 				DstMAC: data.DstMAC,
 			}
