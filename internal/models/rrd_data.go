@@ -67,49 +67,10 @@ func NewRRDData(gamma float64, proto int, schedule string, path string) (*RRDDat
 	}
 
 	if path != "" {
-		avgData, err := RRDTool.Fetch(path, "AVERAGE", data.Start, data.End, data.Step)
+		err := data.AddFromFile(path)
 		if err != nil {
 			return nil, err
 		}
-
-		maxData, err := RRDTool.Fetch(path, "MAX", data.Start, data.End, data.Step)
-		if err != nil {
-			return nil, err
-		}
-
-		avgValues := avgData.Values()
-		maxValues := maxData.Values()
-
-		dsIndex := 0
-		if data.Proto == 6 {
-			dsIndex = 1
-		}
-
-		numIntervals := len(avgValues) / 2
-
-		for i := 0; i < numIntervals; i++ {
-			avgV := avgValues[i*2+dsIndex]
-			if math.IsNaN(avgV) {
-				avgV = 0.0
-			}
-
-			maxV := maxValues[i*2+dsIndex]
-			if math.IsNaN(maxV) {
-				maxV = 0.0
-			}
-
-			avgPoint := make([]interface{}, 2)
-			avgPoint[0] = data.Start.Add(time.Duration(i) * data.Step)
-			avgPoint[1] = avgV
-			data.Avg = append(data.Avg, avgPoint)
-
-			maxPoint := make([]interface{}, 2)
-			maxPoint[0] = avgPoint[0]
-			maxPoint[1] = maxV
-			data.Max = append(data.Max, maxPoint)
-
-		}
-		data.Length = numIntervals
 	}
 
 	return &data, nil
@@ -118,49 +79,35 @@ func NewRRDData(gamma float64, proto int, schedule string, path string) (*RRDDat
 func (d *RRDData) Add(other *RRDData) error {
 
 	if d.Length == 0 {
-		// if d is just initialized, copy values
 		d.Avg = make([][]interface{}, other.Length)
 		d.Max = make([][]interface{}, other.Length)
-		copy(d.Avg, other.Avg)
-		copy(d.Max, other.Max)
+		for i := 0; i < other.Length; i++ {
+			d.Avg[i] = []interface{}{other.Avg[i][0], other.Avg[i][1]}
+			d.Max[i] = []interface{}{other.Max[i][0], other.Max[i][1]}
+		}
 		d.Length = other.Length
-	} else {
-		if d.Length != other.Length {
-			return errors.New("RRDData.Add: length does not match other.Length")
+		return nil
+	}
+
+	if d.Length != other.Length {
+		return errors.New("RRDData.Add: length does not match other.Length")
+	}
+
+	for i := 0; i < d.Length; i++ {
+
+		if max2, ok2 := other.Max[i][1].(float64); ok2 {
+			if max1, ok1 := d.Max[i][1].(float64); ok1 {
+				d.Max[i][1] = max1 + max2
+			} else {
+				d.Max[i][1] = max2
+			}
 		}
 
-		for i := range d.Length {
-
-			m1 := d.Max[i][1]
-			m2 := other.Max[i][1]
-
-			max1, ok1 := m1.(float64)
-			max2, ok2 := m2.(float64)
-
-			if ok1 && ok2 {
-				d.Max[i][1] = max1 + max2
-			} else if ok2 {
-				d.Max[i][1] = max2
-			} else if ok1 {
-				// keep existing value
-			} else {
-				d.Max[i][1] = 0.0
-			}
-
-			a1 := d.Avg[i][1]
-			a2 := other.Avg[i][1]
-
-			avg1, ok1 := a1.(float64)
-			avg2, ok2 := a2.(float64)
-
-			if ok1 && ok2 {
+		if avg2, ok2 := other.Avg[i][1].(float64); ok2 {
+			if avg1, ok1 := d.Avg[i][1].(float64); ok1 {
 				d.Avg[i][1] = avg1 + avg2
-			} else if ok2 {
-				d.Avg[i][1] = avg2
-			} else if ok1 {
-				// keep existing value
 			} else {
-				d.Avg[i][1] = 0.0
+				d.Avg[i][1] = avg2
 			}
 		}
 	}
@@ -202,38 +149,48 @@ func (d *RRDData) AddFromFile(path string) error {
 	}
 
 	for i := 0; i < d.Length; i++ {
+		tsJS := d.Start.Add(time.Duration(i)*d.Step).Unix() * 1000
 
-		// AVG
-		a1 := d.Avg[i][1]
-		avg1, ok1 := a1.(float64)
 		avg2 := avgValues[i*2+dsIndex]
 		if math.IsNaN(avg2) {
 			avg2 = 0.0
 		}
 
+		valToAddAvg := avg2 * 8 * d.Gamma
+
+		var avg1 float64
+		var okAvg bool
+		if d.Avg[i] != nil && len(d.Avg[i]) == 2 {
+			avg1, okAvg = d.Avg[i][1].(float64)
+		}
+
 		avgPoint := make([]interface{}, 2)
-		avgPoint[0] = d.Start.Add(time.Duration(i) * d.Step)
-		if ok1 {
-			avgPoint[1] = avg1 + (avg2 * 8 * d.Gamma)
+		avgPoint[0] = tsJS
+		if okAvg {
+			avgPoint[1] = avg1 + valToAddAvg
 		} else {
-			avgPoint[1] = avg2
+			avgPoint[1] = valToAddAvg
 		}
 		d.Avg[i] = avgPoint
 
-		// MAX
-		m1 := d.Max[i][1]
-		max1, ok1 := m1.(float64)
 		max2 := maxValues[i*2+dsIndex]
 		if math.IsNaN(max2) {
 			max2 = 0.0
 		}
+		valToAddMax := max2 * 8 * d.Gamma
+
+		var max1 float64
+		var okMax bool
+		if d.Max[i] != nil && len(d.Max[i]) == 2 {
+			max1, okMax = d.Max[i][1].(float64)
+		}
 
 		maxPoint := make([]interface{}, 2)
-		maxPoint[0] = d.Start.Add(time.Duration(i) * d.Step)
-		if ok1 {
-			maxPoint[1] = max1 + (max2 * 8 * d.Gamma)
+		maxPoint[0] = tsJS
+		if okMax {
+			maxPoint[1] = max1 + valToAddMax
 		} else {
-			maxPoint[1] = max2
+			maxPoint[1] = valToAddMax
 		}
 		d.Max[i] = maxPoint
 	}
