@@ -33,9 +33,10 @@ func NewRRDService(bPath, sPath string, step int, gamma float64) StorageService 
 
 func (s *rrdService) GetFlow(srcMAC string, dstMAC string, proto int, schedule string) (*models.RRDData, error) {
 
-	path := filepath.Join(s.basePath, "flows", srcMAC, fmt.Sprintf("flow_%s_to_%s.rrd", srcMAC, dstMAC))
+	pathOut := filepath.Join(s.basePath, "flows", srcMAC, fmt.Sprintf("flow_%s_to_%s.rrd", srcMAC, dstMAC))
+	pathIn := filepath.Join(s.basePath, "flows", dstMAC, fmt.Sprintf("flow_%s_to_%s.rrd", dstMAC, srcMAC))
 
-	data, err := models.NewRRDData(s.gamma, proto, schedule, path)
+	data, err := models.NewRRDData(s.gamma, proto, schedule, pathOut, pathIn)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +52,7 @@ func (s *rrdService) GetFlows(srcMACs []string, dstMACs []string, proto int, sch
 	errChan := make(chan error, len(srcMACs))
 
 	for i, srcMAC := range srcMACs {
-		data, err := models.NewRRDData(s.gamma, proto, schedule, "")
+		data, err := models.NewRRDData(s.gamma, proto, schedule, "", "")
 		if err != nil {
 			return nil, err
 		}
@@ -74,7 +75,7 @@ func (s *rrdService) GetFlows(srcMACs []string, dstMACs []string, proto int, sch
 		}
 	}
 
-	result, err := models.NewRRDData(s.gamma, proto, schedule, "")
+	result, err := models.NewRRDData(s.gamma, proto, schedule, "", "")
 	if err != nil {
 		return nil, err
 	}
@@ -182,10 +183,11 @@ func (s *rrdService) createRRDFile(dir, path string) error {
 func (s *rrdService) addRRDFiles(result *models.RRDData, srcMAC string, dstMACs []string) error {
 
 	for _, dstMAC := range dstMACs {
-		path := filepath.Join(s.basePath, "flows", srcMAC, fmt.Sprintf("flow_%s_to_%s.rrd", srcMAC, dstMAC))
-		err := result.AddFromFile(path)
+		pathOut := filepath.Join(s.basePath, "flows", srcMAC, fmt.Sprintf("flow_%s_to_%s.rrd", srcMAC, dstMAC))
+		pathIn := filepath.Join(s.basePath, "flows", dstMAC, fmt.Sprintf("flow_%s_to_%s.rrd", dstMAC, srcMAC))
+		err := result.AddBiDirFiles(pathOut, pathIn)
 		if err != nil {
-			log.Printf("[WARN] Failed to add RRD file: %v", err)
+			log.Printf("[WARN] Failed to add RRD files: %v", err)
 			continue
 		}
 	}
