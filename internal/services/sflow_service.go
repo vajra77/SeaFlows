@@ -9,6 +9,7 @@ import (
 
 type sflowService struct {
 	mu            sync.Mutex
+	ticker        *time.Ticker
 	items         map[string]*models.SflowData
 	flushInterval time.Duration
 	storage       StorageService
@@ -18,6 +19,7 @@ func NewSflowService(interval time.Duration, storage StorageService) FlowProcess
 	return &sflowService{
 		items:         make(map[string]*models.SflowData),
 		flushInterval: interval,
+		ticker:        time.NewTicker(interval),
 		storage:       storage,
 	}
 }
@@ -45,10 +47,16 @@ func (s *sflowService) Process(data *models.SflowData) {
 // Start starts a ticker process that trigger data flushing every
 // flushInterval seconds (60)
 func (s *sflowService) Start() {
-	ticker := time.NewTicker(s.flushInterval)
-	for range ticker.C {
+	for range s.ticker.C {
 		s.flush()
 	}
+}
+
+// Stop stops the processor service
+func (s *sflowService) Stop() {
+	s.ticker.Stop()
+	log.Println("[INFO] flushing last data")
+	s.flush()
 }
 
 // flush dumps data to storage

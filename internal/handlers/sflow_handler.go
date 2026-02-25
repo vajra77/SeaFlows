@@ -26,6 +26,8 @@ func NewSFlowHandler(addr string, processor services.FlowProcessorService) NetHa
 	}
 }
 
+// Listen listens to UDP socket, dispatch received data to workers
+// returns error
 func (h *sFlowHandler) Listen(ctx context.Context) error {
 	addr, err := net.ResolveUDPAddr("udp", h.listenAddr)
 	if err != nil {
@@ -43,10 +45,12 @@ func (h *sFlowHandler) Listen(ctx context.Context) error {
 		}
 	}(conn)
 
+	// ensure read buffer is large enough
 	_ = conn.SetReadBuffer(16 * 1024 * 1024)
 
 	packetChan := make(chan []byte, 10000)
 
+	// start workers
 	for i := 0; i < h.workerPool; i++ {
 		go h.worker(packetChan)
 	}

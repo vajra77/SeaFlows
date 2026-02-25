@@ -5,6 +5,7 @@ import "seaflows/internal/models"
 type FlowProcessorService interface {
 	Process(data *models.SflowData)
 	Start()
+	Stop()
 }
 
 type StorageService interface {

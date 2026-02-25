@@ -95,12 +95,18 @@ func CleanMAC(hw net.HardwareAddr) string {
 	return b.String()
 }
 
+// UnmarshalBinary decodes a buffer of data from the net according to sFlow (v5) packet format and
+// fills in Datagram container struct. This is the core func responsible for the parsing of network
+// received data
+// Returns error
 func (d *Datagram) UnmarshalBinary(data []byte) error {
 
+	// check if enough data
 	if len(data) < 24 {
 		return errors.New("sflow packet too short")
 	}
 
+	// sFlow version
 	d.Version = binary.BigEndian.Uint32(data[0:4])
 	if d.Version != 5 {
 		return fmt.Errorf("unsupported sflow version: %d", d.Version)
@@ -117,12 +123,14 @@ func (d *Datagram) UnmarshalBinary(data []byte) error {
 		ptr += 16
 	}
 
+	// additional sFlow header fields
 	d.SubAgentID = binary.BigEndian.Uint32(data[ptr : ptr+4])
 	d.Sequence = binary.BigEndian.Uint32(data[ptr+4 : ptr+8])
 	d.Uptime = binary.BigEndian.Uint32(data[ptr+8 : ptr+12])
 	numSamples := binary.BigEndian.Uint32(data[ptr+12 : ptr+16])
 	ptr += 16
 
+	// prepare buffer for Flow Samples
 	d.Samples = make([]*Sample, 0, d.NumSamples)
 
 	for i := 0; i < int(numSamples); i++ {
@@ -157,6 +165,7 @@ func (d *Datagram) UnmarshalBinary(data []byte) error {
 			sample.NumRecords = binary.BigEndian.Uint32(data[ptr : ptr+4])
 			ptr += 4
 
+			// init buffer for Flow Records
 			sample.Records = make([]*FlowRecord, 0, sample.NumRecords)
 
 			for k := 0; k < int(sample.NumRecords); k++ {

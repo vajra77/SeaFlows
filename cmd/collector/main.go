@@ -54,6 +54,9 @@ func main() {
 	handler := handlers.NewSFlowHandler(listenAddress, processor)
 
 	if err := handler.Listen(ctx); err != nil {
-		panic(err)
+		log.Printf("[ERR] stopping listener: %v", err)
 	}
+
+	processor.Stop()
+
 }
