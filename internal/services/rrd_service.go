@@ -2,6 +2,7 @@ package services
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"log"
 	"net"
@@ -91,7 +92,7 @@ func (s *rrdService) GetFlows(srcMACs []string, dstMACs []string, proto int, sch
 	return result, nil
 }
 
-func (s *rrdService) UpdateFlow(srcMac, dstMac string, ipv int, bytes uint32) error {
+func (s *rrdService) UpdateFlow(srcMac, dstMac string, bytes4 uint32, bytes6 uint32) error {
 
 	dir := filepath.Join(s.basePath, "flows", srcMac)
 	fileName := fmt.Sprintf("flow_%s_to_%s.rrd", srcMac, dstMac)
@@ -108,10 +109,73 @@ func (s *rrdService) UpdateFlow(srcMac, dstMac string, ipv int, bytes uint32) er
 		s.mu.Unlock()
 	}
 
-	return s.sendToDaemon(fullPath, ipv, bytes)
+	return s.sendToDaemon(fullPath, bytes4, bytes6)
 }
 
-func (s *rrdService) sendToDaemon(fullPath string, ipv int, bytes uint32) error {
+func (s *rrdService) UpdateFlowsBatch(flows map[string]*models.AggregatedFlowData) error {
+	if len(flows) == 0 {
+		return nil
+	}
+
+	now := time.Now().Unix()
+
+	// Buffer in memoria per costruire il megablocco di comandi
+	// Usiamo bytes.Buffer perché concatenare stringhe col '+' è molto lento in Go
+	var cmdBuffer bytes.Buffer
+
+	// Iniziamo la transazione BATCH
+	cmdBuffer.WriteString("BATCH\n")
+
+	for _, flow := range flows {
+		dir := filepath.Join(s.basePath, "flows", flow.SrcMAC)
+		fileName := fmt.Sprintf("flow_%s_to_%s.rrd", flow.SrcMAC, flow.DstMAC)
+		fullPath := filepath.Join(dir, fileName)
+
+		if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+			s.mu.Lock()
+			if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+				if err := s.createRRDFile(dir, fullPath); err != nil {
+					log.Printf("[WARN] Failed to create RRD file %s: %v", fullPath, err)
+				}
+			}
+			s.mu.Unlock()
+		}
+
+		updateLine := fmt.Sprintf("UPDATE %s %d:%d:%d\n", fullPath, now, flow.Bytes4, flow.Bytes6)
+		cmdBuffer.WriteString(updateLine)
+	}
+
+	cmdBuffer.WriteString(".\n")
+
+	conn, err := net.Dial("unix", s.socketPath)
+	if err != nil {
+		return fmt.Errorf("unable to connect to rrdcached: %w", err)
+	}
+	defer func(conn net.Conn) {
+		err := conn.Close()
+		if err != nil {
+			log.Printf("[ERR]: error while closing connection: %v", err)
+		}
+	}(conn)
+
+	if _, err = conn.Write(cmdBuffer.Bytes()); err != nil {
+		return fmt.Errorf("error while writing batch to socket: %w", err)
+	}
+
+	reader := bufio.NewReader(conn)
+	response, err := reader.ReadString('\n')
+	if err != nil {
+		return fmt.Errorf("error reading batch response: %w", err)
+	}
+
+	if !strings.HasPrefix(response, "0 errors") {
+		log.Printf("[WARN] rrdcached ha riportato errori nel BATCH: %s", strings.TrimSpace(response))
+	}
+
+	return nil
+}
+
+func (s *rrdService) sendToDaemon(fullPath string, bytes4 uint32, bytes6 uint32) error {
 
 	conn, err := net.Dial("unix", s.socketPath)
 	if err != nil {
@@ -127,11 +191,7 @@ func (s *rrdService) sendToDaemon(fullPath string, ipv int, bytes uint32) error 
 	now := time.Now().Unix()
 
 	var command string
-	if ipv == 4 {
-		command = fmt.Sprintf("UPDATE %s %d:%d:0\n", fullPath, now, bytes)
-	} else {
-		command = fmt.Sprintf("UPDATE %s %d:0:%d\n", fullPath, now, bytes)
-	}
+	command = fmt.Sprintf("UPDATE %s %d:%d:%d\n", fullPath, now, bytes4, bytes6)
 
 	if _, err = conn.Write([]byte(command)); err != nil {
 		return fmt.Errorf("error while writing to socket: %w", err)

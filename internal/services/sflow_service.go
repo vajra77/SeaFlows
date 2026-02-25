@@ -47,7 +47,6 @@ func (s *sflowService) Start() {
 
 func (s *sflowService) flush() {
 	s.mu.Lock()
-
 	snapshot := s.items
 	s.items = make(map[string]*models.SflowData)
 	s.mu.Unlock()
@@ -56,11 +55,25 @@ func (s *sflowService) flush() {
 		return
 	}
 
+	grouped := make(map[string]*models.AggregatedFlowData)
+
 	for _, data := range snapshot {
-		err := s.storage.UpdateFlow(data.SrcMAC, data.DstMAC, data.IPv, data.Size)
-		if err != nil {
-			log.Println("[ERR] Error while updating flow:", err)
-			continue
+		key := data.SrcMAC + "-" + data.DstMAC
+		if _, exists := grouped[key]; !exists {
+			grouped[key] = &models.AggregatedFlowData{
+				SrcMAC: data.SrcMAC,
+				DstMAC: data.DstMAC,
+			}
 		}
+		if data.IPv == 4 {
+			grouped[key].Bytes4 += uint32(data.Size)
+		} else if data.IPv == 6 {
+			grouped[key].Bytes6 += uint32(data.Size)
+		}
+	}
+
+	err := s.storage.UpdateFlowsBatch(grouped)
+	if err != nil {
+		log.Println("[ERR] Error while flushing batch:", err)
 	}
 }
