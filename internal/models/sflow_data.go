@@ -211,7 +211,7 @@ func (d *Datagram) UnmarshalBinary(data []byte) error {
 					}
 				}
 				sample.Records = append(sample.Records, record)
-				// Conform to 4 byte
+				// Conform to 4 byte alignment
 				ptr += (int(record.Length) + 3) & ^3
 			}
 		} else {

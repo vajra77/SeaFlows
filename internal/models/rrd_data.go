@@ -13,16 +13,18 @@ const (
 	RRDFlushInterval = 60
 )
 
+type Result [][]float64
+
 type RRDData struct {
-	Gamma      float64       `json:"gamma"`
-	Proto      int           `json:"proto"`
-	Schedule   string        `json:"schedule"`
-	Start      time.Time     `json:"start"`
-	End        time.Time     `json:"end"`
-	Step       time.Duration `json:"step"`
-	Length     int           `json:"length"`
-	Values     []float64     `json:"values"`
-	Timestamps []time.Time   `json:"timestamps"`
+	Gamma    float64         `json:"gamma"`
+	Proto    int             `json:"proto"`
+	Schedule string          `json:"schedule"`
+	Start    time.Time       `json:"start"`
+	End      time.Time       `json:"end"`
+	Step     time.Duration   `json:"step"`
+	Length   int             `json:"length"`
+	Avg      [][]interface{} `json:"avg"`
+	Max      [][]interface{} `json:"max"`
 }
 
 func NewRRDData(gamma float64, proto int, schedule string, path string) (*RRDData, error) {
@@ -55,41 +57,57 @@ func NewRRDData(gamma float64, proto int, schedule string, path string) (*RRDDat
 	}
 
 	data := RRDData{
-		Gamma:      gamma,
-		Proto:      proto,
-		Schedule:   schedule,
-		Start:      start,
-		End:        end,
-		Step:       stepDuration,
-		Length:     0,
-		Values:     make([]float64, 0),
-		Timestamps: make([]time.Time, 0),
+		Gamma:    gamma,
+		Proto:    proto,
+		Schedule: schedule,
+		Start:    start,
+		End:      end,
+		Step:     stepDuration,
+		Length:   0,
 	}
 
 	if path != "" {
-		rrdData, err := RRDTool.Fetch(path, "AVERAGE", data.Start, data.End, data.Step)
+		avgData, err := RRDTool.Fetch(path, "AVERAGE", data.Start, data.End, data.Step)
 		if err != nil {
 			return nil, err
 		}
 
-		allValues := rrdData.Values()
+		maxData, err := RRDTool.Fetch(path, "MAX", data.Start, data.End, data.Step)
+		if err != nil {
+			return nil, err
+		}
+
+		avgValues := avgData.Values()
+		maxValues := maxData.Values()
 
 		dsIndex := 0
 		if data.Proto == 6 {
 			dsIndex = 1
 		}
 
-		numIntervals := len(allValues) / 2
-		data.Values = make([]float64, numIntervals)
-		data.Timestamps = make([]time.Time, numIntervals)
+		numIntervals := len(avgValues) / 2
 
 		for i := 0; i < numIntervals; i++ {
-			val := allValues[i*2+dsIndex]
-			if math.IsNaN(val) {
-				val = 0.0
+			avgV := avgValues[i*2+dsIndex]
+			if math.IsNaN(avgV) {
+				avgV = 0.0
 			}
-			data.Values[i] = val * 8 * data.Gamma
-			data.Timestamps[i] = data.Start.Add(time.Duration(i) * data.Step)
+
+			maxV := maxValues[i*2+dsIndex]
+			if math.IsNaN(maxV) {
+				maxV = 0.0
+			}
+
+			avgPoint := make([]interface{}, 2)
+			avgPoint[0] = data.Start.Add(time.Duration(i) * data.Step)
+			avgPoint[1] = avgV
+			data.Avg = append(data.Avg, avgPoint)
+
+			maxPoint := make([]interface{}, 2)
+			maxPoint[0] = avgPoint[0]
+			maxPoint[1] = maxV
+			data.Max = append(data.Max, maxPoint)
+
 		}
 		data.Length = numIntervals
 	}
@@ -101,10 +119,10 @@ func (d *RRDData) Add(other *RRDData) error {
 
 	if d.Length == 0 {
 		// if d is just initialized, copy values
-		d.Values = make([]float64, other.Length)
-		d.Timestamps = make([]time.Time, other.Length)
-		copy(d.Values, other.Values)
-		copy(d.Timestamps, other.Timestamps)
+		d.Avg = make([][]interface{}, other.Length)
+		d.Max = make([][]interface{}, other.Length)
+		copy(d.Avg, other.Avg)
+		copy(d.Max, other.Max)
 		d.Length = other.Length
 	} else {
 		if d.Length != other.Length {
@@ -112,9 +130,39 @@ func (d *RRDData) Add(other *RRDData) error {
 		}
 
 		for i := range d.Length {
-			d.Values[i] = d.Values[i] + other.Values[i]
-		}
 
+			m1 := d.Max[i][1]
+			m2 := other.Max[i][1]
+
+			max1, ok1 := m1.(float64)
+			max2, ok2 := m2.(float64)
+
+			if ok1 && ok2 {
+				d.Max[i][1] = max1 + max2
+			} else if ok2 {
+				d.Max[i][1] = max2
+			} else if ok1 {
+				// keep existing value
+			} else {
+				d.Max[i][1] = 0.0
+			}
+
+			a1 := d.Avg[i][1]
+			a2 := other.Avg[i][1]
+
+			avg1, ok1 := a1.(float64)
+			avg2, ok2 := a2.(float64)
+
+			if ok1 && ok2 {
+				d.Avg[i][1] = avg1 + avg2
+			} else if ok2 {
+				d.Avg[i][1] = avg2
+			} else if ok1 {
+				// keep existing value
+			} else {
+				d.Avg[i][1] = 0.0
+			}
+		}
 	}
 	return nil
 }
@@ -125,38 +173,61 @@ func (d *RRDData) AddFromFile(path string) error {
 		return errors.New("RRDData.AddFromFile: empty path")
 	}
 
-	rrdData, err := RRDTool.Fetch(path, "AVERAGE", d.Start, d.End, d.Step)
+	avgData, err := RRDTool.Fetch(path, "AVERAGE", d.Start, d.End, d.Step)
 	if err != nil {
 		return errors.New("RRDData.AddFromFile: " + err.Error())
 	}
 
-	allValues := rrdData.Values()
+	maxData, err := RRDTool.Fetch(path, "MAX", d.Start, d.End, d.Step)
+	if err != nil {
+		return errors.New("RRDData.AddFromFile: " + err.Error())
+	}
+
+	avgValues := avgData.Values()
+	maxValues := maxData.Values()
 
 	dsIndex := 0
 	if d.Proto == 6 {
 		dsIndex = 1
 	}
 
-	numIntervals := len(allValues) / 2
+	numIntervals := len(avgValues) / 2
 
 	if d.Length == 0 {
-		d.Values = make([]float64, numIntervals)
-		d.Timestamps = make([]time.Time, numIntervals)
-		for i := 0; i < numIntervals; i++ {
-			d.Timestamps[i] = d.Start.Add(time.Duration(i) * d.Step)
-		}
+		d.Avg = make([][]interface{}, numIntervals)
+		d.Max = make([][]interface{}, numIntervals)
+		d.Length = numIntervals
 	} else if numIntervals != d.Length {
 		return errors.New("RRDData.AddFromFile: data length does not match")
 	}
 
-	for i := 0; i < numIntervals; i++ {
-		val := allValues[i*2+dsIndex]
-		if math.IsNaN(val) {
-			val = 0.0
-		}
-		d.Values[i] += val * 8 * d.Gamma
-	}
-	d.Length = numIntervals
+	for i := 0; i < d.Length; i++ {
 
+		a1 := d.Avg[i][1]
+		avg1, ok1 := a1.(float64)
+		avg2 := avgValues[i*2+dsIndex]
+		if math.IsNaN(avg2) {
+			avg2 = 0.0
+		}
+
+		if ok1 {
+			d.Avg[i][1] = avg1 + (avg2 * 8 * d.Gamma)
+		} else {
+			d.Avg[i][1] = avg2
+		}
+
+		m1 := d.Max[i][1]
+		max1, ok1 := m1.(float64)
+		max2 := maxValues[i*2+dsIndex]
+		if math.IsNaN(max2) {
+			max2 = 0.0
+		}
+
+		if ok1 {
+			d.Max[i][1] = max1 + (max2 * 8 * d.Gamma)
+		} else {
+			d.Max[i][1] = max2
+		}
+	}
 	return nil
 }
