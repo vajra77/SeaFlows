@@ -203,6 +203,7 @@ func (d *RRDData) AddFromFile(path string) error {
 
 	for i := 0; i < d.Length; i++ {
 
+		// AVG
 		a1 := d.Avg[i][1]
 		avg1, ok1 := a1.(float64)
 		avg2 := avgValues[i*2+dsIndex]
@@ -210,13 +211,16 @@ func (d *RRDData) AddFromFile(path string) error {
 			avg2 = 0.0
 		}
 
-		d.Avg[i][0] = d.Start.Add(time.Duration(i) * d.Step)
+		avgPoint := make([]interface{}, 2)
+		avgPoint[0] = d.Start.Add(time.Duration(i) * d.Step)
 		if ok1 {
-			d.Avg[i][1] = avg1 + (avg2 * 8 * d.Gamma)
+			avgPoint[1] = avg1 + (avg2 * 8 * d.Gamma)
 		} else {
-			d.Avg[i][1] = avg2
+			avgPoint[1] = avg2
 		}
+		d.Avg[i] = avgPoint
 
+		// MAX
 		m1 := d.Max[i][1]
 		max1, ok1 := m1.(float64)
 		max2 := maxValues[i*2+dsIndex]
@@ -224,12 +228,14 @@ func (d *RRDData) AddFromFile(path string) error {
 			max2 = 0.0
 		}
 
-		d.Max[i][0] = d.Start.Add(time.Duration(i) * d.Step)
+		maxPoint := make([]interface{}, 2)
+		maxPoint[0] = d.Start.Add(time.Duration(i) * d.Step)
 		if ok1 {
-			d.Max[i][1] = max1 + (max2 * 8 * d.Gamma)
+			maxPoint[1] = max1 + (max2 * 8 * d.Gamma)
 		} else {
-			d.Max[i][1] = max2
+			maxPoint[1] = max2
 		}
+		d.Max[i] = maxPoint
 	}
 	return nil
 }
