@@ -210,6 +210,7 @@ func (d *RRDData) AddFromFile(path string) error {
 			avg2 = 0.0
 		}
 
+		d.Avg[i][0] = d.Start.Add(time.Duration(i) * d.Step)
 		if ok1 {
 			d.Avg[i][1] = avg1 + (avg2 * 8 * d.Gamma)
 		} else {
@@ -223,6 +224,7 @@ func (d *RRDData) AddFromFile(path string) error {
 			max2 = 0.0
 		}
 
+		d.Max[i][0] = d.Start.Add(time.Duration(i) * d.Step)
 		if ok1 {
 			d.Max[i][1] = max1 + (max2 * 8 * d.Gamma)
 		} else {
