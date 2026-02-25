@@ -32,11 +32,18 @@ func NewRRDService(bPath, sPath string, step int, gamma float64) StorageService 
 	}
 }
 
+// GetFlow returns aggregate data for a traffic flow between two given hosts, identified by
+// source and destination MAC addresses. Data is collected for a scheduled period of time and
+// is bound to protocol (IPv4/IPv6)
+//
+// Returns a new models.RRDData container struct and error
 func (s *rrdService) GetFlow(srcMAC string, dstMAC string, proto int, schedule string) (*models.RRDData, error) {
 
+	// build forward and reverse path (src->dst/src<-dst)
 	pathOut := filepath.Join(s.basePath, "flows", srcMAC, fmt.Sprintf("flow_%s_to_%s.rrd", srcMAC, dstMAC))
 	pathIn := filepath.Join(s.basePath, "flows", dstMAC, fmt.Sprintf("flow_%s_to_%s.rrd", dstMAC, srcMAC))
 
+	// create a new RRDData container with data sourced from pathOut,pathIn RRD files
 	data, err := models.NewRRDData(s.gamma, proto, schedule, pathOut, pathIn)
 	if err != nil {
 		return nil, err
@@ -45,20 +52,32 @@ func (s *rrdService) GetFlow(srcMAC string, dstMAC string, proto int, schedule s
 	return data, nil
 }
 
+// GetFlows returns aggregate data for an aggregate flow between two sets of hosts, identified by
+// their MAC addresses. Schedule and proto as in GetFlow
+//
+// Returns a new models.RRDData container struct and error
 func (s *rrdService) GetFlows(srcMACs []string, dstMACs []string, proto int, schedule string) (*models.RRDData, error) {
 
+	// prepare a slice as a buffer of destination
 	dests := make([]*models.RRDData, len(srcMACs))
 
+	// init sync mechanisms
 	wg := new(sync.WaitGroup)
 	errChan := make(chan error, len(srcMACs))
 
+	// loop through src MACs
 	for i, srcMAC := range srcMACs {
+		// create an empty RRDData container
 		data, err := models.NewRRDData(s.gamma, proto, schedule, "", "")
 		if err != nil {
 			return nil, err
 		}
+
+		// put container in buffer
 		dests[i] = data
 		wg.Add(1)
+
+		// concurrent loop through destinations
 		go func(idx int, mac string) {
 			defer wg.Done()
 			if err := s.addRRDFiles(dests[idx], mac, dstMACs); err != nil {
@@ -67,24 +86,29 @@ func (s *rrdService) GetFlows(srcMACs []string, dstMACs []string, proto int, sch
 		}(i, srcMAC)
 	}
 
+	// wait for all goroutines to end
 	wg.Wait()
 	close(errChan)
 
+	// check for any given error in the errChan
 	for err := range errChan {
 		if err != nil {
 			return nil, err
 		}
 	}
 
+	// create a new empty RRDData result container
 	result, err := models.NewRRDData(s.gamma, proto, schedule, "", "")
 	if err != nil {
 		return nil, err
 	}
 
+	// loop through pre-prepared buffers
 	for _, d := range dests {
 		if d == nil {
 			continue
 		}
+		// merge data from given buffer
 		if err := result.Add(d); err != nil {
 			log.Printf("[WARN] Failed to merge data: %v", err)
 		}
@@ -92,40 +116,22 @@ func (s *rrdService) GetFlows(srcMACs []string, dstMACs []string, proto int, sch
 	return result, nil
 }
 
-func (s *rrdService) UpdateFlow(srcMac, dstMac string, bytes4 uint32, bytes6 uint32) error {
-
-	dir := filepath.Join(s.basePath, "flows", srcMac)
-	fileName := fmt.Sprintf("flow_%s_to_%s.rrd", srcMac, dstMac)
-	fullPath := filepath.Join(dir, fileName)
-
-	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
-		s.mu.Lock()
-		if _, err := os.Stat(fullPath); os.IsNotExist(err) {
-			err := s.createRRDFile(dir, fullPath)
-			if err != nil {
-				log.Printf("[WARN] Failed to create RRD file: %v", err)
-			}
-		}
-		s.mu.Unlock()
-	}
-
-	return s.sendToDaemon(fullPath, bytes4, bytes6)
-}
-
-func (s *rrdService) UpdateFlowsBatch(flows map[string]*models.AggregatedFlow) error {
+// UpdateRRDFiles updates a batch of RRD files with data from aggregated flow
+// Returns error
+func (s *rrdService) UpdateRRDFiles(flows map[string]*models.AggregatedFlow) error {
 	if len(flows) == 0 {
 		return nil
 	}
 
 	now := time.Now().Unix()
 
-	// Buffer in memoria per costruire il megablocco di comandi
-	// Usiamo bytes.Buffer perché concatenare stringhe col '+' è molto lento in Go
+	// buffer to contain rrdcached update command string
 	var cmdBuffer bytes.Buffer
 
-	// Iniziamo la transazione BATCH
+	// add rrdcached BATCH instruction
 	cmdBuffer.WriteString("BATCH\n")
 
+	// loop through aggregated flows
 	for _, flow := range flows {
 		dir := filepath.Join(s.basePath, "flows", flow.SrcMAC)
 		fileName := fmt.Sprintf("flow_%s_to_%s.rrd", flow.SrcMAC, flow.DstMAC)
@@ -133,6 +139,7 @@ func (s *rrdService) UpdateFlowsBatch(flows map[string]*models.AggregatedFlow) e
 
 		if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 			s.mu.Lock()
+			// create file if it does not exist
 			if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 				if err := s.createRRDFile(dir, fullPath); err != nil {
 					log.Printf("[WARN] Failed to create RRD file %s: %v", fullPath, err)
@@ -141,12 +148,14 @@ func (s *rrdService) UpdateFlowsBatch(flows map[string]*models.AggregatedFlow) e
 			s.mu.Unlock()
 		}
 
+		// add rrdcached UPDATE command to buffer
 		updateLine := fmt.Sprintf("UPDATE %s %d:%d:%d\n", fullPath, now, flow.Bytes4, flow.Bytes6)
 		cmdBuffer.WriteString(updateLine)
 	}
 
 	cmdBuffer.WriteString(".\n")
 
+	// connect to rrdcached via unix socket
 	conn, err := net.Dial("unix", s.socketPath)
 	if err != nil {
 		return fmt.Errorf("unable to connect to rrdcached: %w", err)
@@ -158,10 +167,12 @@ func (s *rrdService) UpdateFlowsBatch(flows map[string]*models.AggregatedFlow) e
 		}
 	}(conn)
 
+	// write buffer to socket
 	if _, err = conn.Write(cmdBuffer.Bytes()); err != nil {
 		return fmt.Errorf("error while writing batch to socket: %w", err)
 	}
 
+	// check for errors from rrdcached
 	reader := bufio.NewReader(conn)
 	response, err := reader.ReadString('\n')
 	if err != nil {
@@ -169,47 +180,14 @@ func (s *rrdService) UpdateFlowsBatch(flows map[string]*models.AggregatedFlow) e
 	}
 
 	if !strings.HasPrefix(response, "0 errors") {
-		log.Printf("[WARN] rrdcached ha riportato errori nel BATCH: %s", strings.TrimSpace(response))
+		log.Printf("[WARN] rrdcached reported errors in BATCH: %s", strings.TrimSpace(response))
 	}
 
 	return nil
 }
 
-func (s *rrdService) sendToDaemon(fullPath string, bytes4 uint32, bytes6 uint32) error {
-
-	conn, err := net.Dial("unix", s.socketPath)
-	if err != nil {
-		return fmt.Errorf("unable to connect to rrdcached: %w", err)
-	}
-	defer func(conn net.Conn) {
-		err := conn.Close()
-		if err != nil {
-			log.Printf("[WARN] Failed to close connection to rrdcached: %v", err)
-		}
-	}(conn)
-
-	now := time.Now().Unix()
-
-	var command string
-	command = fmt.Sprintf("UPDATE %s %d:%d:%d\n", fullPath, now, bytes4, bytes6)
-
-	if _, err = conn.Write([]byte(command)); err != nil {
-		return fmt.Errorf("error while writing to socket: %w", err)
-	}
-
-	reader := bufio.NewReader(conn)
-	response, err := reader.ReadString('\n')
-	if err != nil {
-		return fmt.Errorf("error while reading response from rrdcached: %w", err)
-	}
-
-	if strings.HasPrefix(response, "-1") {
-		return fmt.Errorf("rrdcached returned an error: %s", strings.TrimSpace(response))
-	}
-
-	return nil
-}
-
+// createRRDFile creates a new RRD file with proper setup
+// Returns error
 func (s *rrdService) createRRDFile(dir, path string) error {
 
 	err := os.MkdirAll(dir, 0755)
@@ -240,6 +218,8 @@ func (s *rrdService) createRRDFile(dir, path string) error {
 	return nil
 }
 
+// addRRDFiles adds to existing RRDData result from multiple src->{dst[0], dst[n]} RRD files
+// Returns error
 func (s *rrdService) addRRDFiles(result *models.RRDData, srcMAC string, dstMACs []string) error {
 
 	for _, dstMAC := range dstMACs {
@@ -247,6 +227,7 @@ func (s *rrdService) addRRDFiles(result *models.RRDData, srcMAC string, dstMACs 
 		pathIn := filepath.Join(s.basePath, "flows", dstMAC, fmt.Sprintf("flow_%s_to_%s.rrd", dstMAC, srcMAC))
 		err := result.AddBiDirFiles(pathOut, pathIn)
 		if err != nil {
+			// skip error and continue for valuable data
 			log.Printf("[WARN] Failed to add RRD files: %v", err)
 			continue
 		}

@@ -72,7 +72,7 @@ func (s *sflowService) flush() {
 		}
 	}
 
-	err := s.storage.UpdateFlowsBatch(grouped)
+	err := s.storage.UpdateRRDFiles(grouped)
 	if err != nil {
 		log.Println("[ERR] Error while flushing batch:", err)
 	}
