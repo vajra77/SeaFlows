@@ -110,7 +110,7 @@ func (s *rrdService) GetFlows(srcMACs []string, dstMACs []string, proto int, sch
 		}
 		// merge data from given buffer
 		if err := result.Add(d); err != nil {
-			log.Printf("[WARN] Failed to merge data: %v", err)
+			log.Printf("[WARN] failed to merge data: %v", err)
 		}
 	}
 	return result, nil
@@ -238,7 +238,7 @@ func (s *rrdService) addRRDFiles(result *models.RRDData, srcMAC string, dstMACs 
 		err := result.AddBiDirFiles(pathOut, pathIn)
 		if err != nil {
 			// skip error and continue for valuable data
-			log.Printf("[WARN] Failed to add RRD files: %v", err)
+			log.Printf("[WARN] failed to add RRD files: %v", err)
 			continue
 		}
 	}

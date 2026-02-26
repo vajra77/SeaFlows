@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"log"
 	"seaflows/internal/models"
 	"sync"
@@ -29,8 +30,7 @@ func NewSflowService(interval time.Duration, storage StorageService) FlowProcess
 // Process processes an sflow data container and stores values
 func (s *sflowService) Process(data *models.SflowData) {
 
-	// build a hash key for aggregation of multiple flows
-	key := data.SrcMAC + data.DstMAC
+	key := fmt.Sprintf("%s-%s-%d", data.SrcMAC, data.DstMAC, data.IPv)
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -40,9 +40,9 @@ func (s *sflowService) Process(data *models.SflowData) {
 		existing.Size += data.SamplingRate * data.Size
 		existing.Timestamp = data.Timestamp
 	} else {
-		// create new flow with base data
-		data.Size = data.SamplingRate * data.Size
-		s.items[key] = data
+		newData := *data
+		newData.Size = data.SamplingRate * data.Size
+		s.items[key] = &newData
 	}
 }
 
