@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"log"
 	"net"
 )
 
@@ -175,6 +176,8 @@ func (d *Datagram) UnmarshalBinary(data []byte) error {
 				record.Length = binary.BigEndian.Uint32(data[ptr : ptr+4])
 				ptr += 4
 
+				nextRecordPtr := ptr + (int(record.Length)+3) & ^3
+
 				if record.DataFormat == 1 {
 					record.Packet.Protocol = binary.BigEndian.Uint32(data[ptr : ptr+4])
 					ptr += 4
@@ -206,7 +209,8 @@ func (d *Datagram) UnmarshalBinary(data []byte) error {
 						// IPv4
 						if ethType == 0x0800 {
 							if ptr+20 > len(data) {
-								return errors.New("sample length overflow")
+								log.Println("[WARN] IPv4 sample length overflow, skipping record")
+								goto EndOfRecord
 							}
 							ptr += 12
 							record.Packet.IPHeader.SrcIPAddress = net.IP(data[ptr : ptr+4]).String()
@@ -217,7 +221,8 @@ func (d *Datagram) UnmarshalBinary(data []byte) error {
 						// IPv6
 						if ethType == 0x86dd {
 							if ptr+40 > len(data) {
-								return errors.New("sample length overflow")
+								log.Println("[WARN] IPv4 sample length overflow, skipping record")
+								goto EndOfRecord
 							}
 							ptr += 8
 							record.Packet.IPHeader.SrcIPAddress = net.IP(data[ptr : ptr+16]).String()
@@ -226,9 +231,10 @@ func (d *Datagram) UnmarshalBinary(data []byte) error {
 						}
 					}
 				}
+			EndOfRecord:
 				sample.Records = append(sample.Records, record)
 				// Conform to 4 byte alignment
-				ptr += (int(record.Length) + 3) & ^3
+				ptr = nextRecordPtr
 			}
 		} else {
 			ptr += int(sample.Length)
