@@ -15,15 +15,15 @@ type SflowData struct {
 	IPv          int
 	SrcIP        string
 	DstIP        string
-	SamplingRate uint32
-	Size         uint32
+	SamplingRate uint64
+	Size         uint64
 }
 
 type AggregatedFlow struct {
 	SrcMAC string
 	DstMAC string
-	Bytes4 uint32
-	Bytes6 uint32
+	Bytes4 uint64
+	Bytes6 uint64
 }
 
 type Datagram struct {

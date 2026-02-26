@@ -99,8 +99,8 @@ func (h *sFlowHandler) worker(packetChan <-chan []byte) {
 							IPv:          4,
 							SrcIP:        record.Packet.IPHeader.SrcIPAddress,
 							DstIP:        record.Packet.IPHeader.DstIPAddress,
-							SamplingRate: sample.SamplingRate,
-							Size:         record.Packet.Size,
+							SamplingRate: uint64(sample.SamplingRate),
+							Size:         uint64(record.Packet.Length),
 						}
 					} else if record.Packet.DatalinkHeader.EthernetHeader.EthType == 0x86DD { // IPv6
 						flow = &models.SflowData{
@@ -110,8 +110,8 @@ func (h *sFlowHandler) worker(packetChan <-chan []byte) {
 							IPv:          6,
 							SrcIP:        record.Packet.IPHeader.SrcIPAddress,
 							DstIP:        record.Packet.IPHeader.DstIPAddress,
-							SamplingRate: sample.SamplingRate,
-							Size:         record.Packet.Size,
+							SamplingRate: uint64(sample.SamplingRate),
+							Size:         uint64(record.Packet.Length),
 						}
 					} else { // ignore non-IP packets
 						continue
