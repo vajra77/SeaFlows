@@ -124,14 +124,8 @@ func (s *rrdService) UpdateFlows(flows map[string]*models.AggregatedFlow) error 
 	}
 
 	now := time.Now().Unix()
-
-	// buffer to contain rrdcached update command string
 	var cmdBuffer bytes.Buffer
 
-	// add rrdcached BATCH instruction
-	cmdBuffer.WriteString("BATCH\n")
-
-	// loop through aggregated flows
 	for _, flow := range flows {
 		dir := filepath.Join(s.basePath, "flows", flow.SrcMAC)
 		fileName := fmt.Sprintf("flow_%s_to_%s.rrd", flow.SrcMAC, flow.DstMAC)
@@ -139,7 +133,6 @@ func (s *rrdService) UpdateFlows(flows map[string]*models.AggregatedFlow) error 
 
 		if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 			s.mu.Lock()
-			// create file if it does not exist
 			if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 				if err := s.createRRDFile(dir, fullPath); err != nil {
 					log.Printf("[WARN] Failed to create RRD file %s: %v", fullPath, err)
@@ -148,14 +141,12 @@ func (s *rrdService) UpdateFlows(flows map[string]*models.AggregatedFlow) error 
 			s.mu.Unlock()
 		}
 
-		// add rrdcached UPDATE command to buffer
 		updateLine := fmt.Sprintf("UPDATE %s %d:%d:%d\n", fullPath, now, flow.Bytes4, flow.Bytes6)
 		cmdBuffer.WriteString(updateLine)
 	}
 
 	cmdBuffer.WriteString(".\n")
 
-	// connect to rrdcached via unix socket
 	conn, err := net.Dial("unix", s.socketPath)
 	if err != nil {
 		return fmt.Errorf("unable to connect to rrdcached: %w", err)
@@ -163,24 +154,43 @@ func (s *rrdService) UpdateFlows(flows map[string]*models.AggregatedFlow) error 
 	defer func(conn net.Conn) {
 		err := conn.Close()
 		if err != nil {
-			log.Printf("[ERR]: error while closing connection: %v", err)
+			log.Printf("[ERR] error while closing UDP socket")
 		}
 	}(conn)
 
-	// write buffer to socket
-	if _, err = conn.Write(cmdBuffer.Bytes()); err != nil {
-		return fmt.Errorf("error while writing batch to socket: %w", err)
-	}
-
-	// check for errors from rrdcached
 	reader := bufio.NewReader(conn)
-	response, err := reader.ReadString('\n')
-	if err != nil {
-		return fmt.Errorf("error reading batch response: %w", err)
+
+	if _, err = conn.Write([]byte("BATCH\n")); err != nil {
+		return fmt.Errorf("error writing BATCH: %w", err)
 	}
 
-	if !strings.HasPrefix(response, "0 errors") {
-		log.Printf("[WARN] rrdcached reported errors in BATCH: %s", strings.TrimSpace(response))
+	resp1, err := reader.ReadString('\n')
+	if err != nil {
+		return fmt.Errorf("error reading BATCH response: %w", err)
+	}
+	if !strings.HasPrefix(resp1, "0 Go ahead") {
+		return fmt.Errorf("rrdcached rejected BATCH: %s", strings.TrimSpace(resp1))
+	}
+
+	if _, err = conn.Write(cmdBuffer.Bytes()); err != nil {
+		return fmt.Errorf("error writing updates: %w", err)
+	}
+
+	resp2, err := reader.ReadString('\n')
+	if err != nil {
+		return fmt.Errorf("error reading final response: %w", err)
+	}
+
+	if !strings.HasPrefix(resp2, "0 errors") {
+		log.Printf("[WARN] BATCH result: %s", strings.TrimSpace(resp2))
+
+		var numErrors int
+		_, _ = fmt.Sscanf(resp2, "%d errors", &numErrors)
+
+		for i := 0; i < numErrors; i++ {
+			errMsg, _ := reader.ReadString('\n')
+			log.Printf("[ERR] failed UPDATE: %s", strings.TrimSpace(errMsg))
+		}
 	}
 
 	return nil
