@@ -8,14 +8,24 @@ type AddressMap struct {
 	MACAddress  string `json:"mac_address"`
 }
 
+type ASNData struct {
+	ASN  string `json:"asn"`
+	Name string `json:"name"`
+}
+
 type MapData struct {
-	Maps map[string][]*AddressMap `json:"maps"`
+	Maps  map[string][]*AddressMap `json:"maps"`
+	Names map[string]string        `json:"names"`
 }
 
 func NewMapData() *MapData {
 	return &MapData{
 		Maps: make(map[string][]*AddressMap),
 	}
+}
+
+func (m *MapData) AddName(asn, name string) {
+	m.Names[asn] = name
 }
 
 func (m *MapData) AddAddressMap(asn, ipv4, ipv6, mac string) {
@@ -53,13 +63,12 @@ func (m *MapData) GetAllMACs(asn string) []string {
 	return data
 }
 
-func (m *MapData) GetAllASNs() []string {
+func (m *MapData) GetAllASNs() []ASNData {
 
-	data := make([]string, 0)
+	data := make([]ASNData, 0)
 
-	for k := range m.Maps {
-		data = append(data, k)
+	for k, _ := range m.Maps {
+		data = append(data, ASNData{ASN: k, Name: m.Names[k]})
 	}
-
 	return data
 }

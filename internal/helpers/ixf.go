@@ -15,6 +15,7 @@ type IXFExport struct {
 
 type IXFMember struct {
 	Asn        int       `json:"asnum"`
+	Name       string    `json:"name"`
 	Connection []IXFConn `json:"connection_list"`
 }
 
@@ -60,6 +61,7 @@ func PopulateFromIXF(url string) (*models.MapData, error) {
 
 	for _, member := range export.MemberList {
 		asnStr := fmt.Sprintf("%d", member.Asn)
+		mapData.AddName(asnStr, member.Name)
 		for _, conn := range member.Connection {
 			for _, vlan := range conn.VlanList {
 				ipv4 := ""
