@@ -52,7 +52,7 @@ func (s *mapService) GetMACsFromASSet(asList []string) []string {
 	return result
 }
 
-func (s *mapService) GetASNs() []string {
+func (s *mapService) GetASNs() []models.ASNData {
 
 	s.mu.RLock()
 	defer s.mu.RUnlock()
