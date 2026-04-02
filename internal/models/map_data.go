@@ -1,6 +1,9 @@
 package models
 
-import "strings"
+import (
+	"sort"
+	"strings"
+)
 
 type AddressMap struct {
 	IPv4Address string `json:"ipv4_address"`
@@ -71,5 +74,8 @@ func (m *MapData) GetAllASNs() []ASNData {
 	for k := range m.Maps {
 		data = append(data, ASNData{ASN: k, Name: m.Names[k]})
 	}
+	sort.Slice(data, func(i, j int) bool {
+		return data[i].Name <= data[j].Name
+	})
 	return data
 }
