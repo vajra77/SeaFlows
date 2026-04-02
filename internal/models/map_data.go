@@ -20,7 +20,8 @@ type MapData struct {
 
 func NewMapData() *MapData {
 	return &MapData{
-		Maps: make(map[string][]*AddressMap),
+		Maps:  make(map[string][]*AddressMap),
+		Names: make(map[string]string),
 	}
 }
 
@@ -67,7 +68,7 @@ func (m *MapData) GetAllASNs() []ASNData {
 
 	data := make([]ASNData, 0)
 
-	for k, _ := range m.Maps {
+	for k := range m.Maps {
 		data = append(data, ASNData{ASN: k, Name: m.Names[k]})
 	}
 	return data
