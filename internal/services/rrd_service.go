@@ -156,9 +156,6 @@ func (s *rrdService) UpdateFlows(flows map[string]*models.AggregatedFlow) error 
 		cmdBuffer.WriteString(updateLine)
 	}
 
-	totalBytes4 /= 2
-	totalBytes6 /= 2
-
 	totalDir := filepath.Join(s.basePath, "flows", "total")
 	totalFile := filepath.Join(totalDir, "total.rrd")
 

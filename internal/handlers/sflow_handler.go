@@ -99,10 +99,6 @@ func (h *sFlowHandler) worker(packetChan <-chan []byte) {
 
 		for _, sample := range dgram.Samples {
 
-			if sample.InputIf == 0 {
-				continue // ignore egress-only packets
-			}
-
 			for _, record := range sample.Records {
 				if record.DataFormat == 1 { // Raw Packet Header
 					var flow *models.SflowData
