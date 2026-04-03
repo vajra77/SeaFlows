@@ -8,10 +8,13 @@ import (
 	"runtime"
 	"seaflows/internal/services"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"seaflows/internal/models"
 )
+
+var currentTimestamp int64
 
 var bufferPool = sync.Pool{
 	New: func() interface{} {
@@ -28,6 +31,17 @@ type sFlowHandler struct {
 }
 
 func NewSFlowHandler(addr string, processor services.FlowProcessorService) NetHandler {
+
+	if atomic.LoadInt64(&currentTimestamp) == 0 {
+		atomic.StoreInt64(&currentTimestamp, time.Now().Unix())
+		go func() {
+			ticker := time.NewTicker(time.Second)
+			for range ticker.C {
+				atomic.StoreInt64(&currentTimestamp, time.Now().Unix())
+			}
+		}()
+	}
+
 	return &sFlowHandler{
 		listenAddr: addr,
 		processor:  processor,
@@ -95,7 +109,7 @@ func (h *sFlowHandler) worker(packetChan <-chan []byte) {
 			continue
 		}
 
-		now := time.Now().Unix()
+		now := atomic.LoadInt64(&currentTimestamp)
 
 		for _, sample := range dgram.Samples {
 
@@ -108,8 +122,6 @@ func (h *sFlowHandler) worker(packetChan <-chan []byte) {
 							SrcMAC:       record.Packet.DatalinkHeader.EthernetHeader.SrcMACAddress,
 							DstMAC:       record.Packet.DatalinkHeader.EthernetHeader.DstMACAddress,
 							IPv:          4,
-							SrcIP:        record.Packet.IPHeader.SrcIPAddress,
-							DstIP:        record.Packet.IPHeader.DstIPAddress,
 							SamplingRate: uint64(sample.SamplingRate),
 							Size:         uint64(record.Packet.Length),
 						}
@@ -119,8 +131,6 @@ func (h *sFlowHandler) worker(packetChan <-chan []byte) {
 							SrcMAC:       record.Packet.DatalinkHeader.EthernetHeader.SrcMACAddress,
 							DstMAC:       record.Packet.DatalinkHeader.EthernetHeader.DstMACAddress,
 							IPv:          6,
-							SrcIP:        record.Packet.IPHeader.SrcIPAddress,
-							DstIP:        record.Packet.IPHeader.DstIPAddress,
 							SamplingRate: uint64(sample.SamplingRate),
 							Size:         uint64(record.Packet.Length),
 						}

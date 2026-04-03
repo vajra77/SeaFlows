@@ -1,8 +1,8 @@
 package models
 
 import (
-	"bytes"
 	"encoding/binary"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"log"
@@ -14,8 +14,6 @@ type SflowData struct {
 	SrcMAC       string
 	DstMAC       string
 	IPv          int
-	SrcIP        string
-	DstIP        string
 	SamplingRate uint64
 	Size         uint64
 }
@@ -84,16 +82,12 @@ type DatalinkHeader struct {
 }
 
 type IPHeader struct {
-	SrcIPAddress string
-	DstIPAddress string
+	SrcIPAddress net.IP
+	DstIPAddress net.IP
 }
 
-func CleanMAC(hw net.HardwareAddr) string {
-	var b bytes.Buffer
-	for _, octet := range hw {
-		_, _ = fmt.Fprintf(&b, "%02x", octet)
-	}
-	return b.String()
+func CleanMAC(hw []byte) string {
+	return hex.EncodeToString(hw)
 }
 
 // UnmarshalBinary decodes a buffer of data from the net according to sFlow (v5) packet format and
@@ -213,8 +207,8 @@ func (d *Datagram) UnmarshalBinary(data []byte) error {
 								goto EndOfRecord
 							}
 							ptr += 12
-							record.Packet.IPHeader.SrcIPAddress = net.IP(data[ptr : ptr+4]).String()
-							record.Packet.IPHeader.DstIPAddress = net.IP(data[ptr+4 : ptr+8]).String()
+							record.Packet.IPHeader.SrcIPAddress = data[ptr : ptr+4]
+							record.Packet.IPHeader.DstIPAddress = data[ptr+4 : ptr+8]
 							ptr += 8
 						}
 
@@ -225,8 +219,8 @@ func (d *Datagram) UnmarshalBinary(data []byte) error {
 								goto EndOfRecord
 							}
 							ptr += 8
-							record.Packet.IPHeader.SrcIPAddress = net.IP(data[ptr : ptr+16]).String()
-							record.Packet.IPHeader.DstIPAddress = net.IP(data[ptr+16 : ptr+32]).String()
+							record.Packet.IPHeader.SrcIPAddress = data[ptr : ptr+16]
+							record.Packet.IPHeader.DstIPAddress = data[ptr+16 : ptr+32]
 							ptr += 32
 						}
 					}
