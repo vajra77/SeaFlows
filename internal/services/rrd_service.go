@@ -20,15 +20,17 @@ type rrdService struct {
 	socketPath string
 	step       int
 	gamma      float64
+	monitor    *MonitorService
 	mu         sync.Mutex
 }
 
-func NewRRDService(bPath, sPath string, step int, gamma float64) StorageService {
+func NewRRDService(bPath, sPath string, step int, gamma float64, monitor *MonitorService) StorageService {
 	return &rrdService{
 		basePath:   bPath,
 		socketPath: sPath,
 		step:       step,
 		gamma:      gamma,
+		monitor:    monitor,
 	}
 }
 
@@ -122,7 +124,7 @@ func (s *rrdService) GetFlows(srcMACs []string, dstMACs []string, proto int, sch
 	return result, nil
 }
 
-// UpdateFlows updates a batch of RRD files with data from aggregated flow
+// UpdateFlows updates a batch of RRD files with data from the aggregated flow
 // Returns error
 func (s *rrdService) UpdateFlows(flows map[string]*models.AggregatedFlow) error {
 	if len(flows) == 0 {
@@ -135,6 +137,13 @@ func (s *rrdService) UpdateFlows(flows map[string]*models.AggregatedFlow) error 
 	var totalBytes4, totalBytes6 uint64
 
 	for _, flow := range flows {
+		s.monitor.Send(models.MonitorRecord{
+			Timestamp: now,
+			SrcMAC:    flow.SrcMAC,
+			DstMAC:    flow.DstMAC,
+			Bytes4:    flow.Bytes4,
+			Bytes6:    flow.Bytes6,
+		})
 		totalBytes4 += flow.Bytes4
 		totalBytes6 += flow.Bytes6
 

@@ -46,7 +46,9 @@ func main() {
 		listenAddress = ":6343"
 	}
 
-	storage := services.NewRRDService(rrdPath, rrdCache, models.RRDStep, rrdGamma)
+	monitorPath := os.Getenv("MONITOR_PIPE")
+	monitor := services.NewMonitorService(monitorPath)
+	storage := services.NewRRDService(rrdPath, rrdCache, models.RRDStep, rrdGamma, monitor)
 
 	processor := services.NewSflowService(models.RRDFlushInterval*time.Second, storage)
 	go processor.Start()
