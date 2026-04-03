@@ -156,7 +156,6 @@ func (s *rrdService) UpdateFlows(flows map[string]*models.AggregatedFlow) error 
 		cmdBuffer.WriteString(updateLine)
 	}
 
-	// Aggiungiamo l'aggiornamento per il file del TOTALE
 	totalDir := filepath.Join(s.basePath, "flows", "total")
 	totalFile := filepath.Join(totalDir, "total.rrd")
 

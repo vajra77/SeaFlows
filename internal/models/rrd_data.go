@@ -74,6 +74,9 @@ func NewRRDData(gamma float64, proto int, schedule string, pathOut, pathIn strin
 			return nil, err
 		}
 	}
+	// trim empty samples at the end
+	data.trimTrailingZeros(2)
+
 	return &data, nil
 }
 
@@ -207,4 +210,18 @@ func (d *RRDData) AddBiDirFiles(pathOut, pathIn string) error {
 		}
 	}
 	return nil
+}
+
+// trimTrailingZeros rimuove gli ultimi N campioni dalle slice dei dati
+func (d *RRDData) trimTrailingZeros(n int) {
+	if d.Length <= n {
+		return
+	}
+
+	newLength := d.Length - n
+	d.AvgIn = d.AvgIn[:newLength]
+	d.AvgOut = d.AvgOut[:newLength]
+	d.MaxIn = d.MaxIn[:newLength]
+	d.MaxOut = d.MaxOut[:newLength]
+	d.Length = newLength
 }
