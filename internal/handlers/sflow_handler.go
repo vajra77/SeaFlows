@@ -7,10 +7,19 @@ import (
 	"net"
 	"runtime"
 	"seaflows/internal/services"
+	"sync"
 	"time"
 
 	"seaflows/internal/models"
 )
+
+var bufferPool = sync.Pool{
+	New: func() interface{} {
+		// I pacchetti sFlow raramente superano i 1500 byte,
+		// ma manteniamo una dimensione di sicurezza.
+		return make([]byte, 65535)
+	},
+}
 
 type sFlowHandler struct {
 	listenAddr string
@@ -63,7 +72,7 @@ func (h *sFlowHandler) Listen(ctx context.Context) error {
 			case <-ctx.Done():
 				return
 			default:
-				buf := make([]byte, 65535)
+				buf := bufferPool.Get().([]byte)
 				n, _, err := conn.ReadFromUDP(buf)
 				if err != nil {
 					continue
@@ -82,6 +91,7 @@ func (h *sFlowHandler) worker(packetChan <-chan []byte) {
 		var dgram models.Datagram
 
 		if err := dgram.UnmarshalBinary(data); err != nil {
+			bufferPool.Put(capSlice(data))
 			continue
 		}
 
@@ -120,5 +130,10 @@ func (h *sFlowHandler) worker(packetChan <-chan []byte) {
 				}
 			}
 		}
+		bufferPool.Put(capSlice(data))
 	}
+}
+
+func capSlice(b []byte) []byte {
+	return b[:cap(b)]
 }
