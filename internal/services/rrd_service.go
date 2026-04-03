@@ -43,9 +43,6 @@ func (s *rrdService) GetFlow(srcMAC string, dstMAC string, proto int, schedule s
 	var pathOut, pathIn string
 	if srcMAC == "total" && dstMAC == "total" {
 		pathOut = filepath.Join(s.basePath, "flows", "total", "total.rrd")
-		// Per il totale, usiamo lo stesso file per IN e OUT (o lasciamo uno vuoto se preferisci)
-		// ma per la logica di RRDData, se mettiamo lo stesso file avremo dati duplicati.
-		// Quindi passiamo stringa vuota per pathIn.
 		pathIn = ""
 	} else {
 		pathOut = filepath.Join(s.basePath, "flows", srcMAC, fmt.Sprintf("flow_%s_to_%s.rrd", srcMAC, dstMAC))

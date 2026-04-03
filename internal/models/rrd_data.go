@@ -177,11 +177,21 @@ func (d *RRDData) AddBiDirFiles(pathOut, pathIn string) error {
 		if hasOut {
 			v := avgOut.Values()[i*2+dsIndex]
 			if !math.IsNaN(v) {
-				d.AvgOut[i][1] = d.AvgOut[i][1].(float64) + (v * 8 * d.Gamma)
+				val := v * 8 * d.Gamma
+				d.AvgOut[i][1] = d.AvgOut[i][1].(float64) + val
+				// Se non abbiamo un file di ingresso separato (caso del Totale),
+				// usiamo questo valore per entrambe le direzioni
+				if !hasIn {
+					d.AvgIn[i][1] = d.AvgIn[i][1].(float64) + val
+				}
 			}
 			vMax := maxOut.Values()[i*2+dsIndex]
 			if !math.IsNaN(vMax) {
-				d.MaxOut[i][1] = d.MaxOut[i][1].(float64) + (vMax * 8 * d.Gamma)
+				valMax := vMax * 8 * d.Gamma
+				d.MaxOut[i][1] = d.MaxOut[i][1].(float64) + valMax
+				if !hasIn {
+					d.MaxIn[i][1] = d.MaxIn[i][1].(float64) + valMax
+				}
 			}
 		}
 
