@@ -99,8 +99,7 @@ func (h *sFlowHandler) worker(packetChan <-chan []byte) {
 
 		for _, sample := range dgram.Samples {
 
-			isIngress := sample.InputIf != 0 && (sample.OutputIf == 0 || sample.OutputIf >= 0x80000000)
-			if !isIngress {
+			if sample.InputIf == 0 {
 				continue // ignore egress-only packets
 			}
 
