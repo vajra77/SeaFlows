@@ -142,6 +142,55 @@ func (h *apiHandler) GetAggregateFlow(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, data)
 }
 
+func (h *apiHandler) GetTotalFlow(ctx *gin.Context) {
+
+	sched := ctx.Query("schedule")
+	protoStr := ctx.Query("proto")
+	if sched == "" {
+		sched = "daily"
+	}
+
+	proto, err := strconv.Atoi(protoStr)
+	if err != nil && protoStr != "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid proto value, must be integer"})
+		return
+	}
+
+	// 1. Recuperiamo tutti gli ASN censiti nella mappa
+	asns := h.mapper.GetASNs()
+	if len(asns) == 0 {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "no ASNs found in mapper"})
+		return
+	}
+
+	// 2. Prepariamo le liste di MAC sorgenti e destinazioni.
+	// In questo caso, il traffico "totale" è dato da tutti i MAC conosciuti
+	// verso tutti i MAC conosciuti (o una logica simile basata sui tuoi requisiti).
+
+	// Otteniamo tutti i MAC associati a tutti gli AS
+	var allMACs []string
+	for _, asn := range asns {
+		macs := h.mapper.GetMACsFromAS(asn.ASN)
+		allMACs = append(allMACs, macs...)
+	}
+
+	if len(allMACs) == 0 {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "no MACs found for total flow calculation"})
+		return
+	}
+
+	// 3. Interroghiamo lo storage.
+	// Se h.storage.GetFlows accetta slice di MAC, possiamo passare la stessa lista
+	// sia come sorgente che come destinazione per avere il traffico globale del sistema.
+	data, err := h.storage.GetFlows(allMACs, allMACs, proto, sched)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, data)
+}
+
 func (h *apiHandler) GetMACs(ctx *gin.Context) {
 
 	var data []string
