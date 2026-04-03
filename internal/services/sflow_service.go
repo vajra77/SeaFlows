@@ -2,7 +2,6 @@ package services
 
 import (
 	"fmt"
-	"hash/fnv"
 	"log"
 	"seaflows/internal/models"
 	"sync"
@@ -10,6 +9,8 @@ import (
 )
 
 const shardCount = 32
+const offset32 = 2166136261
+const prime32 = 16777619
 
 type shard struct {
 	mu    sync.Mutex
@@ -42,10 +43,20 @@ func NewSflowService(interval time.Duration, storage StorageService) FlowProcess
 }
 
 func (s *sflowService) getShard(src, dst string) *shard {
-	h := fnv.New32a()
-	_, _ = h.Write([]byte(src))
-	_, _ = h.Write([]byte(dst))
-	return s.shards[h.Sum32()%shardCount]
+	var hash uint32 = offset32
+
+	// Hash della sorgente
+	for i := 0; i < len(src); i++ {
+		hash ^= uint32(src[i])
+		hash *= prime32
+	}
+	// Hash della destinazione
+	for i := 0; i < len(dst); i++ {
+		hash ^= uint32(dst[i])
+		hash *= prime32
+	}
+
+	return s.shards[hash%shardCount]
 }
 
 // Process processes an sflow data container and stores values
