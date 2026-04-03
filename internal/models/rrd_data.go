@@ -68,7 +68,7 @@ func NewRRDData(gamma float64, proto int, schedule string, pathOut, pathIn strin
 		Length:   0,
 	}
 
-	if pathIn != "" && pathOut != "" {
+	if pathIn != "" || pathOut != "" {
 		err := data.AddBiDirFiles(pathOut, pathIn)
 		if err != nil {
 			return nil, err
