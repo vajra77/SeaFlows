@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	"log"
 	"seaflows/internal/models"
 	"sync"
@@ -12,9 +11,15 @@ const shardCount = 32
 const offset32 = 2166136261
 const prime32 = 16777619
 
+type flowKey struct {
+	srcMAC string
+	dstMAC string
+	ipv    int
+}
+
 type shard struct {
 	mu    sync.Mutex
-	items map[string]*models.SflowData
+	items map[flowKey]*models.SflowData
 }
 
 type sflowService struct {
@@ -35,7 +40,7 @@ func NewSflowService(interval time.Duration, storage StorageService) FlowProcess
 
 	for i := 0; i < shardCount; i++ {
 		s.shards[i] = &shard{
-			items: make(map[string]*models.SflowData),
+			items: make(map[flowKey]*models.SflowData),
 		}
 	}
 
@@ -62,7 +67,13 @@ func (s *sflowService) getShard(src, dst string) *shard {
 // Process processes an sflow data container and stores values
 func (s *sflowService) Process(data *models.SflowData) {
 
-	key := fmt.Sprintf("%s-%s-%d", data.SrcMAC, data.DstMAC, data.IPv)
+	//key := fmt.Sprintf("%s-%s-%d", data.SrcMAC, data.DstMAC, data.IPv)
+	key := flowKey{
+		srcMAC: data.SrcMAC,
+		dstMAC: data.DstMAC,
+		ipv:    data.IPv,
+	}
+
 	sh := s.getShard(data.SrcMAC, data.DstMAC)
 
 	sh.mu.Lock()
@@ -105,30 +116,32 @@ func (s *sflowService) Stop() {
 // flush dumps data to storage
 func (s *sflowService) flush() {
 	// Raccogliamo i dati da tutti gli shard
-	allData := make([]map[string]*models.SflowData, shardCount)
+	allData := make([]map[flowKey]*models.SflowData, shardCount)
 	for i := 0; i < shardCount; i++ {
 		s.shards[i].mu.Lock()
 		allData[i] = s.shards[i].items
-		s.shards[i].items = make(map[string]*models.SflowData)
+		s.shards[i].items = make(map[flowKey]*models.SflowData)
 		s.shards[i].mu.Unlock()
 	}
 
-	// Gruppiamo i flussi per aggregare v4/v6 data
-	grouped := make(map[string]*models.AggregatedFlow)
+	type groupKey struct {
+		src, dst string
+	}
+	grouped := make(map[groupKey]*models.AggregatedFlow)
 
 	for _, snapshot := range allData {
-		for _, data := range snapshot {
-			key := data.SrcMAC + "-" + data.DstMAC
-			if _, exists := grouped[key]; !exists {
-				grouped[key] = &models.AggregatedFlow{
+		for key, data := range snapshot {
+			gKey := groupKey{key.srcMAC, key.dstMAC}
+			if _, exists := grouped[gKey]; !exists {
+				grouped[gKey] = &models.AggregatedFlow{
 					SrcMAC: data.SrcMAC,
 					DstMAC: data.DstMAC,
 				}
 			}
 			if data.IPv == 4 {
-				grouped[key].Bytes4 += data.Size
+				grouped[gKey].Bytes4 += data.Size
 			} else if data.IPv == 6 {
-				grouped[key].Bytes6 += data.Size
+				grouped[gKey].Bytes6 += data.Size
 			}
 		}
 	}
@@ -137,8 +150,13 @@ func (s *sflowService) flush() {
 		return
 	}
 
+	finalBatch := make(map[string]*models.AggregatedFlow)
+	for k, v := range grouped {
+		finalBatch[k.src+"-"+k.dst] = v
+	}
+
 	// batch store data
-	err := s.storage.UpdateFlows(grouped)
+	err := s.storage.UpdateFlows(finalBatch)
 	if err != nil {
 		log.Println("[ERR] Error while flushing batch:", err)
 	}
