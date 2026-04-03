@@ -12,10 +12,13 @@ type MonitorService struct {
 	dataChan chan models.MonitorRecord
 }
 
-func NewMonitorService(path string) *MonitorService {
+func NewMonitorService(path string) (*MonitorService, error) {
 	// Crea la FIFO se non esiste
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		_ = syscall.Mkfifo(path, 0666)
+		err = syscall.Mkfifo(path, 0666)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	ms := &MonitorService{
@@ -25,7 +28,7 @@ func NewMonitorService(path string) *MonitorService {
 	}
 
 	go ms.start()
-	return ms
+	return ms, nil
 }
 
 func (ms *MonitorService) Send(record models.MonitorRecord) {

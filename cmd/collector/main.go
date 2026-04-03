@@ -50,7 +50,11 @@ func main() {
 	if monitorPath == "" {
 		monitorPath = "/tmp/seaflows.fifo"
 	}
-	monitor := services.NewMonitorService(monitorPath)
+	monitor, err := services.NewMonitorService(monitorPath)
+	if err != nil {
+		log.Printf("[ERR] unable to create monitor service: %v", err)
+		return
+	}
 	storage := services.NewRRDService(rrdPath, rrdCache, models.RRDStep, rrdGamma, monitor)
 
 	processor := services.NewSflowService(models.RRDFlushInterval*time.Second, storage)
@@ -63,5 +67,4 @@ func main() {
 	}
 
 	processor.Stop()
-
 }
