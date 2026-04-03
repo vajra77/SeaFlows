@@ -53,7 +53,7 @@ func main() {
 		log.Fatal("[CRIT] unable to initialize map service")
 	}
 
-	rrdSrv := services.NewRRDService(rrdPath, rrdCache, models.RRDStep, rrdGamma)
+	rrdSrv := services.NewRRDService(rrdPath, rrdCache, models.RRDStep, rrdGamma, "")
 	api := handlers.NewAPIHandler(rrdSrv, mapSrv)
 
 	// setup Gin
