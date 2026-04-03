@@ -58,7 +58,7 @@ func NewRRDData(gamma float64, proto int, schedule string, pathOut, pathIn strin
 		stepDuration = D * time.Second
 	}
 
-	data := RRDData{
+	data := &RRDData{
 		Gamma:    gamma,
 		Proto:    proto,
 		Schedule: schedule,
@@ -77,7 +77,7 @@ func NewRRDData(gamma float64, proto int, schedule string, pathOut, pathIn strin
 	// trim empty samples at the end
 	data.trimTrailingZeros(2)
 
-	return &data, nil
+	return data, nil
 }
 
 func (d *RRDData) Add(other *RRDData) error {
