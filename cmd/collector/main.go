@@ -47,6 +47,9 @@ func main() {
 	}
 
 	monitorPath := os.Getenv("MONITOR_PIPE")
+	if monitorPath == "" {
+		monitorPath = "/tmp/seaflows.fifo"
+	}
 	monitor := services.NewMonitorService(monitorPath)
 	storage := services.NewRRDService(rrdPath, rrdCache, models.RRDStep, rrdGamma, monitor)
 
