@@ -40,8 +40,17 @@ func NewRRDService(bPath, sPath string, step int, gamma float64) StorageService 
 func (s *rrdService) GetFlow(srcMAC string, dstMAC string, proto int, schedule string) (*models.RRDData, error) {
 
 	// build forward and reverse path (src->dst/src<-dst)
-	pathOut := filepath.Join(s.basePath, "flows", srcMAC, fmt.Sprintf("flow_%s_to_%s.rrd", srcMAC, dstMAC))
-	pathIn := filepath.Join(s.basePath, "flows", dstMAC, fmt.Sprintf("flow_%s_to_%s.rrd", dstMAC, srcMAC))
+	var pathOut, pathIn string
+	if srcMAC == "total" && dstMAC == "total" {
+		pathOut = filepath.Join(s.basePath, "flows", "total", "total.rrd")
+		// Per il totale, usiamo lo stesso file per IN e OUT (o lasciamo uno vuoto se preferisci)
+		// ma per la logica di RRDData, se mettiamo lo stesso file avremo dati duplicati.
+		// Quindi passiamo stringa vuota per pathIn.
+		pathIn = ""
+	} else {
+		pathOut = filepath.Join(s.basePath, "flows", srcMAC, fmt.Sprintf("flow_%s_to_%s.rrd", srcMAC, dstMAC))
+		pathIn = filepath.Join(s.basePath, "flows", dstMAC, fmt.Sprintf("flow_%s_to_%s.rrd", dstMAC, srcMAC))
+	}
 
 	// create a new RRDData container with data sourced from pathOut,pathIn RRD files
 	data, err := models.NewRRDData(s.gamma, proto, schedule, pathOut, pathIn)
@@ -126,7 +135,12 @@ func (s *rrdService) UpdateFlows(flows map[string]*models.AggregatedFlow) error 
 	now := time.Now().Unix()
 	var cmdBuffer bytes.Buffer
 
+	var totalBytes4, totalBytes6 uint64
+
 	for _, flow := range flows {
+		totalBytes4 += flow.Bytes4
+		totalBytes6 += flow.Bytes6
+
 		dir := filepath.Join(s.basePath, "flows", flow.SrcMAC)
 		fileName := fmt.Sprintf("flow_%s_to_%s.rrd", flow.SrcMAC, flow.DstMAC)
 		fullPath := filepath.Join(dir, fileName)
@@ -145,6 +159,21 @@ func (s *rrdService) UpdateFlows(flows map[string]*models.AggregatedFlow) error 
 		cmdBuffer.WriteString(updateLine)
 	}
 
+	// Aggiungiamo l'aggiornamento per il file del TOTALE
+	totalDir := filepath.Join(s.basePath, "flows", "total")
+	totalFile := filepath.Join(totalDir, "total.rrd")
+
+	if _, err := os.Stat(totalFile); os.IsNotExist(err) {
+		s.mu.Lock()
+		if _, err := os.Stat(totalFile); os.IsNotExist(err) {
+			if err := s.createRRDFile(totalDir, totalFile); err != nil {
+				log.Printf("[WARN] Failed to create total RRD file: %v", err)
+			}
+		}
+		s.mu.Unlock()
+	}
+
+	cmdBuffer.WriteString(fmt.Sprintf("UPDATE %s %d:%d:%d\n", totalFile, now, totalBytes4, totalBytes6))
 	cmdBuffer.WriteString(".\n")
 
 	conn, err := net.Dial("unix", s.socketPath)

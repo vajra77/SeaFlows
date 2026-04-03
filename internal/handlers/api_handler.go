@@ -24,6 +24,26 @@ func NewAPIHandler(rrdS services.StorageService, mapS services.AddressMapperServ
 }
 
 func (h *apiHandler) GetTotalFlow(ctx *gin.Context) {
+	sched := ctx.Query("schedule")
+	protoStr := ctx.Query("proto")
+	if sched == "" {
+		sched = "daily"
+	}
+
+	proto, err := strconv.Atoi(protoStr)
+	if err != nil && protoStr != "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid proto value"})
+		return
+	}
+
+	// Chiamata istantanea al file pre-aggregato
+	data, err := h.storage.GetFlow("total", "total", proto, sched)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Pre-aggregated data not available"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, data)
 }
 
 func (h *apiHandler) GetSingleFlow(ctx *gin.Context) {
