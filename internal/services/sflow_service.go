@@ -2,47 +2,69 @@ package services
 
 import (
 	"fmt"
+	"hash/fnv"
 	"log"
 	"seaflows/internal/models"
 	"sync"
 	"time"
 )
 
+const shardCount = 32
+
+type shard struct {
+	mu    sync.Mutex
+	items map[string]*models.SflowData
+}
+
 type sflowService struct {
-	mu            sync.Mutex
+	shards        [shardCount]*shard
 	ticker        *time.Ticker
-	items         map[string]*models.SflowData
 	flushInterval time.Duration
 	storage       StorageService
 	done          chan struct{}
 }
 
 func NewSflowService(interval time.Duration, storage StorageService) FlowProcessorService {
-	return &sflowService{
-		items:         make(map[string]*models.SflowData),
+	s := &sflowService{
 		flushInterval: interval,
 		ticker:        time.NewTicker(interval),
 		storage:       storage,
 		done:          make(chan struct{}),
 	}
+
+	for i := 0; i < shardCount; i++ {
+		s.shards[i] = &shard{
+			items: make(map[string]*models.SflowData),
+		}
+	}
+
+	return s
+}
+
+func (s *sflowService) getShard(src, dst string) *shard {
+	h := fnv.New32a()
+	_, _ = h.Write([]byte(src))
+	_, _ = h.Write([]byte(dst))
+	return s.shards[h.Sum32()%shardCount]
 }
 
 // Process processes an sflow data container and stores values
 func (s *sflowService) Process(data *models.SflowData) {
 
 	key := fmt.Sprintf("%s-%s-%d", data.SrcMAC, data.DstMAC, data.IPv)
+	sh := s.getShard(data.SrcMAC, data.DstMAC)
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	sh.mu.Lock()
+	defer sh.mu.Unlock()
 
 	// if flow exists, add data
-	if existing, ok := s.items[key]; ok {
+	if existing, ok := sh.items[key]; ok {
 		existing.Size += data.SamplingRate * data.Size
 		existing.Timestamp = data.Timestamp
 	} else {
 		newData := *data
 		newData.Size = data.SamplingRate * data.Size
-		s.items[key] = &newData
+		sh.items[key] = &newData
 	}
 }
 
@@ -71,33 +93,37 @@ func (s *sflowService) Stop() {
 
 // flush dumps data to storage
 func (s *sflowService) flush() {
-	// locks and snap a shot of accumulated data
-	s.mu.Lock()
-	snapshot := s.items
-	// re-initialize data store and unlock
-	s.items = make(map[string]*models.SflowData)
-	s.mu.Unlock()
-
-	if len(snapshot) == 0 {
-		return
+	// Raccogliamo i dati da tutti gli shard
+	allData := make([]map[string]*models.SflowData, shardCount)
+	for i := 0; i < shardCount; i++ {
+		s.shards[i].mu.Lock()
+		allData[i] = s.shards[i].items
+		s.shards[i].items = make(map[string]*models.SflowData)
+		s.shards[i].mu.Unlock()
 	}
 
-	// works on snapshot by furtherly grouping flows to aggregate v4/v6 data
+	// Gruppiamo i flussi per aggregare v4/v6 data
 	grouped := make(map[string]*models.AggregatedFlow)
 
-	for _, data := range snapshot {
-		key := data.SrcMAC + "-" + data.DstMAC
-		if _, exists := grouped[key]; !exists {
-			grouped[key] = &models.AggregatedFlow{
-				SrcMAC: data.SrcMAC,
-				DstMAC: data.DstMAC,
+	for _, snapshot := range allData {
+		for _, data := range snapshot {
+			key := data.SrcMAC + "-" + data.DstMAC
+			if _, exists := grouped[key]; !exists {
+				grouped[key] = &models.AggregatedFlow{
+					SrcMAC: data.SrcMAC,
+					DstMAC: data.DstMAC,
+				}
+			}
+			if data.IPv == 4 {
+				grouped[key].Bytes4 += data.Size
+			} else if data.IPv == 6 {
+				grouped[key].Bytes6 += data.Size
 			}
 		}
-		if data.IPv == 4 {
-			grouped[key].Bytes4 += data.Size
-		} else if data.IPv == 6 {
-			grouped[key].Bytes6 += data.Size
-		}
+	}
+
+	if len(grouped) == 0 {
+		return
 	}
 
 	// batch store data
