@@ -6,93 +6,24 @@ import (
 	"seaflows/internal/services"
 	"strconv"
 	"strings"
-	"sync"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 type apiHandler struct {
-	storage    services.StorageService
-	mapper     services.AddressMapperService
-	totalCache map[string]interface{}
-	cacheMu    sync.Mutex
+	storage services.StorageService
+	mapper  services.AddressMapperService
 }
 
 func NewAPIHandler(rrdS services.StorageService, mapS services.AddressMapperService) APIHandler {
 	h := &apiHandler{
-		storage:    rrdS,
-		mapper:     mapS,
-		totalCache: make(map[string]interface{}),
+		storage: rrdS,
+		mapper:  mapS,
 	}
-
-	go h.startTotalFlowRefresh(10 * time.Minute)
 	return h
 }
 
-func (h *apiHandler) startTotalFlowRefresh(interval time.Duration) {
-	ticker := time.NewTicker(interval)
-	defer ticker.Stop()
-
-	// Eseguiamo il primo calcolo subito
-	h.refreshCache()
-
-	for range ticker.C {
-		h.refreshCache()
-	}
-}
-
-func (h *apiHandler) refreshCache() {
-	// Implementazione del calcolo pesante
-	asns := h.mapper.GetASNs()
-	if len(asns) == 0 {
-		return
-	}
-
-	var allMACs []string
-	for _, asn := range asns {
-		macs := h.mapper.GetMACsFromAS(asn.ASN)
-		allMACs = append(allMACs, macs...)
-	}
-
-	// Nota: qui potresti voler iterare per i vari protocolli/schedules comuni
-	// Per semplicità ora gestiamo una chiave combinata
-	schedules := []string{"daily", "weekly", "monthly", "yearly"}
-	protocols := []int{0, 4, 6}
-
-	for _, s := range schedules {
-		for _, p := range protocols {
-			data, err := h.storage.GetFlows(allMACs, allMACs, p, s)
-			if err == nil {
-				key := fmt.Sprintf("%s-%d", s, p)
-				h.cacheMu.Lock()
-				h.totalCache[key] = data
-				h.cacheMu.Unlock()
-			}
-		}
-	}
-}
-
 func (h *apiHandler) GetTotalFlow(ctx *gin.Context) {
-	sched := ctx.Query("schedule")
-	if sched == "" {
-		sched = "daily"
-	}
-	protoStr := ctx.Query("proto")
-	proto, _ := strconv.Atoi(protoStr)
-
-	key := fmt.Sprintf("%s-%d", sched, proto)
-
-	h.cacheMu.Lock()
-	data, exists := h.totalCache[key]
-	h.cacheMu.Unlock()
-
-	if !exists {
-		ctx.JSON(http.StatusAccepted, gin.H{"message": "Data is being calculated, please try again later"})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, data)
 }
 
 func (h *apiHandler) GetSingleFlow(ctx *gin.Context) {
