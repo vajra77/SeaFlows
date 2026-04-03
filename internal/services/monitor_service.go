@@ -2,7 +2,6 @@ package services
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"seaflows/internal/models"
@@ -14,17 +13,19 @@ type MonitorService struct {
 	dataChan chan models.MonitorRecord
 }
 
-func NewMonitorService(path string) (*MonitorService, error) {
-	_ = os.Remove(path)
+func NewMonitorService(path string) *MonitorService {
 
+	if path == "" {
+		return nil
+	}
+
+	_ = os.Remove(path)
 	err := syscall.Mkfifo(path, 0666)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create named pipe at %s: %w", path, err)
+		log.Printf("[WARN] Failed to create monitor pipe: %v", err)
+		return nil
 	}
-
-	if err := os.Chmod(path, 0666); err != nil {
-		log.Printf("[WARN] unable to chmod pipe: %v", err)
-	}
+	_ = os.Chmod(path, 0666)
 
 	ms := &MonitorService{
 		pipePath: path,
@@ -33,10 +34,13 @@ func NewMonitorService(path string) (*MonitorService, error) {
 
 	go ms.start()
 	log.Printf("[INFO] Monitor service started on pipe: %s", path)
-	return ms, nil
+	return ms
 }
 
 func (ms *MonitorService) Send(record models.MonitorRecord) {
+	if ms == nil {
+		return
+	}
 	select {
 	case ms.dataChan <- record:
 	default:

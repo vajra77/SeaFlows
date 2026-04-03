@@ -47,15 +47,7 @@ func main() {
 	}
 
 	monitorPath := os.Getenv("MONITOR_PIPE")
-	if monitorPath == "" {
-		monitorPath = "/tmp/seaflows.fifo"
-	}
-	monitor, err := services.NewMonitorService(monitorPath)
-	if err != nil {
-		log.Printf("[ERR] unable to create monitor service: %v", err)
-		return
-	}
-	storage := services.NewRRDService(rrdPath, rrdCache, models.RRDStep, rrdGamma, monitor)
+	storage := services.NewRRDService(rrdPath, rrdCache, models.RRDStep, rrdGamma, monitorPath)
 
 	processor := services.NewSflowService(models.RRDFlushInterval*time.Second, storage)
 	go processor.Start()
