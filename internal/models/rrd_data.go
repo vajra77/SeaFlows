@@ -75,7 +75,7 @@ func NewRRDData(gamma float64, proto int, schedule string, pathOut, pathIn strin
 		}
 	}
 	// trim empty samples at the end
-	data.trimTrailingZeros(2)
+	data.trimTrailingZeros()
 
 	return data, nil
 }
@@ -212,16 +212,29 @@ func (d *RRDData) AddBiDirFiles(pathOut, pathIn string) error {
 	return nil
 }
 
-// trimTrailingZeros rimuove gli ultimi N campioni dalle slice dei dati
-func (d *RRDData) trimTrailingZeros(n int) {
-	if d.Length <= n {
+func (d *RRDData) trimTrailingZeros() {
+	if d.Length == 0 {
 		return
 	}
 
-	newLength := d.Length - n
-	d.AvgIn = d.AvgIn[:newLength]
-	d.AvgOut = d.AvgOut[:newLength]
-	d.MaxIn = d.MaxIn[:newLength]
-	d.MaxOut = d.MaxOut[:newLength]
-	d.Length = newLength
+	i := d.Length - 1
+	// Scorriamo all'indietro finché troviamo zeri in entrambe le direzioni
+	for i >= 0 {
+		valIn := d.AvgIn[i][1].(float64)
+		valOut := d.AvgOut[i][1].(float64)
+
+		if valIn > 0 || valOut > 0 {
+			break
+		}
+		i--
+	}
+
+	newLength := i + 1
+	if newLength < d.Length {
+		d.AvgIn = d.AvgIn[:newLength]
+		d.AvgOut = d.AvgOut[:newLength]
+		d.MaxIn = d.MaxIn[:newLength]
+		d.MaxOut = d.MaxOut[:newLength]
+		d.Length = newLength
+	}
 }
