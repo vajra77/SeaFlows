@@ -43,6 +43,8 @@ func (h *apiHandler) GetTotalFlow(ctx *gin.Context) {
 		return
 	}
 
+	data.TrimTrailingZeros()
+
 	ctx.JSON(http.StatusOK, data)
 }
 
@@ -72,6 +74,8 @@ func (h *apiHandler) GetSingleFlow(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
+
+	data.TrimTrailingZeros()
 
 	ctx.JSON(http.StatusOK, data)
 }
@@ -123,6 +127,8 @@ func (h *apiHandler) GetP2PFlow(ctx *gin.Context) {
 		return
 	}
 
+	data.TrimTrailingZeros()
+
 	ctx.JSON(http.StatusOK, data)
 }
 
@@ -162,6 +168,8 @@ func (h *apiHandler) GetAggregateFlow(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
+
+	data.TrimTrailingZeros()
 
 	ctx.JSON(http.StatusOK, data)
 }

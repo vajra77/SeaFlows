@@ -74,8 +74,6 @@ func NewRRDData(gamma float64, proto int, schedule string, pathOut, pathIn strin
 			return nil, err
 		}
 	}
-	// trim empty samples at the end
-	data.trimTrailingZeros()
 
 	return data, nil
 }
@@ -212,7 +210,7 @@ func (d *RRDData) AddBiDirFiles(pathOut, pathIn string) error {
 	return nil
 }
 
-func (d *RRDData) trimTrailingZeros() {
+func (d *RRDData) TrimTrailingZeros() {
 	if d.Length == 0 {
 		return
 	}
