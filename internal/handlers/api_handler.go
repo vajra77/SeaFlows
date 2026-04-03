@@ -6,20 +6,93 @@ import (
 	"seaflows/internal/services"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 type apiHandler struct {
-	storage services.StorageService
-	mapper  services.AddressMapperService
+	storage    services.StorageService
+	mapper     services.AddressMapperService
+	totalCache map[string]interface{}
+	cacheMu    sync.Mutex
 }
 
 func NewAPIHandler(rrdS services.StorageService, mapS services.AddressMapperService) APIHandler {
-	return &apiHandler{
-		storage: rrdS,
-		mapper:  mapS,
+	h := &apiHandler{
+		storage:    rrdS,
+		mapper:     mapS,
+		totalCache: make(map[string]interface{}),
 	}
+
+	go h.startTotalFlowRefresh(10 * time.Minute)
+	return h
+}
+
+func (h *apiHandler) startTotalFlowRefresh(interval time.Duration) {
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
+	// Eseguiamo il primo calcolo subito
+	h.refreshCache()
+
+	for range ticker.C {
+		h.refreshCache()
+	}
+}
+
+func (h *apiHandler) refreshCache() {
+	// Implementazione del calcolo pesante
+	asns := h.mapper.GetASNs()
+	if len(asns) == 0 {
+		return
+	}
+
+	var allMACs []string
+	for _, asn := range asns {
+		macs := h.mapper.GetMACsFromAS(asn.ASN)
+		allMACs = append(allMACs, macs...)
+	}
+
+	// Nota: qui potresti voler iterare per i vari protocolli/schedules comuni
+	// Per semplicità ora gestiamo una chiave combinata
+	schedules := []string{"daily", "weekly", "monthly", "yearly"}
+	protocols := []int{0, 4, 6}
+
+	for _, s := range schedules {
+		for _, p := range protocols {
+			data, err := h.storage.GetFlows(allMACs, allMACs, p, s)
+			if err == nil {
+				key := fmt.Sprintf("%s-%d", s, p)
+				h.cacheMu.Lock()
+				h.totalCache[key] = data
+				h.cacheMu.Unlock()
+			}
+		}
+	}
+}
+
+func (h *apiHandler) GetTotalFlow(ctx *gin.Context) {
+	sched := ctx.Query("schedule")
+	if sched == "" {
+		sched = "daily"
+	}
+	protoStr := ctx.Query("proto")
+	proto, _ := strconv.Atoi(protoStr)
+
+	key := fmt.Sprintf("%s-%d", sched, proto)
+
+	h.cacheMu.Lock()
+	data, exists := h.totalCache[key]
+	h.cacheMu.Unlock()
+
+	if !exists {
+		ctx.JSON(http.StatusAccepted, gin.H{"message": "Data is being calculated, please try again later"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, data)
 }
 
 func (h *apiHandler) GetSingleFlow(ctx *gin.Context) {
@@ -136,55 +209,6 @@ func (h *apiHandler) GetAggregateFlow(ctx *gin.Context) {
 	data, err := h.storage.GetFlows(srcMACs, dstMACs, proto, sched)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, data)
-}
-
-func (h *apiHandler) GetTotalFlow(ctx *gin.Context) {
-
-	sched := ctx.Query("schedule")
-	protoStr := ctx.Query("proto")
-	if sched == "" {
-		sched = "daily"
-	}
-
-	proto, err := strconv.Atoi(protoStr)
-	if err != nil && protoStr != "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid proto value, must be integer"})
-		return
-	}
-
-	// 1. Recuperiamo tutti gli ASN censiti nella mappa
-	asns := h.mapper.GetASNs()
-	if len(asns) == 0 {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "no ASNs found in mapper"})
-		return
-	}
-
-	// 2. Prepariamo le liste di MAC sorgenti e destinazioni.
-	// In questo caso, il traffico "totale" è dato da tutti i MAC conosciuti
-	// verso tutti i MAC conosciuti (o una logica simile basata sui tuoi requisiti).
-
-	// Otteniamo tutti i MAC associati a tutti gli AS
-	var allMACs []string
-	for _, asn := range asns {
-		macs := h.mapper.GetMACsFromAS(asn.ASN)
-		allMACs = append(allMACs, macs...)
-	}
-
-	if len(allMACs) == 0 {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "no MACs found for total flow calculation"})
-		return
-	}
-
-	// 3. Interroghiamo lo storage.
-	// Se h.storage.GetFlows accetta slice di MAC, possiamo passare la stessa lista
-	// sia come sorgente che come destinazione per avere il traffico globale del sistema.
-	data, err := h.storage.GetFlows(allMACs, allMACs, proto, sched)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
